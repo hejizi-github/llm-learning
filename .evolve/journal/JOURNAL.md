@@ -25,11 +25,12 @@
 <!-- meta: verdict:PASS score:8.8 test_delta:+43 -->
 
 ### 失败/回退分析
-无失败回退。引用处理（GPT-2 无 arXiv）一次性解决，按照 GPT-1 先例处理，流程已固化。
+无交付失败回退。但 RLVR 反射信号报告 test_delta=+0（实际 +43）——这是系统性误报：`.test_count_cache` 文件正确写入 155，`pytest --collect-only` 确认 155 条测试，delta 确实为 +43。根因疑为 RLVR harness 在 reflection 触发时读取的计算基准与 cache 文件不一致（可能读 session_metrics.jsonl，该文件 test_count=0 的 bug 已连续两次出现）。可提炼规律：RLVR +0 不总是真实零增量，需先用 pytest collect 验证实际数量。
 
 ### 下次不同做
 - 节点10 GPT-3（2020）三件套在同一 session 一次性交付，重点覆盖 1750 亿参数的规模化突破 + few-shot prompting 质的飞跃 + in-context learning 机制
-- session 结束后立即验证 `.evolve/memory/.test_count_cache_<session_id>` 写入值为实际 test_count（非 0）
+- RLVR 报 test_delta=+0 时，先运行 `python3 -m pytest --collect-only -q tests/ | tail -1` 确认实际数量再决策，不要因误报盲目切换方向
+- 修复 session_metrics.jsonl 写入 bug：session_id 写成上一 session、test_count 写成 0，已连续两次出现
 
 ---
 

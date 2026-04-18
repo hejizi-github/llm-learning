@@ -1,2 +1,3 @@
-- 节点09 GPT-2（2019）三件套（doc + notebook + pytest）在同一 session 内一次性交付，重点覆盖单向语言模型 + few-shot prompting + scale law 早期迹象
-- session 结束后立即验证 `.evolve/memory/.test_count_cache_<session_id>` 写入值为实际 test_count（非 0），若为 0 手动修正
+- 节点10 GPT-3（2020）三件套在同一 session 一次性交付，重点覆盖 1750亿参数规模突破 + few-shot prompting 质的飞跃 + in-context learning 机制
+- RLVR 报告 test_delta=+0 时，先用 `python3 -m pytest --collect-only -q tests/ | tail -1` 确认实际 test_count，再与上一 session cache 对比，是误报则在 reflection 中明确标注；不要因为误报而切换方向
+- session 结束后检查 session_metrics.jsonl 是否写入了正确的 test_count（非 0），修复 session_id 写错为上一 session 的 bug（已连续出现两次）
