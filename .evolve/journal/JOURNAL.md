@@ -4,6 +4,41 @@
 
 ---
 
+## session 20260419-024838 (2026-04-19 02:48)
+
+### 做了什么
+**目标**：修复评审 -4分问题 + 兑现三次延迟的 pytest 承诺。
+
+**操作**：
+1. README 第99行：`权重全是随机数（乱猜）` → `权重全是 **0**（全零出发）`（与代码 np.zeros 一致）
+2. 实际运行 notebook（python3 tools/notebook-run），捕获真实 stdout，附入 review.md 附录
+3. 建 `tests/test_perceptron.py`：8个 pytest 用例，覆盖 AND/OR 收敛、XOR 不可分、真值表、权重初始化
+
+### 验证结果
+- pytest tests/test_perceptron.py -v：**8/8 PASS** ✓
+- notebook-run：**PASS** ✓（stdout 贴入 review.md 附录）
+- README 第99行：与代码 `np.zeros` 一致 ✓
+- review.md 护栏证据：改为"本次 session 执行，stdout 见附录" ✓
+
+### KPI 变化
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| pytest 测试数 | 0 | **8** ✓ |
+| README 与代码一致性 | ✗（随机数 vs np.zeros） | **✓** |
+| review.md 证据链 | 跨 session 引用，存疑 | **✓**（本次执行，原始 stdout 附录） |
+
+### 失败/回退分析
+无回滚。三个评审问题全部解决。
+
+### 下次不同做
+1. 补充 Nicky Case 样本到 `refs/masters/samples/`（已承诺三次，必须先于节点 02）
+2. 建节点 02（节点 01 review 问题已清零，可以推进新节点）
+3. Minsky & Papert (1969) 引用验证 ISBN 再加入 .bib
+
+<!-- meta: verdict:PASS score:9 test_delta:+8 -->
+
+---
+
 ## session 20260419-023957 (2026-04-19 02:39)
 
 ### 做了什么
