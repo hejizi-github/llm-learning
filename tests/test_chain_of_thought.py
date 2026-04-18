@@ -136,17 +136,31 @@ class TestZeroShotCoT:
 
 class TestCoTProperties:
     def test_step_decomposition_reduces_error_propagation(self):
-        """分步推理：每步误差上界为1，比整体猜测误差更小"""
+        """CoT 总误差上界（±2）比直接回答平均误差更小（a∈[10,20]时直接误差可达±6）"""
         rng = np.random.RandomState(5)
-        step_errors = []
-        for _ in range(200):
-            a = rng.randint(5, 20)
+        cot_errors = []
+        direct_errors = []
+        for _ in range(500):
+            a = rng.randint(10, 20)  # 保证 a//3 >= 3，直接回答误差 > CoT 上界
             b = rng.randint(1, 10)
             c = rng.randint(1, 8)
-            # CoT 单步误差
-            step1 = (a + b) + rng.randint(-1, 2)
-            step1_err = abs(step1 - (a + b))
-            assert step1_err <= 1, "Each CoT step should have error <= 1"
+            true_ans = a + b - c
+            # CoT：两步各±1，总误差范围 [-2, 2]
+            cot_pred = cot_answer(a, b, c, rng)
+            cot_errors.append(abs(cot_pred - true_ans))
+            # 直接回答：误差范围 ±(a//3)
+            std_pred = standard_answer(a, b, c, rng)
+            direct_errors.append(abs(std_pred - true_ans))
+
+        # CoT 平均误差 < 直接回答平均误差（如果改大 CoT 步骤噪声这个断言会失败）
+        assert np.mean(cot_errors) < np.mean(direct_errors), (
+            f"CoT avg error {np.mean(cot_errors):.2f} should < direct avg error "
+            f"{np.mean(direct_errors):.2f}"
+        )
+        # CoT 最大误差上界为 2（两步各±1）
+        assert max(cot_errors) <= 2, (
+            f"CoT max error {max(cot_errors)} exceeds expected bound of 2"
+        )
 
     def test_more_steps_makes_direct_harder(self):
         """三步运算时，直接回答比两步误差更大"""

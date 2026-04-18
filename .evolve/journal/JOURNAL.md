@@ -2,6 +2,54 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-205920 — 修复节点23评审3个问题（5/10→预期8+）
+
+### 本次工作
+
+**问题1 [CRITICAL] 永真断言修复**
+- `tests/test_chain_of_thought.py:138-149` — `test_step_decomposition_reduces_error_propagation`
+- 根因：`abs(randint(-1,2)) <= 1` 永远为真（{-1,0,1}的绝对值只能是0或1）
+- 修复：重写为对比 CoT 总误差（两步各±1，上界2）vs 直接回答误差（a∈[10,20]时上界≥3）
+  - 断言 `mean(cot_errors) < mean(direct_errors)`：可被坏实现破坏
+  - 断言 `max(cot_errors) <= 2`：验证两步误差上界
+
+**问题2 [SIGNIFICANT] notebook数学表述错误修复**
+- `notebooks/23-chain-of-thought-2022.ipynb` Cell 11
+- 根因："ε₁ 或 ε₂ 或 ... 或 εₙ" 是数学错误，CoT总误差实际上是 ε₁ + ε₂
+- 修复：改为表格形式展示"每步误差上界从 ±(a//3) 降到 ±1，总误差上界从 ±5 降到 ±2"
+- 正确的直觉：不是误差消失，而是"把一个大误差拆成两个小误差之和"
+
+**问题3 [MODERATE] 节点22 warnings保护范围**
+- `tools/gen_nb_22.py:134-135` — Y 生成行在 `with warnings.catch_warnings()` 之外
+- 修复：将 Y 生成纳入 `with warnings.catch_warnings()` 保护，并加 `assert np.all(np.isfinite(Y))`
+- 重新生成并执行节点22，执行输出无 RuntimeWarning
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 23 | 23 | 0 |
+| tests (pytest) | 496 | 496 | 0 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+
+注：test_delta=+0 是预期的——这是纯质量修复 session，无新节点。
+
+### 验证结果
+
+- `pytest tests/test_chain_of_thought.py -v` → 7 passed
+- `pytest tests/ -q` → 496 passed
+- `jupyter nbconvert --execute notebooks/22-lora-2021.ipynb` → 无 RuntimeWarning
+- `jupyter nbconvert --execute notebooks/23-chain-of-thought-2022.ipynb` → 零错误
+
+### 下次不同做
+
+- 节点24：Flash Attention (2022)，三件套同步交付
+- 每次创建 notebook cell 时先规划 cell_type，避免中文符号混入 code cell
+
+<!-- meta: verdict:PENDING score:pending test_delta:0 -->
+
+
+
 ## Session 20260418-203859 — 节点23 Chain-of-Thought (2022) 三件套 + 节点22 lr修复
 
 ### 本次工作

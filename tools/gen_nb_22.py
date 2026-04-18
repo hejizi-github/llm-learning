@@ -132,7 +132,10 @@ W_pretrained = np.random.randn(d_out, d_in)
 # 生成训练数据
 n_samples = 200
 X = np.random.randn(d_in, n_samples)
-Y = (W_pretrained + W_target_delta) @ X + np.random.randn(d_out, n_samples) * 0.1
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', RuntimeWarning)
+    Y = (W_pretrained + W_target_delta) @ X + np.random.randn(d_out, n_samples) * 0.1
+assert np.all(np.isfinite(Y)), "训练数据含 NaN/inf，请检查权重初始化"
 
 # ── 全量微调 ──────────────────────────────────────────────────────────────
 W_full = W_pretrained.copy()
