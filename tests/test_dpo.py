@@ -161,3 +161,56 @@ class TestDPOTrainingDirection:
         loss_init = dpo_loss(np.log(0.5), np.log(0.5),
                              np.log(0.3), np.log(0.3), beta=0.5)
         assert abs(loss_init - np.log(2)) < 0.01
+
+    def test_training_loop_converges_correctly(self):
+        """集成测试：运行真实训练循环，验证 chosen log-ratio 增大、rejected 减小、loss 下降。"""
+        np.random.seed(42)
+
+        class ToyLM:
+            def __init__(self, vocab_size=10, dim=8):
+                self.W = np.random.randn(vocab_size, dim) * 0.1
+
+            def log_prob(self, x, y):
+                logits = self.W @ x
+                logits -= logits.max()
+                log_probs = logits - np.log(np.exp(logits).sum())
+                return log_probs[y]
+
+        ref_model = ToyLM()
+        ref_W = ref_model.W.copy()
+        train_model = ToyLM()
+        train_model.W = ref_W.copy()
+
+        x_embed = np.random.randn(8)
+        y_chosen, y_rejected = 3, 7
+        beta, lr = 0.5, 0.05
+
+        losses, chosen_logratios, rejected_logratios = [], [], []
+        for _ in range(100):
+            lp_cw = train_model.log_prob(x_embed, y_chosen)
+            lp_rj = train_model.log_prob(x_embed, y_rejected)
+            lp_cw_ref = ref_model.log_prob(x_embed, y_chosen)
+            lp_rj_ref = ref_model.log_prob(x_embed, y_rejected)
+
+            cr = lp_cw - lp_cw_ref
+            rr = lp_rj - lp_rj_ref
+            margin = beta * (cr - rr)
+            loss = -np.log(sigmoid(margin) + 1e-8)
+            losses.append(loss)
+            chosen_logratios.append(cr)
+            rejected_logratios.append(rr)
+
+            grad_factor = sigmoid(margin) - 1.0
+            softmax_probs = np.exp(train_model.W @ x_embed)
+            softmax_probs /= softmax_probs.sum()
+            g_chosen   = x_embed * (1 - softmax_probs[y_chosen])
+            g_rejected = x_embed * (1 - softmax_probs[y_rejected])
+            train_model.W[y_chosen]   -= lr * grad_factor * beta    * g_chosen
+            train_model.W[y_rejected] -= lr * grad_factor * (-beta) * g_rejected
+
+        assert chosen_logratios[-1] > 0, \
+            f"chosen log-ratio should be positive after training, got {chosen_logratios[-1]:.4f}"
+        assert rejected_logratios[-1] < 0, \
+            f"rejected log-ratio should be negative after training, got {rejected_logratios[-1]:.4f}"
+        assert losses[-1] < losses[0], \
+            f"loss should decrease: {losses[0]:.4f} -> {losses[-1]:.4f}"

@@ -2,6 +2,49 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-170945 — 节点15 DPO 训练循环 P0 修复 + 集成测试
+
+评审 Agent 给出 P0 级问题：notebooks/15-dpo-2023.ipynb 训练循环梯度符号反向，导致 chosen log-ratio 下降（-46.66）、Loss 上升（0.69→18.42）。
+
+**根因**：`tools/gen_nb_15.py` lines 265-266 梯度符号写反：
+- 旧：`W[y_chosen] -= lr * grad_factor * (-beta) * g_chosen`（符号错误）
+- 新：`W[y_chosen] -= lr * grad_factor * beta * g_chosen`（正确）
+- 旧：`W[y_rejected] -= lr * grad_factor * beta * g_rejected`（符号错误）
+- 新：`W[y_rejected] -= lr * grad_factor * (-beta) * g_rejected`（正确）
+
+**修复推导**：∂L/∂W[y_chosen] = (σ(m)-1) × β × g_chosen（grad_factor 恒为负，乘以 +β 后梯度下降方向为概率增加）。
+
+**修复后结果**（nbconvert 验证）：
+- chosen log-ratio: 0 → +1.72（正确）
+- rejected log-ratio: 0 → -5.12（正确）
+- Loss: 0.693 → 0.032（正确收敛）
+
+**同步修复**：
+- P3: ylabel "对话任务" → "TL;DR 摘要任务"（与 print 注释统一）
+- 新增集成测试 `TestDPOTrainingDirection::test_training_loop_converges_correctly`：100步训练后断言三条收敛条件
+
+**测试**：324 passed（+1 from 323）。
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 15 | 15 | 0 |
+| tests (pytest) | 323 | 324 | +1 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| notebook 语义正确 | 否(P0) | 是 | fixed |
+
+### 失败/回退分析
+无回退。nbconvert 首次执行即通过，输出符合预期。
+
+### 下次不同做
+- nbconvert 执行后必须检查 training 输出的数值方向（不只检查是否报错），可加到 notebook-run 工具
+- 立即启动节点16：候选 ORPO/SimPO（无参考模型对齐）或 Diffusion Models（DDPM 2020）
+
+<!-- meta: verdict:TBD score:null test_delta:+1 -->
+
+---
+
 ## Session 20260418-165640 — 节点15 DPO 直接偏好优化三件套交付
 
 兑现上次承诺，交付节点15「DPO — 直接偏好优化（2023）」完整三件套。

@@ -262,8 +262,8 @@ for step in range(200):
     g_chosen   = x_embed * (1 - softmax_probs[y_chosen])
     g_rejected = x_embed * (1 - softmax_probs[y_rejected])
 
-    train_model.W[y_chosen]   -= lr * grad_factor * (-beta) * g_chosen
-    train_model.W[y_rejected] -= lr * grad_factor * beta    * g_rejected
+    train_model.W[y_chosen]   -= lr * grad_factor * beta    * g_chosen
+    train_model.W[y_rejected] -= lr * grad_factor * (-beta) * g_rejected
 
 print(f"训练前 chosen log-ratio:   {chosen_logratios[0]:.4f}")
 print(f"训练后 chosen log-ratio:   {chosen_logratios[-1]:.4f}  （应为正，且增大）")
@@ -320,7 +320,7 @@ for bar, val in zip(条形, 胜率_vs_SFT):
             f'{val:.1%}', ha='center', va='bottom', fontsize=11)
 
 ax.axhline(0.5, color='gray', linestyle='--', alpha=0.6, label='基线胜率 50%')
-ax.set_ylabel('对话任务 GPT-4 评分胜率（vs SFT 基线）')
+ax.set_ylabel('TL;DR 摘要任务 GPT-4 评分胜率（vs SFT 基线）')
 ax.set_title('DPO vs PPO-RLHF（Rafailov et al. 2023，Table 1）')
 ax.set_ylim(0.45, 0.70)
 ax.legend()
