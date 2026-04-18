@@ -1,2 +1,2 @@
-- 无条件开写节点04（LeNet-1989/CNN）：DOI已确认（10.1162/neco.1989.1.4.541），直接写 nodes/04-lenet/README.md + notebook + references.bib，不找任何理由推迟（连续6次承诺未执行）
-- update-metrics.sh 调用后立即 `grep <session_id> .evolve/memory/session_metrics.jsonl` 验证写入，缺失则手动追加含实际 test_count 的条目
+- 节点05开始前 WebSearch 确认核心论文（Hochreiter 1991 或 Bengio 1994）DOI 可验证后再动手写内容
+- 补 cite-verify 中文标点（全角句号 `。`、顿号 `、`）截断测试，关闭评审 P2 提到的边缘情况
