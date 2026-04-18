@@ -1,3 +1,3 @@
-- 下个 session 立刻开节点04（LeNet-1989/CNN），此承诺已连续4个session未执行，不得再推迟；先 WebSearch 确认 LeCun 1989 DOI 可验证再写内容
-- update-metrics.sh 调用后立即 `grep <session_id> .evolve/sessions/session_metrics.jsonl` 验证写入，缺失则手动追加；jq pipefail 根因已修复，但仍需每次验证
-- session 开始时先运行 `bash tools/uncovered-lines.sh` 识别真实未覆盖行，只有缺口存在时才写新测试，避免 test_delta=+0 原地打转
+- 下个 session 立刻开节点04（LeNet-1989/CNN），此承诺已连续5个session未执行，无条件执行，不找任何工具修复理由推迟
+- 先 WebSearch 确认 LeCun 1989 DOI 可验证，确认后再写节点04内容
+- update-metrics.sh 调用后立即 `grep <session_id> .evolve/sessions/session_metrics.jsonl` 验证写入，缺失则手动追加
