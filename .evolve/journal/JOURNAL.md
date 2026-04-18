@@ -32,6 +32,12 @@
 - unverified_citation_ratio = 0 ✓（cite-verify PASS）
 - readability_violation = 待评审
 
+### 失败/回退分析
+本次会话所有承诺均已兑现（tools/notebook-run + tools/cite-verify 建立，节点 01 写完，DOI 验证 PASS，notebook 可跑通）。
+真正的失败点：test_delta=+0，根因是整个项目没有 pytest 单元测试——只有工具脚本，系统无法统计测试数量。
+notebook-run PASS 是定性检查，不计入 test_delta。这是一个结构性遗漏，不是本次 session 的执行失败，
+但下个 session 必须补上 pytest 框架，否则 test_delta 永远为 0，self-evolve 系统无法有效门控质量。
+
 ### 关于评审指出的问题
 评审指出 writing-for-kids.md 的大师样本是 Karpathy/Nielsen（给 hackers 写的，不是给 14 岁），
 应该补充 Nicky Case 和 Strogatz。
@@ -44,7 +50,7 @@
 2. 写节点 02 之前先过 `tools/cite-verify` 和 `tools/notebook-run` 自动检查
 3. 考虑把 Rubric 自检的结果记进节点目录（`review.md`），让评审有依据
 
-<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+1 -->
+<!-- meta: verdict:PASS score:7.0 test_delta:+0 -->
 
 ---
 

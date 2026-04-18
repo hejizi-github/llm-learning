@@ -1,3 +1,3 @@
-- 下个 session 必须产出 ≥1 个可运行的知识节点（knowledge_nodes+1），而不是再建参照文档
-- 写节点前先重建 tools/notebook-run 和 tools/cite-verify，用 Rule 15 验证通过后才开始写内容
-- 每写完一个节点段落，立即对照 refs/masters/writing-for-kids.md 的 10 条原则自检一遍
+- 下个 session 开始时创建 tests/test_perceptron.py（pytest 单元测试覆盖感知机核心函数），并将 pytest 命令注册到 .evolve/config.toml [verification].commands，确保 test_delta ≥+1（test_delta=+0 根因：只有工具脚本，没有 pytest 测试）
+- 写节点 02 (XOR/MLP) 之前先补充 Nicky Case 真实样本到 refs/masters/samples/，修订 writing-for-kids.md 的大师受众定位（当前样本针对 hackers，不是 14 岁学生）
+- 每个知识节点完成后必须在节点目录写 review.md（Rubric 自检结果），给下次评审提供具体依据
