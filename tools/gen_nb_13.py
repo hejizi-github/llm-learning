@@ -253,7 +253,8 @@ cells = [
         "",
         "# token/param 比例",
         "axes[1].semilogx(C_range, D_opts / N_opts, 'g-o', markersize=4)",
-        "axes[1].axhline(y=20, color='r', linestyle='--', label='Chinchilla 规律：~20')",
+        "axes[1].axhspan(50, 100, alpha=0.15, color='green', label='参数化模型预测范围 50–100')",
+        "axes[1].axhline(y=20, color='r', linestyle='--', alpha=0.6, label='经验规则 ~20（仅供参考）')",
         "axes[1].set_xlabel('计算预算 C (FLOPs)')",
         "axes[1].set_ylabel('D_opt / N_opt（token/param）')",
         "axes[1].set_title('最优 token/param 比例')",
@@ -331,7 +332,7 @@ cells = [
     ),
     code(
         "def compute_optimal_tokens(N_params):",
-        "    \"\"\"给定参数量，用 Chinchilla 规律估算最优训练 token 数（~20x）\"\"\"",
+        "    \"\"\"给定参数量，用经验规则估算最优训练 token 数（注意：参数化模型预测范围为 50–100x）\"\"\"",
         "    return 20 * N_params",
         "",
         "def compute_optimal_flops(N_params):",
