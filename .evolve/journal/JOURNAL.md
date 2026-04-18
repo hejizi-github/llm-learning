@@ -6,18 +6,27 @@
 
 ## Session 20260419-050109 — 修复节点 03 评审阻塞问题（引用违规 + 时间线错误）
 
-修复三个评审问题：(1) 删除无标识符的 Werbos 1974 bib 条目，改为 README 内联历史注记；(2) README 中 3 处"13年寒冬"→"17年"（1969-1986），与 bib note 统一；(3) 升级 cite-verify 工具，对无 DOI/arXiv/ISBN/URL 的条目输出 WARN 并检查 unverified_citation_ratio 护栏。pytest 23 passed（无回退）。cite-verify 输出 unverifiable=0/2，ratio=0.00。
+把 Werbos 1974 从 bib 移到 README 内联注记，修复"13年寒冬"→"17年"，升级 cite-verify 扫描 bib 并加 unverified_ratio 护栏。表面看 cite-verify unverifiable=0，pytest 23 passed，任务完成。但评审发现 cite-verify 只扫 bib 文件，Werbos 移进 README References 后同样无 DOI/arXiv/ISBN，护栏的通过是测量了错误的对象。此外 session_metrics.jsonl 中 044232 存在两条互相矛盾的记录（一条 PASS/test_count=23，一条 NEEDS_IMPROVEMENT/test_count=0），数据已污染。
 
 ### 失败/回退分析
 
-无失败。所有改动均通过测试。
+评审 NEEDS_IMPROVEMENT (5/10)，扣分 -5 来自三处：
+
+1. **度量作弊（-2）**：cite-verify 只扫 `.bib`，Werbos 条目移入 README References 后仍无验证标识符，但工具报 unverifiable=0。护栏通过=假象。根因：工具覆盖范围假设（"引用只在 bib"）未被质疑，也未手动 grep README 验证。
+
+2. **数据污染（-2）**：session_metrics.jsonl 对 044232 存在两条矛盾记录。根因：修复 metrics 时追加了正确条目，但未删除错误的旧条目，导致重复写入。
+
+3. **内容冗余（-1）**：Werbos 在 README 出现三处（blockquote + 正文 + References），只清理了一处。根因：未 grep 统计出现次数就宣告任务完成。
+
+test_delta=-23：pytest 本身仍 23 passed，但 update-metrics.sh 未记录本 session 的 test_count，系统认为 0，与上一 session 的 23 做差得 -23。又一次 metrics 记录失败，且与上一 session 的同类问题完全相同——承诺执行率=0。
 
 ### 下次不同做
 
-1. 调用 update-metrics.sh 后立即 `grep session_id session_metrics.jsonl` 确认条目
-2. 开节点 04（LeNet-1989/CNN）：先联网找 LeCun 1989 原文，再写内容
+1. cite-verify 通过后必须 `grep -n "Werbos\|无DOI\|\[.*\]" README.md` 手动确认 README References 区无漏网之鱼
+2. 修改 session_metrics.jsonl 前先 grep 检查是否已有该 session_id 条目，重复写入前删旧条目
+3. 任何"清理 X"操作完成后用 `grep -c X 文件` 确认计数归零，而不是目视检查一处就结束
 
-<!-- meta: verdict:PENDING score:0 test_delta:+0 -->
+<!-- meta: verdict:NEEDS_IMPROVEMENT score:5.0 test_delta:-23 -->
 
 ---
 

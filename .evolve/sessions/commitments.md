@@ -1,3 +1,3 @@
-- 调用 update-metrics.sh 后立即 `grep 当前session_id .evolve/memory/session_metrics.jsonl` 确认条目存在，若缺失则手动追加正确的 test_count（本次 044232 条目缺失导致 test_delta=-13）
-- 开节点 04（LeNet-1989/CNN），session 开始先联网找 LeCun 1989 原文（不靠训练记忆），content + pytest + notebook 同一 session 交付
-- reflection 阶段必须把 JOURNAL.md 底部的 verdict:PENDING 条目 meta 行更新为真实 verdict，并向 session_metrics.jsonl 补入缺失的本 session 条目
+- cite-verify 通过后必须手动 grep README 的 References 部分，确认所有引用都被覆盖（bib 扫描不等于全覆盖）
+- 修复"内联注记"时用 grep 统计关键词出现次数，确保 ALL 处都清理，而不只清理第一处
+- 写入 session_metrics.jsonl 时先 grep 检查是否已有同 session_id 条目，重复写入前必须删除旧条目
