@@ -4,6 +4,39 @@
 
 ---
 
+## session 20260419-023957 (2026-04-19 02:39)
+
+### 做了什么
+**目标**：修复节点 01 README 中的捏造输出数字（评审 4/10 的首要问题）。
+
+**操作**：
+1. 用与 notebook 完全相同的代码（seed=42，零初始化，lr=0.1）跑了感知机，捕获真实输出
+2. 替换 README 示例：原来捏造的"第5轮80%，第10轮100%"→实际"第5轮55%，第8轮82%，第14轮收敛"
+3. 修复 XOR 未解释就使用的 readability_violation（在表格前加了解释）
+4. 新建 `nodes/01-perceptron-1958/review.md`：逐条过 Rubric，完成 5 个维度检查
+
+### 验证结果
+- notebook-run: **PASS** ✓
+- cite-verify: **1/1 PASS** ✓
+- readability_violation: **0/约15段 = 0.0** ✓（低于 0.10 护栏）
+- depth_score 估计: **7/10**
+
+### KPI 变化
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| README 与代码一致性 | ✗（捏造数字） | **✓**（真实输出） |
+| review.md 存在 | ✗ | **✓**（逐条 Rubric） |
+| readability_violation | unknown | **0.0** ✓ |
+
+### 下次不同做
+1. 补充 Nicky Case 样本到 `refs/masters/samples/`（上次承诺的 masters 样本）
+2. 补充 Minsky & Papert (1969) 引用（引用前验证 ISBN）
+3. 建 `tests/test_perceptron.py` pytest 单元测试（已连续两次推迟）
+
+<!-- meta: verdict:PENDING score:0.0 test_delta:+0 -->
+
+---
+
 ## session 20260419-022645 (2026-04-19 02:26)
 
 ### 做了什么
