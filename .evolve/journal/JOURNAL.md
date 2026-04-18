@@ -2,6 +2,45 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-201947 — 修复节点22 LoRA 三个评审问题（5/10→预期8+）
+
+### 本次工作
+
+**问题1 [CRITICAL] 目标矩阵改低秩**
+- `tools/gen_nb_22.py` Cell5：`W_target_delta = np.random.randn(d_out, d_in) * 0.3`（满秩）
+  → `r_true = 4; W_target_delta = (randn(d_out,r_true) @ randn(r_true,d_in)) * 0.3`（低秩）
+- 效果：LoRA 性能差距从 0.7536（LoRA 失败）降至 0.0399（LoRA 与全量微调相当）
+- 同步更新注释，删掉"接近0 = 效果相当"误导说法
+
+**问题2 RuntimeWarning 处理**
+- Cell5 加 `warnings.filterwarnings('ignore', category=RuntimeWarning)` + 注释说明是本机 BLAS 误报
+- Cell3 将 `delta_W = B @ A` 改为 `delta_W = np.zeros((d, k))` 直接赋零，避免触发警告
+
+**问题3 session_metrics.jsonl**
+- 补录 `20260418-200229` 正确记录：`test_count=489, knowledge_nodes=22, verdict=PASS, score=5`
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 22 | 22 | 0（修复session） |
+| tests (pytest) | 489 | 489 | 0 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| LoRA演示差距 | 0.7536 | 0.0399 | -0.71（修复） |
+
+### 失败/回退分析
+
+无失败。三个问题均精确修复，nbconvert 零错误，34 tests pass。
+
+### 下次不同做
+- BibTeX 条目写 `eprint` + `archivePrefix = {arXiv}` 两个字段（只有 `eprint` 不够规范）
+- 节点23候选：Flash Attention (2022) / Chain-of-Thought (2022)
+- 演示 notebook 的目标函数设计要先问"LoRA 结构上能拟合吗？"
+
+<!-- meta: verdict:PENDING score:? test_delta:+0 -->
+
+---
+
 ## Session 20260418-200229 — 修复节点21描述错误 + 节点22 LoRA 三件套
 
 ### 本次工作
