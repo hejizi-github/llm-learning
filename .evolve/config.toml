@@ -1,0 +1,56 @@
+[project]
+name = "llm-learning"
+description = "按机器学习发展史脉络组织的、面向初中生的教学知识库（md + notebook），由 Agent 持续迭代扩展。"
+
+[objective]
+goal = "构建一个以机器学习发展史为骨架的知识库，让具备初中数学+基础 Python 的学习者，能通过真实论文与可运行代码，沿着历史脉络理解每一个关键突破的动机、原理、局限、以及它如何引出下一个突破。知识库必须深度优秀、引用全部可验证、复杂数学自包含讲解、notebook 可跑通。"
+
+[kpis]
+core = [
+    { name = "knowledge_nodes", direction = "up" },
+    { name = "nodes_with_runnable_notebook", direction = "up" },
+    { name = "verified_citations_ratio", direction = "up" },
+    { name = "depth_score", direction = "up" },
+]
+guardrails = [
+    { name = "broken_notebook_ratio", max = 0.00 },
+    { name = "unverified_citation_ratio", max = 0.05 },
+    { name = "readability_violation", max = 0.10 },
+]
+
+[agent]
+backend = "claude"
+model = "claude-sonnet-4-6"
+max_budget_usd = 4.00
+reflect_budget_usd = 0.50
+
+[tools]
+allowed = "Bash Read Write Edit Grep Glob WebSearch WebFetch"
+mcp = ["playwright"]
+self_built = "tools"
+# Agent 在第一次迭代时会自建以下工具并放到 tools/ 下：
+# - arxiv-fetch: 按 arxiv id 下载 PDF + 提取 metadata
+# - cite-verify: 验证引用的 DOI / arxiv id / 作者 / 年份真实性（反幻觉门控）
+# - notebook-run: 批量执行 notebook 并收集错误
+# - refs-graph: 维护 references.bib + citations.jsonl 引用溯源图
+
+[verification]
+protected = [
+    ".evolve/config.toml",
+    ".evolve/constitution/",
+]
+auto_generate_tests = true
+# 第一次迭代 Agent 必须先建立以下自检套件，之后每次 session 作为门控运行：
+#   1. notebook 批量执行检查（broken_notebook_ratio 必须为 0）
+#   2. 引用验证脚本（unverified_citation_ratio ≤ 0.05）
+#   3. md 链接有效性检查
+#   4. 可读性 rubric 自评（readability_violation ≤ 0.10）
+commands = []
+
+[schedule]
+method = "manual"
+cron = ""
+timezone = "Asia/Shanghai"
+
+[notify]
+# bark = "https://api.day.app/KGLs3JQaQfygX8BWrebViS"
