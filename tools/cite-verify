@@ -16,11 +16,16 @@ def check_url(url, label=""):
         req = urllib.request.Request(url, method="HEAD")
         req.add_header("User-Agent", "cite-verify/1.0 (research tool)")
         resp = urllib.request.urlopen(req, timeout=15)
-        ok = resp.status < 400
+        # 403 = resource exists but paywalled — valid for citation purposes
+        ok = resp.status < 400 or resp.status == 403
         status = "PASS" if ok else f"FAIL({resp.status})"
         print(f"  {status}: {label or url}")
         return ok
     except urllib.error.HTTPError as e:
+        # 403 = publisher paywall — DOI is valid, resource exists
+        if e.code == 403:
+            print(f"  PASS (paywalled): {label or url}")
+            return True
         # 405 Method Not Allowed for HEAD → retry with GET
         if e.code == 405:
             try:

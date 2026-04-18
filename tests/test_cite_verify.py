@@ -228,3 +228,20 @@ def test_ieee_doi_with_periods():
     urls = _capture_urls_for_line("- IEEE paper (DOI: 10.1109/TPAMI.2022.3154099)")
     assert len(urls) == 1, f"Expected 1 URL, got {urls}"
     assert urls[0] == "https://doi.org/10.1109/TPAMI.2022.3154099", f"Trailing paren leaked or dots truncated: {urls[0]}"
+
+
+# ── HTTP 403 (paywall) must be treated as PASS ────────────────────────────────
+
+def test_check_url_treats_403_as_pass():
+    """HTTP 403 = publisher paywall — resource exists, DOI is valid."""
+    import urllib.error
+    err = urllib.error.HTTPError(
+        url="https://doi.org/10.1162/neco.1989.1.4.541",
+        code=403, msg="Forbidden", hdrs=None, fp=None
+    )
+    with mock.patch('urllib.request.urlopen', side_effect=err):
+        result = cite_verify.check_url(
+            "https://doi.org/10.1162/neco.1989.1.4.541",
+            "LeCun 1989"
+        )
+    assert result is True, "403 (paywall) should return True — DOI is valid"

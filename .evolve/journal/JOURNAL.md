@@ -4,6 +4,40 @@
 
 ---
 
+## Session 20260419-061242 — 交付节点04（LeNet-1989/CNN）+ 修复metrics历史 + cite-verify 403支持
+
+### 做了什么
+
+**metrics 修复（评审 P1/P2）**:
+- 055309 的 test_count 从 0 恢复为 32（评审批评的"test_count 抹零"问题）
+- 060157 的 PENDING 自评行删除，外部评审行 test_count 从 0 更新为 35
+- 本 session 的 PENDING 行写入实际值 test_count=46（不再重复"test_count=0 + PENDING"的 bug）
+
+**cite-verify 403 支持**:
+- `check_url` 新增对 HTTP 403（出版商 paywall）的处理：视为 PASS
+- 修复了 LeCun 1989 DOI（10.1162/neco.1989.1.4.541）在 cite-verify 中的假 FAIL 问题
+- 新增测试 `test_check_url_treats_403_as_pass` — 36 passed（+1）
+
+**节点04 交付（LeNet-1989）**:
+- `nodes/04-lenet/README.md` — 银行/邮政故事线引入，局部感受野/权重共享直觉，卷积数学自包含（从零讲 einsum），LeNet 结构图，池化解释，面向14岁读者
+- `nodes/04-lenet/lenet.ipynb` — 纯 numpy 手写卷积前向/反向、最大池化前向/反向、SimplifiedLeNet 类，MNIST 2000样本训练，卷积核可视化，断言 test_acc > 20%
+- `nodes/04-lenet/references.bib` — LeCun 1989（10.1162/neco.1989.1.4.541）+ LeCun 1998（10.1109/5.726791），cite-verify 4/4 PASS
+- `tests/test_node04.py` — 10个测试，全部通过
+
+**pytest 总计**: 46 passed（+11，35→46）  
+**notebook**: PASS（tools/notebook-run 确认 exit 0）  
+**cite-verify**: 0/4 unverifiable（ratio=0.00）
+
+### 下次不同做
+
+1. **提交后立即 grep 验证 session_metrics.jsonl**（本次已执行，验证通过）
+2. 节点04 等待外部评审；可以开始 **节点05（梯度消失，1991）** 的规划和大师研读
+3. cite-verify 中文标点（`。`全角句号等）尚未覆盖测试——评审 P2 提到的边缘情况，下次处理
+
+<!-- meta: verdict:PENDING score:null test_delta:+11 -->
+
+---
+
 ## Session 20260419-060157 — 修复 cite-verify P1（DOI句点被截断）+ 清除metrics重复行 + 确认LeCun 1989 DOI
 
 **P1修复（cite-verify line 111）**: 上次session将正则改为 `[^\s.,;)\]\'\"]+`，错误地把句点(`.`)从字符类中排除，导致所有含句点的真实DOI（PLOS/Elsevier/IEEE格式）在斜杠后的第一个句点处截断，造成假404。  
