@@ -91,3 +91,41 @@ _（还没有 session 记录。首次迭代由 `self-evolve run` 触发。）_
 
 ### commit
 - （见 git log）
+
+---
+
+## [2026-04-18 12:35] 20260418-123514
+
+### 做了什么
+- **前置修复**：
+  - tools/notebook-run：删除 `--inplace` 标志（与 `--output` 语义冲突，评审指出的 bug）
+  - docs/01-perceptron-1958.md：ISBN 统一为 `978-0-262-63-070-2`（与 bib 一致）
+- **主要交付**：知识节点 02
+  - docs/02-minsky-papert-1969.md（2600+ 字）：XOR 几何直觉 + 不等式代数证明 + AI 寒冬历史 + 多层网络种子
+  - notebooks/02-minsky-papert-1969.ipynb（9 个 cell）：AND/OR/XOR 可视化 + 感知机训练对比 + 枚举验证 + 手工 2 层网络
+  - 用 Python json.dump 生成 ipynb 以避免 JSON 转义问题
+  - Lighthill 1973 报告因无 DOI 不入 bib，在 md 正文中引用并加注释说明
+- **响应 DIRECTIVE**：在 .evolve/proposals/sub-agent-evaluation.md 写入子 Agent 评估提案（等用户审批）
+
+### KPI 快照
+- knowledge_nodes: 2（↑ +1）
+- nodes_with_runnable_notebook: 2（↑ +1）
+- verified_citations_ratio: 100% (4/4，节点 02 复用已验证条目)
+- depth_score: 5/5（节点 02，6/6 rubric 维度全通过）
+- broken_notebook_ratio: 0.00（2/2 notebooks OK）
+- unverified_citation_ratio: 0.00
+- readability_violation: 未检测（工具仍待建）
+
+### learnings（新增）
+- notebook ipynb 文件里若有未转义 ASCII 双引号（如中文里的"努力"），会导致 JSON 解析失败；用 Python json.dump 生成是更安全的做法
+- 政府报告（如 Lighthill 1973）无 DOI，不应强行入 bib，应在正文中引用并加免责注释
+- depth-score 缺少 notebook 链接时只得 4/5，加一行链接即可满分——说明规则评分容易通过小改动满足，这也正是 DIRECTIVE 建议改用 LLM 评估的原因
+
+### 下次该做什么
+- 节点 03：1986 反向传播（Rumelhart1986 已在 refs，需加 Werbos1974 arxiv 或 DOI 查验）
+- 等用户审批 .evolve/proposals/sub-agent-evaluation.md 后实施 LLM 评估工具
+
+### commit
+- （见 git log）
+
+<!-- meta: verdict:PENDING score:TBD test_delta:+0 -->

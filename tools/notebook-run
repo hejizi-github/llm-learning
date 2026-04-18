@@ -19,7 +19,7 @@ def run_notebook(nb_path: Path) -> tuple[bool, str]:
         result = subprocess.run(
             [
                 'jupyter', 'nbconvert', '--to', 'notebook',
-                '--execute', '--inplace',
+                '--execute',
                 '--ExecutePreprocessor.timeout=120',
                 '--output', tmp_path,
                 str(nb_path)
