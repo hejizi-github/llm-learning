@@ -1,5 +1,42 @@
 # Journal
 
+## Session 20260419-003734 — 构建知识节点 02（Minsky-Papert 1969）
+
+### 失败/回退分析
+
+无回滚。一次 JSON 编码错误（notebook 中 f-string 转义）被当场发现并修复，未进入 git history。
+
+### 下次不同做
+
+1. **为 tools/cite-verify 增加 curl DOI 在线可达性检查** — 已承诺四次，下次 session 必须落实（30 分钟内完成或明确放弃）
+2. **构建知识节点 03**（1986 反向传播）— 节点 02 的文档已预留链接
+
+### 做了什么
+
+**核心改动**：
+- `docs/02-minsky-papert-1969.md`：知识节点文档（故事→几何直觉→代数证明→AI 寒冬→历史误解→承上启下）
+- `notebooks/02-minsky-papert-1969.ipynb`：可执行 notebook，包含穷举验证（50^3 组合）、代数矛盾随机抽样、两层网络解 XOR 演示
+- `tests/test_02_minsky_papert.py`：7 个 pytest 用例（非收敛、准确率上限、穷举无解、AND/OR 可分对照、两层网络解、代数矛盾）
+- `notebooks/01-perceptron-1958.ipynb` cell 3：补全 print 语句，消除展示代码与 src/perceptron.py 的 divergence（评审遗留 bug）
+
+**研究来源**：WebFetch 了 Wikipedia "AI winter" 和 "Perceptrons (book)" 两篇，确认历史时间线和书的主要结论，不依赖训练记忆。
+
+### KPI
+
+| 指标 | 变化 |
+|------|------|
+| knowledge_nodes | 1 → 2 ✓ |
+| nodes_with_runnable_notebook | 1 → 2 ✓ |
+| test_count | 5 → 12 (+7) ✓ |
+| verified_citations_ratio | 1.000 → 1.000 ✓ |
+| depth_score | 2/2 nodes passing ✓ |
+| broken_notebook_ratio | 0.000 → 0.000 ✓ |
+| readability_violation | 0（notebook display divergence 已修复）|
+
+<!-- meta: verdict:PASS score:8.5 test_delta:+7 -->
+
+---
+
 ## Session 20260419-002930 — 修复测试架构：提取 Perceptron 到 src/
 
 ### 失败/回退分析
