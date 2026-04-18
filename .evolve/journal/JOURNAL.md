@@ -1086,3 +1086,48 @@ git log | grep "evolve($SESSION_ID)" | grep -v "reflection" | wc -l
 
 <!-- meta: verdict:PENDING score:null test_delta:+13 -->
 
+
+---
+
+## Session 20260419-073905 — 修复评审三问题（self/external 分离 + test_count + 全局去重）
+
+修复上次评审（3/10）指出的三个基础设施问题：
+
+### 问题1 (P0): self_score vs review_score 字段分离
+
+`update-metrics.sh` 新增 `--external` 标志：
+- 默认调用（harness 从 JOURNAL meta 触发）→ 写 `self_score` / `self_verdict`
+- `--external` 调用（外部评审 Agent 触发）→ 写 `review_score` / `review_verdict`
+
+结果：`review_score/review_verdict` 现在只有外部评审能填写，不再被 Agent 自评污染。
+
+### 问题2 (P0): test_count 从 pytest 结果文件读取
+
+`update-metrics.sh` 在每次执行时检查 `/tmp/pytest_result_<session>.txt`，若存在则解析 "N passed" 写入 `test_count`。
+
+本 session 工作完成后运行 `pytest --tb=no -q > /tmp/pytest_result_20260419-073905.txt`，结果：61 passed。当前记录 `test_count=61`，`assertion_compliance` 可计算。
+
+### 问题3 (P1): 全局去重
+
+每次 `update-metrics.sh` 被调用时，先对整个文件做全局去重（同 session_id 保留 test_count 最大的条）。070647 的两条重复记录已被清理为 1 条。
+
+### KPI 变化
+
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| test_count (073905) | 0 (null) | **61** |
+| review_score 字段 | Agent 自评污染 | 仅外部评审写入 |
+| 070647 重复条目 | 2条 | **1条** |
+| pytest | 61 | 61 (无回归) |
+
+### 失败/回退分析
+
+无失败。全局去重对旧记录的 `review_score` 字段（仍是旧命名）采取保留策略，向后兼容。
+
+### 下次不同做
+
+1. **节点06（LSTM/GRU）正式开写**：先 WebSearch 确认 DOI `10.1162/neco.1997.9.8.1735` 可访问
+2. **引用先行**：cite-verify 三篇核心文献再写内容
+3. **agent 结束时标准化**：每次 session 结束前固定运行一行 `pytest --tb=no -q 2>&1 | tail -1 > /tmp/pytest_result_<session>.txt`
+
+<!-- meta: verdict:PASS score:8.0 test_delta:0 -->
