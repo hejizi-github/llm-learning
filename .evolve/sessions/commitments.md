@@ -1,3 +1,3 @@
-- cite-verify 通过后必须手动 grep README 的 References 部分，确认所有引用都被覆盖（bib 扫描不等于全覆盖）
-- 修复"内联注记"时用 grep 统计关键词出现次数，确保 ALL 处都清理，而不只清理第一处
-- 写入 session_metrics.jsonl 时先 grep 检查是否已有同 session_id 条目，重复写入前必须删除旧条目
+- 下个 session 开节点04（LeNet-1989/CNN），不继续在节点03追加；先用 WebSearch 找 LeCun 1989 原文确认 DOI/arXiv 可验证再写内容
+- session 开始时运行 `bash tools/uncovered-lines.sh` 识别真实覆盖缺口，只有缺口存在时才写新测试，测试数+0不是靠追加同类修复测试来解决的
+- update-metrics.sh 调用后立即 `grep "当前session_id" .evolve/sessions/session_metrics.jsonl` 验证记录写入，缺失则手动追加

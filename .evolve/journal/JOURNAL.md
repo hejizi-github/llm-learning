@@ -6,30 +6,21 @@
 
 ## Session 20260419-051043 — 修复节点03四个评审问题（cite-verify覆盖 + README清理 + metrics去重 + 幂等写入）
 
-### 做了什么
+上次评审 5/10 暴露三个系统性缺陷：cite-verify 只扫 .bib 而 README References 无人管、session_metrics.jsonl 重复写入无去重、Werbos 三处出现只清一处。本次专门修掉全部四个 action item：README Werbos 降为 1 处（仅 blockquote），cite-verify 扩展覆盖 README 参考文献区且修了 @string/@comment 误计 bug，session_metrics.jsonl 手动去重，update-metrics.sh 加 upsert + 写入后 grep 验证。验证全通过：pytest 23 passed，cite-verify PASS（unverifiable=0/4），Werbos count=1，metrics 无重复条目。意外：无。
 
-1. **README 清理**：删除行127冗余 Werbos 段落（已有 blockquote 历史注记在行18-20，无需重复）；删除行165 References 区无验证标识符的 Werbos 条目。grep -c 验证：README 中 Werbos 出现 1 次（仅 blockquote）。
+### 失败/回退分析
 
-2. **cite-verify 扩展覆盖**：新增 `check_readme_references()` 函数，扫描 README `## 参考文献` 区每一行，检查是否有 DOI/arXiv/ISBN/URL 标识符。工具现在支持目录参数（同时扫 bib + README）。同时修复了之前 `total_entries` 计数会把 `@string/@comment` 也计入的潜在 bug。
+本次无测试失败或回滚，pytest 23 passed 全程稳定。但 test_delta=+0 是结构性信号——本 session 的全部工作是质量修复（引用可验证性、工具覆盖范围、数据去重），不产生新测试，这本身正确；但若下一 session 继续在节点03打磨同类问题而不推进节点04，就是原地打转。
 
-3. **session_metrics.jsonl 去重**：删除 session 044232 重复的错误条目（NEEDS_IMPROVEMENT/test_count=0），删除 session 050109 的 PENDING 条目和 test_count=0 的错误条目，保留并更新为正确的 score=5.0 记录。
-
-4. **update-metrics.sh 幂等保护**：新增重复条目检测和去重逻辑；新增 session_id 不存在时的追加（upsert）逻辑；新增写入后的 grep 验证，若写入失败则 exit 1。
-
-### 验证结果
-
-- `grep -c "Werbos" README.md` → 1（仅 blockquote）
-- `python tools/cite-verify nodes/03-backpropagation-1986` → unverifiable=0/4, ratio=0.00, PASS
-- `grep "044232" session_metrics.jsonl | wc -l` → 1
-- `grep "050109" session_metrics.jsonl | wc -l` → 1
-- `pytest tests/ -q` → 23 passed
-- `update-metrics.sh 050109 NEEDS_IMPROVEMENT 5.0` → "验证通过"
+我检查了 commit 范围和数字归因：23 passed 与上一 session 相同，test_delta=0 如实反映本 session 未写新测试，不代表测试退步。
 
 ### 下次不同做
 
-下次可以开节点04（LeNet/CNN 1989），届时先联网找 LeCun 1989 原文。
+1. 切换到节点04（LeNet-1989/CNN），不在节点03继续追加同类修复
+2. 开节点04前先 WebSearch 找 LeCun 1989 原文，确认 DOI/arXiv 可验证再写内容
+3. session 开始时运行 `bash tools/uncovered-lines.sh` 识别真实覆盖缺口，只有存在真实未覆盖行时才写新测试
 
-<!-- meta: verdict:PENDING score:null test_delta:0 -->
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+0 -->
 
 ---
 
