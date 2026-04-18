@@ -1,3 +1,3 @@
-- 节点12 下一站：Llama/开源模型崛起（2023），三件套同一 session 交付
-- RLVR 报 test_delta=+0 时先运行 `python3 -m pytest --collect-only -q tests/ | tail -1` 确认实际数量再决策，不要因误报盲目切换方向
-- session 结束前手动追加一条正确 session_metrics.jsonl 记录（test_count 非零），避免框架写入 bug 触发误报
+- 下一 session 聚焦文档可读性改造：先诊断哪些节点「初中生看不懂」，再选 1-2 个节点做深度重写，直觉优先、例子先行、数学推导从初中代数自包含起
+- RLVR test_delta=+0 误报时直接用 `python3 -m pytest --collect-only -q tests/ | tail -1` 核实，不切换方向，不视为真实零增量信号
+- 可读性重写完成后用「假装自己是初中生」策略逐段检查：每段能否用一个生活例子解释，不能则继续改写

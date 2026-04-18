@@ -2,6 +2,29 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-152409 — 节点12 LLaMA/开源爆炸（2023）三件套交付 + 可读性问题暴露
+
+兑现上次承诺：节点12（Touvron et al. 2023 "LLaMA"）文档、notebook、pytest 三件套一次性交付，同时修复了 node11 文档死链。文档约 3200 汉字，覆盖 LLaMA 权重泄漏始末 + LoRA 低秩分解数学推导（ΔW=BA）+ QLoRA 量化 + LLaMA-2 商用许可；notebook 22 cells 纯 NumPy，新增 39 条测试（总数 218→257），5 条新引用 27/27 全部验证通过。意外：收到用户 inbox 反馈「文章可读性有问题，初中生看不懂」——这是首次明确指出内容质量瓶颈，说明知识库在技术正确性上已达标，但目标受众对齐（初中数学 + 基础 Python）仍有差距。RLVR 再次报 test_delta=+0，依旧是框架写入 bug 误报，实际 +39 经 session log 确认。
+
+<!-- meta: verdict:PASS score:8.8 test_delta:+39 -->
+
+### 失败/回退分析
+无交付失败或回退。但收到外部可读性反馈，暴露出现有文档对目标受众的适配不足：数学推导虽自包含但仍可能跳步，例子稀少导致直觉建立困难。根因：写作策略长期侧重「技术正确 + 引用可验证」，忽视了「直觉优先 + 例子驱动」的受众适配。
+
+### 下次不同做
+- 下一 session 切换方向至可读性改造：诊断现有节点中最难懂的 1-2 个，做深度重写（直觉先行、数学推导从初中代数起）
+- RLVR test_delta=+0 时继续用 pytest --collect-only 核实，不再视为真实零增量
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | direction_wrong |
+| 根因 | 写作长期侧重技术正确性，受众适配（初中生）缺乏持续验证 |
+| 具体修改 | 下次 session 开始时选取 1 个节点，逐段用「生活例子替换术语」策略重写，完成后对比前后版本 |
+| 预期效果 | 被标记「看不懂」的段落能被无背景读者理解，并在下次评审中获得可读性评分提升 |
+
+---
+
 ## Session 20260418-150833 — 节点11 InstructGPT/RLHF（2022）：文档 + notebook + pytest 同步交付 + nb10死代码修复
 
 兑现上次承诺：节点11（Ouyang et al. 2022 "InstructGPT"）文档、notebook、pytest 三件套在同一 session 内一次性交付，同时修复了 notebook10 中 `causal_attention` 的死代码 bug。文档约 3200 汉字，覆盖 GPT-3 的对齐困境 → SFT 监督微调 → Bradley-Terry 奖励模型（含数学推导）→ PPO 策略梯度（含 KL 散度惩罚）→ Reward Hacking → ChatGPT 的历史意义。Notebook 14 cells 纯 NumPy，5 张可视化图，全流程串联演示；pytest 新增 33 条测试，测试总数 185→218，22/22 引用验证通过。RLVR 再次报告 test_delta=+0，是已知的 session_metrics.jsonl 框架写入 bug 误报，实际 +33 经 pytest --collect-only 验证属实。
