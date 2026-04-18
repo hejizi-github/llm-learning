@@ -1,3 +1,3 @@
-- 在开始节点 03 之前，先在 tests/ 目录创建 conftest.py 并为 tools/cite-verify 和 tools/notebook-run 各写至少 2 个 pytest 用例，让 RLVR test_delta 有正增量
-- 修复 docs/01-perceptron-1958.md 和 docs/02-minsky-papert-1969.md 中的 ISBN 格式错误（`978-0-262-63-070-2` → `978-0-262-63070-2`）
-- 每次 session 开始时先运行 `python -m pytest tests/ --tb=no -q 2>/dev/null || echo "no tests"` 确认测试基线，再决定本次工作方向
+- 下次 session 开始的第一件事：`mkdir -p tests && python -m pytest tests/ --tb=no -q 2>/dev/null || echo "no tests"`，然后立即在 tests/ 写至少 4 个 pytest 用例（覆盖 cite-verify 和 notebook-run），不做其他事直到 test_delta≥+4
+- 拒绝在 test_delta=+0 警告下继续新增工具或内容节点——先消灭测试债务，再推进内容
+- 新增知识节点前，先用 `bash tools/uncovered-lines.sh` 或 `grep -n "def " tools/*.py | head -20` 确认哪些代码行没有测试覆盖，选最容易覆盖的写测试
