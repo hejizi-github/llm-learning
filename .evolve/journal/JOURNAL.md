@@ -596,3 +596,53 @@ for _font in _CJK_FONTS:
 
 <!-- meta: verdict:PASS score:8 test_delta:0 -->
 
+
+---
+
+## Session 20260419-044232 — 修复评审 bug + 交付节点 03（反向传播 1986）
+
+### 做了什么
+
+#### 修复 1：Cell 8 `->·` → `→`
+评审标记的 `\u00b7`（中点符号）在 annotate 标签里无语义意义。
+修复：将 `f'({a},{b})->\u00b7{label}'` 还原为 `f'({a},{b})→{label}'`。
+同时在 Cell 8 和 Cell 12 开头各加了一行 NOTE 注释，提示 `_use_cjk` 依赖 cell-2。
+
+#### 修复 2：043111 metrics 条目
+043111 的 test_count=0（实际 13 passed）。修正为 test_count=13, assertion_total=13,
+assertion_passed=13, assertion_compliance=1.0, review_score=6.0。
+来源：session 043111 运行 `pytest tests/ -q` 输出 `13 passed`。
+
+#### 节点 03：反向传播 1986（主要工作）
+交付内容：
+- `nodes/03-backpropagation-1986/README.md` — 历史、直觉（多米诺骨牌类比）、数学（链式法则自包含讲解）、Sigmoid
+- `nodes/03-backpropagation-1986/backprop.ipynb` — 11 cells，从零手撕 sigmoid/forward/backward/训练循环，3000 轮解决 XOR
+- `nodes/03-backpropagation-1986/references.bib` — Rumelhart 1986 (DOI: 10.1038/323533a0)、Minsky 1969 (ISBN: 9780262630221)、Werbos 1974 PhD
+- `tests/test_node03.py` — 10 个测试（sigmoid、forward shape、数值梯度检验、XOR 收敛）
+
+关键技术决策：
+- backward 使用精确 MSE 梯度（含 2/n 因子），数值梯度检验通过（rel_err < 1e-4）
+- seed=42 会卡在鞍点，改用 seed=0（20 个种子测试中有 18 个收敛，seed=0 可靠）
+- sigmoid 加 clip(-500,500) 防数值溢出
+
+### 验证结果
+- `jupyter nbconvert --execute nodes/03-backpropagation-1986/backprop.ipynb` → exit 0 ✓
+- `pytest tests/ -q` → 23 passed（原 13 + 新 10）✓
+- Cell 8 不含 `\u00b7` ✓
+- 043111 metrics 已修正 ✓
+
+### KPI 变化
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| knowledge_nodes | 2 | **3** (+1) |
+| nodes_with_runnable_notebook | 2 | **3** (+1) |
+| test_count | 13 | **23** (+10) |
+| broken_notebook_ratio | 0 | 0 ✓ |
+| readability_violation | `->·` bug | **已修复** |
+
+### 下次不同做
+1. **节点 04（CNN 1989 或 LSTM 1997）**——节点 03 交付完成
+2. 先做学大师步骤（联网找 LeCun 1989 / Hochreiter 1997 原始论文）
+3. session 结束前必须调用 `update-metrics.sh` 且写入正确 test_count（本次已完成）
+
+<!-- meta: verdict:PENDING score:0 test_delta:+10 -->
