@@ -4,6 +4,50 @@
 
 ---
 
+## session 20260419-032152 (2026-04-19 03:21)
+
+### 做了什么
+**目标**：修复评审 6/10 的根因——notebook Cell 5 与 `src/perceptron.py` 的实际不一致。
+
+**问题**：
+- `src/perceptron.py` 有 `self.history = []` 和 `fit()` 方法
+- notebook Cell 5 的 `Perceptron` 类只有 `predict`、`train_one_epoch`、`accuracy` — 没有 `history` 和 `fit()`
+- `test_history_recorded` 测试 `p.history[-1]`，notebook 版会 AttributeError
+- notebook 注释说"与 src/perceptron.py 完全一致"是谎言
+
+**操作**：
+向 notebook Cell 5 添加：
+1. `self.history = []`（在 `__init__`）
+2. `fit()` 方法（与 `src/perceptron.py` 完全相同的逻辑）
+3. 更新末尾注释，增加一行说明 `fit()` 与手动循环的关系
+
+**不改**：`src/perceptron.py`（它是正确的），`tests/test_perceptron.py`（测试本身正确）。
+
+### KPI 变化
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| pytest 8/8 PASS | ✓ | ✓ |
+| notebook PASS | ✓ | ✓ |
+| notebook Cell 5 vs src 一致性 | ✗（缺 history + fit） | **✓（字面相同）** |
+| notebook 注释真实性 | ✗（谎言） | **✓（可验证）** |
+
+### 验证
+- `pytest tests/ -v` → 8/8 PASS ✓
+- `python3 tools/notebook-run ...` → PASS ✓
+- 手工对比 notebook Cell 5 vs `src/perceptron.py`：属性、方法签名、逻辑完全一致 ✓
+
+### 根因说明
+评审问题 1（history/fit 不一致）：已解决。
+评审问题 2（注释是谎言）：已解决（注释现在是真话）。
+
+### 下次不同做（第 7 次承诺：Nicky Case）
+**Nicky Case 样本必须是下次 session 的第一个且唯一的 commit，不允许被任何其他任务替代。**
+这是节点 02 的前置条件，已经连续 6 次"下次做"——下次不做就永远不做。
+
+<!-- meta: verdict:PENDING score:0 test_delta:+0 -->
+
+---
+
 ## Session 20260419-025715 — 修复假测试（lr=0 技巧）+ 澄清 review.md stdout
 
 ### 失败/回退分析
