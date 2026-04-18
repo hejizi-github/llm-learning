@@ -32,3 +32,15 @@
 ### 下一步
 **优先级 1**：重建基础工具（tools/notebook-run, tools/cite-verify），满足 Rule 15
 **优先级 2**：用 refs/masters/writing-for-kids.md 里的原则，从零写节点 01（Rosenblatt 感知机 1958）
+
+### 失败/回退分析
+我检查了 session log 的完整输出和 commit 范围，未发现测试失败或回滚。
+test_delta=+0 符合本次 scope（写作参照文档，无代码/notebook 节点），不构成失败信号。
+**潜在问题**：已连续 N 个 session 在做基础设施（clean slate × 2 + 写作参照），knowledge_nodes 始终为 0——正在积累「预备工作」债务。如果下次 session 仍不产出节点，则属于原地打转。
+
+### 下次不同做
+1. 先重建 tools/notebook-run + tools/cite-verify（≤30 分钟），验证通过后立即开始写第一个节点，不再做新的参照文档
+2. 写节点时把 refs/masters/writing-for-kids.md 的 Rubric 当 checklist，逐条过（不是事后回顾）
+3. 如果节点写了一半遇到数学讲解卡点，允许先留 TODO 占位，继续写完骨架，不要中途切回建工具
+
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+0 -->

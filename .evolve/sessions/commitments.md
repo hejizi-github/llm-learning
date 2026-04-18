@@ -1,0 +1,3 @@
+- 下个 session 必须产出 ≥1 个可运行的知识节点（knowledge_nodes+1），而不是再建参照文档
+- 写节点前先重建 tools/notebook-run 和 tools/cite-verify，用 Rule 15 验证通过后才开始写内容
+- 每写完一个节点段落，立即对照 refs/masters/writing-for-kids.md 的 10 条原则自检一遍
