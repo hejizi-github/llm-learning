@@ -4,7 +4,7 @@
 
 ## 知识库当前状态
 
-**基础设施**：完成（目录骨架 + 6工具 + README + 策略文件 + **tests/ 10用例**）
+**基础设施**：完成（目录骨架 + 6工具 + README + 策略文件 + **tests/ 22用例**）
 
 **工具列表**：
 - `tools/notebook-run` — 跑 notebook 验证
@@ -39,15 +39,17 @@
 - monkey-patch 方式（先 class，再 def func，再 Class.method = func）可以拆分 class 到多个 cell，但方法定义时不能有额外缩进（20260418-130735）
 - 用 Python 脚本生成 notebook JSON（gen_nb_03.py）比手写 JSON 更易维护，且避免转义问题（20260418-130735）
 - claude-advisor 可进一步泛化：管道 md 内容进去做读者可读性评审（来自评审建议，待实现）
+- sigmoid 在 z > ~37 时 float64 饱和至 1.0，测试 sigmoid 范围应用 linspace(-10,10) 而非 (-100,100)（20260418-131743）
 
 ## 下次 session 建议
 
 **第一优先**：节点 04 — 1989 LeNet（Yann LeCun，卷积神经网络）
 - 时间线接续（1986反向传播 → 1989卷积网络）
 - 核心内容：卷积操作直觉（空间局部性 + 权重共享）/ 手撕卷积层 / 在 MNIST 上演示
-- 需要先找到 LeCun 1989 原始论文（Backpropagation Applied to Handwritten Zip Code Recognition）进行 cite-verify
+- 需要先 cite-verify LeCun 1989 DOI：10.1162/neco.1989.1.4.541
+- 同时补 Werbos (1974) 和 Hopfield (1982) 到 refs/references.bib（评审遗留建议）
 
-**第二优先**：补充节点03测试（`tests/test_backprop.py`）——评审建议保持测试与内容同步
+**tests/test_backprop.py**：已完成（20260418-131743），test_delta +12（22用例总计）
 
 **PENDING 提案**：`.evolve/proposals/sub-agent-evaluation.md`
 - 用 LLM 子 Agent 评估内容质量（响应用户 DIRECTIVE 20260418-123509）

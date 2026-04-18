@@ -2,6 +2,39 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-131743 — 补充 tests/test_backprop.py，消除三次未兑现的测试债务
+
+本次 session 专注于补充节点03（反向传播）的测试覆盖。新增 `tests/test_backprop.py`，包含 12 个 pytest 用例，覆盖：sigmoid 数值范围（含 float64 饱和边界说明）、sigmoid 中点（0.5）、sigmoid 导数最大值 0.25（梯度消失数学基础）、sigmoid 导数对称性、MSE 损失为零/大于零、前向传播输出维度 (N,1) 和 (N,hidden)、前向传播输出范围、单步反向传播后损失下降（验证梯度方向正确）、XOR 收敛（10000轮后误差<0.1）、XOR 收敛损失（<0.01）。全部 22 测试通过，test_delta = +12（10 → 22）。调试过程中发现一个边界情况：`z=100` 时 sigmoid 在 float64 中等于 1.0（浮点饱和），将测试范围缩至 [-10, 10] 修复。
+
+<!-- meta: verdict:PASS score:8.0 test_delta:+12 -->
+
+### 失败/回退分析
+唯一失败：`test_sigmoid_range` 初始版本用 `linspace(-100, 100)` 触发 float64 饱和（z=37+ 时 sigmoid 等于 1.0），修正为 `linspace(-10, 10)`，一次修改即通过。
+
+### 下次不同做
+- test_delta +12 消除了测试债务；下次可以正式开始节点04（LeNet 1989）
+- 节点04开始前先运行 cite-verify 验证 LeCun 1989 DOI：10.1162/neco.1989.1.4.541
+- 同时补 Werbos (1974) 和 Hopfield (1982) 到 refs/references.bib（评审遗留建议）
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | 测试范围选择不当（float64 边界行为）|
+| 根因 | 未考虑极端 z 值导致的浮点饱和 |
+| 具体修改 | linspace(-100,100) → linspace(-10,10) |
+| 预期效果 | test_delta +12，测试债务清零 |
+
+### KPI 快照
+- knowledge_nodes: 3（不变）
+- nodes_with_runnable_notebook: 3（不变）
+- verified_citations_ratio: 100%
+- depth_score: 5/5
+- broken_notebook_ratio: 0%
+- unverified_citation_ratio: 0%
+- test_delta: **+12**（10 → 22，债务清零）
+
+---
+
 ## Session 20260418-130735 — 节点03：反向传播（1986），手撕两层网络解决 XOR
 
 本次 session 交付知识节点 03（1986 反向传播）：`docs/03-backprop-1986.md`（~3000字，depth 5/5）+ `notebooks/03-backprop-1986.ipynb`（17 cells，全部跑通）+ `tools/gen_nb_03.py`（notebook 生成器）。主文档涵盖：17年寒冬背景、信用分配问题提出、导数/链式法则自包含讲解、反向传播四步推导、XOR 终于被解决的意义、以及三个局限（局部最优/梯度消失/计算量）如何催生后续突破。调试发现两个问题：① `tools/notebook-run` 只接受目录路径；② nbconvert 执行时工作目录是 `notebooks/`，所以 savefig 路径要用 `../docs/assets/`。两个问题都通过更新 gen_nb_03.py 修复。同时修复了节点01/02的"下一节点"链接（原为待写占位符）。
