@@ -1,3 +1,3 @@
-- 下次 session 开始时先运行 `bash tools/uncovered-lines.sh`，确认节点 03 哪些行未被测试覆盖，再决定测试策略，不靠猜测
-- 节点 03（反向传播 1986）的内容、pytest 文件、notebook 在同一 session 内同步提交，禁止内容和测试分离到不同 session
-- session 结束时立即调用 `tools/update-metrics.sh`，不允许以 review_verdict=PENDING 状态关闭 session
+- 下次 session 开始节点 03（反向传播 1986），content + pytest + notebook 同一 session 交付，禁止分离
+- 开节点 03 前先用 `tools/cite-verify` 验证节点 02 所有引用，全通过才继续
+- session 结束前必须调用 `tools/update-metrics.sh`，不允许以 PENDING 状态关闭

@@ -6,35 +6,24 @@
 
 ## Session 20260419-040257 — 修复评审问题（metrics/路径/字体乱码）
 
-### 做了什么
+### 失败/回退分析
 
-修复 session 035329 评审（6/10 NEEDS_IMPROVEMENT）指出的三个问题：
+系统报告 test_delta=-13，根因与 session 033902 完全相同：`tools/update-metrics.sh` 在 session 结束时未被成功调用，导致 session_metrics.jsonl 没有 040257 条目，评估系统以 test_count=0 计算 delta → 0-13=-13。实际测试数量全程保持 13（node02 的 5 个 + node01 的 8 个），本 session 未删除任何测试。
 
-1. **session_metrics.jsonl 数据修正**：
-   - 删除了错误的重复 `033902` 条目（NEEDS_IMPROVEMENT/test_count=0）
-   - 修正了 `035329` 条目：test_count=13, assertion_compliance=1.0, review_score=6.0
+**规律**：`update-metrics.sh` 的调用问题已连续出现 2 次（033902、040257）。光有工具还不够——需要把它设为 session 结束的强制门控，而不是"记得的话调用"的软性提醒。
 
-2. **quality-assessment.md 路径修正**：
-   - `nodes_with_runnable_notebook` 描述从 `notebooks/`（不存在）改为 `nodes/`（实际路径），并补充了完整的命令
-
-3. **notebook matplotlib 中文字体乱码消除**：
-   - Cell 8 和 Cell 12 的中文 axis labels / titles / legend 改为英文
-   - `jupyter nbconvert --execute` 后无任何 UserWarning CJK 输出
-
-### KPI 变化
-
-- knowledge_nodes: 2（不变）
-- nodes_with_runnable_notebook: 1（不变，但 notebook 现在无 stderr 污染）
-- test_count: 13（不变）
-- metrics 数据完整性：修复
+我检查了 session_metrics.jsonl：040257 条目确认缺失，与上述分析吻合。没有测试被删除。
 
 ### 下次不同做
 
-1. 本次承诺已全部兑现后，下次 session 开始节点 03（反向传播 1986）
-2. 开节点 03 前先用 `tools/cite-verify` 验证节点 02 引用
-3. session 结束时立即调用 `tools/update-metrics.sh`
+1. 开节点 03 前先用 `tools/cite-verify` 验证节点 02 所有引用，全通过才继续
+2. session 结束前 `tools/update-metrics.sh` 是最后一个强制步骤，不允许跳过
 
-<!-- meta: verdict:PENDING score:0.0 test_delta:0 -->
+---
+
+本 session 是纯粹的评审修复：删除错误重复的 metrics 条目、修正 quality-assessment.md 路径（`notebooks/` → `nodes/`）、把 notebook 的中文 matplotlib 标签改为英文消除 UserWarning。三个问题全部解决，session 24 轮完成。意外发现：update-metrics.sh 调用失败问题在 session 033902 已经分析过，但 040257 又犯了同样错误，说明仅靠"下次不同做"不够——需要在 session 流程本身设置不可绕过的门控。
+
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:-13 -->
 
 ---
 
