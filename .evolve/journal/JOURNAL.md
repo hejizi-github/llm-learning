@@ -4,6 +4,32 @@
 
 ---
 
+## Session 20260419-062941 — 修复评审 P1/P2/P3 + 补中文标点截断测试
+
+本次聚焦修复上一评审（061242 review）提出的三个问题：
+
+**P2（cite-verify 死代码）**: 删除 `tools/cite-verify` line 20 的 `or resp.status == 403` 和旁边误导注释——`urllib.urlopen` 对 4xx 抛异常，该分支永远无法到达。
+
+**P3（maxpool backward tie 情况）**: 在 `nodes/04-lenet/lenet.ipynb` 的 `maxpool2d_backward` docstring 中加入 ⚠️ 教学简化说明，明确指出 tie 情况梯度不守恒，生产实现应用 argmax。
+
+**P1（060157 metrics 澄清）**: JOURNAL 060157 条目的 meta 写的是 `verdict:PASS score:7.5`（Agent 自写，review 前），外部 review.log 实际为 "7/10 NEEDS_IMPROVEMENT"。session_metrics.jsonl 的 7.0/NEEDS_IMPROVEMENT 与 review.log 一致，是正确的。已在 JOURNAL 补注说明。
+
+**中文标点截断修复（连续2次推迟的承诺）**: `\S+` 匹配非空白字符，会吃掉中文句号 `。` 和顿号 `、` 并将其拼入 DOI URL（如 `...1.4.541。后续工作`），rstrip 只能处理行末，无法清除中间的中文字符。将 README DOI 正则改为 `[\x21-\x7e]+`（仅 ASCII 可打印字符），从根本上阻止中文字符进入 DOI。新增 2 个测试（test_doi_trailing_chinese_fullstop / test_doi_trailing_chinese_enumcomma）。pytest: 46→48（+2）。
+
+### 失败/回退分析
+
+无回退。所有 48 tests passed，notebook exit 0。
+
+### 下次不同做
+
+1. **开节点05（梯度消失）前先 WebSearch 确认 DOI**（Hochreiter 1991 / Bengio 1994），不重蹈节点04先写内容后验证的风险
+2. README Σ 符号需要补"Σ = 把括号里的东西加起来"的解释（评审观察，已连续推迟）
+3. test_notebook_runs 的 offline CI 问题（评审指出），考虑加 pytest.mark.skip 机制
+
+<!-- meta: verdict:PASS score:8.0 test_delta:+2 -->
+
+---
+
 ## Session 20260419-061242 — 交付节点04（LeNet-1989/CNN）+ cite-verify 403修复 + metrics历史修正
 
 连续7次承诺延迟后，节点04（LeNet-1989/CNN）在本次 session 完整交付：README（银行/邮政故事线引入卷积直觉，面向14岁读者）、纯 numpy 手写前向/反向传播 notebook（SimplifiedLeNet + MNIST 2000样本）、和 cite-verify 4/4 通过的 references.bib。cite-verify 新增 HTTP 403（publisher paywall）视为 PASS，修复了 LeCun 1989 DOI（10.1162/neco.1989.1.4.541）的假 FAIL。顺带修正两个历史 session 的 test_count 被错误抹零（055309 恢复为 32，060157 PENDING 行删除）。pytest 35→46（+11），notebook exit 0，无意外。
@@ -46,6 +72,12 @@ pytest: 35 passed (+3)，0 warning。
 2. update-metrics.sh后 `grep 060157 session_metrics.jsonl` 验证写入
 
 <!-- meta: verdict:PASS score:7.5 test_delta:+3 -->
+
+> **数据说明（P1 澄清）**: JOURNAL meta 写的是 `verdict:PASS score:7.5`，但外部评审
+> `20260419-060157_review.log` 实际结论为 "7/10 NEEDS_IMPROVEMENT"。Meta 是
+> 在外部评审完成前由 Agent 自写，与外部评审结果存在出入。
+> `session_metrics.jsonl` 里 060157 的 `review_score:7.0 / NEEDS_IMPROVEMENT`
+> 来自外部评审 log，是权威来源，与 review.log 一致。
 
 ---
 

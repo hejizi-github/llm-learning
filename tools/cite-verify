@@ -16,8 +16,7 @@ def check_url(url, label=""):
         req = urllib.request.Request(url, method="HEAD")
         req.add_header("User-Agent", "cite-verify/1.0 (research tool)")
         resp = urllib.request.urlopen(req, timeout=15)
-        # 403 = resource exists but paywalled — valid for citation purposes
-        ok = resp.status < 400 or resp.status == 403
+        ok = resp.status < 400
         status = "PASS" if ok else f"FAIL({resp.status})"
         print(f"  {status}: {label or url}")
         return ok
@@ -112,8 +111,8 @@ def check_readme_references(readme_path):
             url_results.append(check_url(url, label))
             time.sleep(0.3)
         elif has_doi:
-            # \S+ captures full DOI including internal dots; rstrip removes trailing punctuation
-            doi_match = re.search(r'10\.\d{4,}/\S+', line)
+            # [\x21-\x7e]+ matches printable ASCII only — stops at Chinese chars/full-stops
+            doi_match = re.search(r'10\.\d{4,}/[\x21-\x7e]+', line)
             if doi_match:
                 doi_str = doi_match.group(0).rstrip(".,;)]'\"")
                 url = f"https://doi.org/{doi_str}"

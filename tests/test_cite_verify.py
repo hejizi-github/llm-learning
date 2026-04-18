@@ -245,3 +245,21 @@ def test_check_url_treats_403_as_pass():
             "LeCun 1989"
         )
     assert result is True, "403 (paywall) should return True — DOI is valid"
+
+
+# ── Chinese punctuation truncation tests ─────────────────────────────────────
+
+def test_doi_trailing_chinese_fullstop_not_captured():
+    """全角句号 。 after DOI must not be captured as part of the DOI."""
+    urls = _capture_urls_for_line("- LeCun 1989 DOI: 10.1162/neco.1989.1.4.541。后续工作")
+    assert len(urls) == 1, f"Expected 1 URL, got {urls}"
+    assert urls[0] == "https://doi.org/10.1162/neco.1989.1.4.541", \
+        f"Chinese full-stop leaked into DOI URL: {urls[0]}"
+
+
+def test_doi_trailing_chinese_enumcomma_not_captured():
+    """顿号 、 after DOI must not be captured as part of the DOI."""
+    urls = _capture_urls_for_line("- 文献 DOI: 10.1145/3065386、另一篇文献")
+    assert len(urls) == 1, f"Expected 1 URL, got {urls}"
+    assert urls[0] == "https://doi.org/10.1145/3065386", \
+        f"Chinese enum-comma leaked into DOI URL: {urls[0]}"
