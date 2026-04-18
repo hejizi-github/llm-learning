@@ -1,3 +1,3 @@
-- 下一个 session 必须交付节点14三件套（文档+notebook+pytest ≥15条），产出 test_delta≥15，不再做节点13相关修复
-- bug-fix session 必须同步新增 pytest 覆盖修复点，不允许出现 fix+test_delta=0 的 session
-- 每次节点交付后用 nbconvert 跑通 notebook，同时 grep 所有提到关键数字的语句（含总结句），确保无矛盾
+- 下一个 session 立即交付节点15三件套（doc+notebook+pytest≥15），不做任何 fix-only session
+- 每次交付完成后立即运行 `python -m pytest tests/ --co -q | wc -l` 确认测试数量，与 session log 中的 test_delta 对齐，发现 RLVR 误报时在 journal 中标注根因
+- 新节点 notebook 所有图例、轴标签、打印输出统一用中文，不用英文动态字符串作为可读标签
