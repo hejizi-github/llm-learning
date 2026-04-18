@@ -482,6 +482,7 @@ out_path = os.path.join(os.path.dirname(__file__), "../notebooks/20-dalle2-2022.
 out_path = os.path.normpath(out_path)
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump(nb, f, ensure_ascii=False, indent=1)
+    f.write("\n")  # 末尾换行
 
 print(f"Written: {out_path}")
 print(f"Cells: {len(cells)}")

@@ -280,3 +280,51 @@ class TestRLHFIntegration:
 
         # With sufficient KL penalty, hacking (huge KL) loses even with high RM score
         assert obj_normal > obj_hacked or kl_hacked > kl_normal * 5
+
+
+# ─── 6. Document Structure (Node 21) ─────────────────────────────────────
+
+import os
+
+
+class TestDocumentStructure:
+    """Verify node 21 document and notebook artifacts exist and are correct."""
+
+    DOC_PATH = os.path.join(os.path.dirname(__file__), "../docs/21-instructgpt-2022.md")
+    NOTEBOOK_PATH = os.path.join(os.path.dirname(__file__), "../notebooks/21-instructgpt-2022.ipynb")
+
+    def test_document_exists(self):
+        assert os.path.exists(self.DOC_PATH), "docs/21-instructgpt-2022.md 应存在"
+
+    def test_notebook_exists(self):
+        assert os.path.exists(self.NOTEBOOK_PATH), "notebooks/21-instructgpt-2022.ipynb 应存在"
+
+    def test_document_contains_sft(self):
+        with open(self.DOC_PATH, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert "SFT" in content, "文档应包含 SFT 步骤"
+
+    def test_document_contains_reward_model(self):
+        with open(self.DOC_PATH, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert "奖励模型" in content or "Reward Model" in content
+
+    def test_document_contains_ppo(self):
+        with open(self.DOC_PATH, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert "PPO" in content
+
+    def test_document_contains_citation(self):
+        with open(self.DOC_PATH, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert "2203.02155" in content or "ouyang2022" in content
+
+    def test_document_contains_85_percent(self):
+        with open(self.DOC_PATH, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert "85%" in content, "文档应包含论文中 85% 人类偏好数字"
+
+    def test_notebook_trailing_newline(self):
+        with open(self.NOTEBOOK_PATH, "rb") as f:
+            content = f.read()
+        assert content.endswith(b"\n"), "notebook JSON 应以换行结尾"

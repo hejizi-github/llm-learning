@@ -2,6 +2,66 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-193217 — 修复评审问题 + 节点21 InstructGPT/RLHF 三件套交付
+
+### 本次工作
+
+**阶段1：修复上次评审的 3 个问题（4/10 → 目标 8+）**
+
+1. **BibTeX 类型修复**（`refs/references.bib`）：
+   - `@article{ramesh2021dalle` → `@inproceedings{ramesh2021dalle`
+   - DALL-E 1 发表于 ICML 2021（会议），应为 inproceedings
+
+2. **单调性测试修复**（`tests/test_dalle2.py`）：
+   - `test_prior_history_monotone` 改名为 `test_prior_converges_overall`，改为检查前半段 vs 后半段均值
+   - `test_monotone_similarity_cat_to_dog` 改名为 `test_slerp_similarity_endpoints`，新增前/后半段趋势检验
+
+3. **gen_nb_20.py 末尾换行修复**：
+   - 追加 `f.write("\n")` 确保 JSON 末尾有换行
+
+**阶段2：节点21 InstructGPT/RLHF 三件套**
+
+**文档**（docs/21-instructgpt-2022.md）：
+- Section 0：历史位置（GPT-3 → InstructGPT → ChatGPT 时间线）
+- Section 1：对齐问题（预测下一词 ≠ 遵循指令）
+- Section 2：RLHF 三步骤（SFT + RM + PPO）
+- Section 3：SFT 监督微调
+- Section 4：奖励模型（Bradley-Terry 偏好模型）
+- Section 5：PPO + KL 约束（避免奖励Hacking）
+- Section 6：数字成绩（1.3B 胜 175B GPT-3，85% 人类偏好）
+- Section 7：局限性
+- Section 8：历史意义
+- Section 9：数学小补丁（对数概率、KL散度、Sigmoid）
+
+**Notebook**（notebooks/21-instructgpt-2022.ipynb，15 cells，纯 NumPy）：
+- Part 1：偏好对数据（排序展开为 chosen/rejected）
+- Part 2：奖励模型训练（Bradley-Terry，区分力可视化）
+- Part 3：PPO KL 约束（RM分数 vs KL散度权衡）
+- Part 4：训练前后分数分布对比（chosen vs rejected）
+
+**Tests**（tests/test_instructgpt.py，新增 8 个文档结构测试，共 41 个）：
+- TestDocumentStructure（8个）：检验 doc/notebook 存在、内容、引用、末尾换行
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 20 | 21 | +1 |
+| tests (pytest) | 445 | 453 | +8 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| verified_citations_ratio | 41/41 | 41/41 | 0 |
+
+### 失败/回退分析
+
+无失败，无回退。test count 453 是 pytest 直接执行确认，不依赖 cache 文件。
+
+### 下次不同做
+- 下次 session 应启动节点22（ChatGPT/GPT-4，或 Scaling Laws 节点）
+- 每次生成 gen_nb_X.py 时，固定末尾加 `f.write("\n")`，不再需要单独修复
+- BibTeX 类型要与会议/期刊匹配验证：ICML/NeurIPS/ICLR 均为 `@inproceedings`
+
+---
+
 ## Session 20260418-191429 — 修复节点19评审问题 + 节点20 DALL-E 2 三件套交付
 
 ### 本次工作

@@ -174,11 +174,12 @@ class TestPrior:
         norm = np.linalg.norm(pred)
         assert abs(norm - 1.0) < 1e-4, f"Prior 输出应为单位向量，got norm={norm:.4f}"
 
-    def test_prior_history_monotone(self):
+    def test_prior_converges_overall(self):
         pred, history = simulate_prior(self.cat_txt, n_diffusion_steps=10, seed=7)
         sims = [cosine_similarity(h, self.cat_txt) for h in history]
-        # Overall trend should be increasing (first vs last)
-        assert sims[-1] > sims[0], "Prior 过程整体相似度应上升"
+        # 前半段均值 vs 后半段均值：整体趋势上升即可
+        mid = len(sims) // 2
+        assert np.mean(sims[mid:]) > np.mean(sims[:mid]), "Prior 过程后半段平均相似度应高于前半段"
 
 
 # ── TestDecoder ──────────────────────────────────────────────────────────────
@@ -242,7 +243,7 @@ class TestSlerp:
             result = slerp(v0, v1, t)
             assert abs(np.linalg.norm(result) - 1.0) < 1e-5
 
-    def test_monotone_similarity_cat_to_dog(self):
+    def test_slerp_similarity_endpoints(self):
         np.random.seed(0)
         D = 8
         cat_base = l2_normalize(np.array([1.0, 0.8, 0.2, -0.1, 0.3, 0.5, -0.2, 0.1]))
@@ -253,8 +254,13 @@ class TestSlerp:
         interp = [slerp(cat_txt, dog_txt, t) for t in t_values]
         sims_cat = [cosine_similarity(v, cat_txt) for v in interp]
         sims_dog = [cosine_similarity(v, dog_txt) for v in interp]
+        # 端点行为：t=0 与猫最近，t=1 与狗最近
         assert sims_cat[0] > sims_cat[-1], "t=0 时应与猫更近"
         assert sims_dog[-1] > sims_dog[0], "t=1 时应与狗更近"
+        # 前半段更接近猫，后半段更接近狗
+        mid = len(t_values) // 2
+        assert np.mean(sims_cat[:mid]) > np.mean(sims_cat[mid:]), "前半段应整体更接近猫"
+        assert np.mean(sims_dog[mid:]) > np.mean(sims_dog[:mid]), "后半段应整体更接近狗"
 
 
 # ── TestDocumentStructure ────────────────────────────────────────────────────
