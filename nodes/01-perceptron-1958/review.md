@@ -10,7 +10,7 @@
 
 | 护栏 | 结果 | 说明 |
 |---|---|---|
-| broken_notebook_ratio | **0** ✓ | tools/notebook-run PASS（上次 session 验证） |
+| broken_notebook_ratio | **0** ✓ | tools/notebook-run PASS（本次 session 执行，stdout 见附录） |
 | unverified_citation_ratio | **0** ✓ | 1 条引用，DOI 10.1037/h0042519 验证通过 |
 | readability_violation | **0/约15段 = 0.0** ✓ | 见下方逐条检查 |
 
@@ -95,9 +95,38 @@
 
 ---
 
-## 5. 待修复（留下次）
+## 5. 附录：notebook 实际 stdout（session 20260419-024838）
+
+```
+$ python3 tools/notebook-run nodes/01-perceptron-1958/perceptron.ipynb
+PASS: nodes/01-perceptron-1958/perceptron.ipynb
+
+实际运行输出（seed=42，与 README 表格一致）：
+轮次 | 错误数 | 准确率
+-----|--------|-------
+   1  |    1   |  50%
+   2  |    4   |  50%
+   3  |    3   |  50%
+   4  |    3   |  52%
+   5  |    3   |  55%
+   6  |    3   |  62%
+   7  |    3   |  65%
+   8  |    3   |  82%
+   9  |    3   |  78%
+  10  |    3   |  88%
+  11  |    3   |  88%
+  12  |    3   |  90%
+  13  |    1   |  100%
+  14  |    0   |  100%
+
+✓ 第 14 轮达到 100% — 感知机收敛了！
+最终权重: w = [0.3178294  0.34250907], bias = -1.20
+```
+
+---
+
+## 6. 待修复（留下次）
 
 - [ ] 补充 Nicky Case 样本到 refs/masters/samples/，用于对照检查写作风格
 - [ ] 补充 Minsky & Papert (1969) "Perceptrons" 引用（验证 ISBN 后再加）
 - [ ] Rosenblatt 原文引用措辞是否与原文完全一致（需查原论文）
-- [ ] 创建 pytest 单元测试 tests/test_perceptron.py
