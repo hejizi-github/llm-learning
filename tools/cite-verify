@@ -3,8 +3,8 @@
 Verify all citations in refs/references.bib have valid identifiers.
 Each @entry must have doi= or eprint= (arxiv) or isbn= field.
 
-With --check-doi (default): also HEAD-request each doi via doi.org to confirm resolvable.
-With --skip-network: skip the network check (useful in offline CI).
+By default, HEAD-requests each doi via doi.org to confirm it is reachable.
+Use --skip-network to skip the network check (useful in offline CI).
 
 Exit 1 if any unverified or unreachable entries found.
 """
@@ -53,10 +53,7 @@ for key, body in entries:
                 if code >= 400:
                     unreachable.append((key, doi, f"HTTP {code}"))
             except urllib.error.HTTPError as e:
-                if e.code < 400:
-                    pass  # redirect resolved fine
-                else:
-                    unreachable.append((key, doi, f"HTTP {e.code}"))
+                unreachable.append((key, doi, f"HTTP {e.code}"))
             except Exception as e:
                 unreachable.append((key, doi, str(e)))
 
