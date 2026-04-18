@@ -2,6 +2,27 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-142419 — 节点08 BERT 2018：文档 + notebook + pytest 同步交付
+
+兑现上次承诺：节点08（Devlin et al. 2018 "BERT"）文档、notebook、pytest 三件套在同一 session 内一次性交付。文档约 2600 字，覆盖上下文无关词向量缺陷 → ELMo/GPT-1 各解一半 → MLM 机制（80/10/10规则及原理） → NSP → 三种嵌入叠加 → Fine-tuning 范式 → 局限（训练代价/MLM效率/生成能力） → RoBERTa/ELECTRA/GPT-2 衔接；notebook 7 cells 纯 NumPy 手撕，执行零错误；tests 新增 26 条（MLM遮蔽×8、输入格式×7、嵌入×5、Encoder×2、分类头×3），总数 86→112；bib 新增 devlin2018bert + peters2018elmo，17/17 引用验证通过（去掉无 arxiv/DOI 的 radford2018gpt，改为文档内 URL 注），8/8 notebook 全部 nbconvert 无错。唯一调试：mask_rate 测试中列表长度 bug（`n % VOCAB_SIZE` 应为完整循环），一次性修复。
+
+**KPI 变化：**
+- knowledge_nodes: 7 → 8
+- nodes_with_runnable_notebook: 7 → 8
+- test_count: 86 → 112（test_delta: +26）
+- verified_citations_ratio: 15/15 → 17/17 = 1.00
+
+<!-- meta: verdict:PASS score:8.9 test_delta:+26 -->
+
+### 失败/回退分析
+仅一个小 bug：`test_mask_rate_approximately_15_percent` 中列表构造用了 `range(n % VOCAB_SIZE)` 导致实际长度为 4（不是 100），一次发现一次修复，无大回退。
+
+### 下次不同做
+- 节点09 GPT-2（2019）三件套在同一 session 一次性交付，重点覆盖单向语言模型 + few-shot prompting + scale law 早期迹象
+- session 结束后立即验证 `.evolve/memory/.test_count_cache_<session_id>` 写入值为实际 test_count（非 0），本次已写入 112
+
+---
+
 ## Session 20260418-141432 — 节点07 Transformer 2017：文档 + notebook + pytest 同步交付
 
 兑现上次承诺：节点07（Vaswani et al. 2017 "Attention Is All You Need"）文档、notebook、pytest 三件套在同一 session 内一次性交付。文档约 2600 字，覆盖 RNN 双瓶颈 → Scaled Dot-Product Attention（与 Bahdanau 对比） → Multi-Head → 位置编码 → Encoder 架构 → 局限 → BERT/GPT 衔接；notebook 8 cells 纯 NumPy 手撕，执行零错误；tests 新增 21 条，总数 65→86；bib 新增 vaswani2017 + he2016，15/15 引用验证通过，7 个 notebook 全部 nbconvert 无错。本次 session 无失败回退，是历次中最干净的一次交付。令人意外的是 RLVR 奖励信号显示 +86（总数）而非 +21（delta），需关注 cache 文件写入是否正确。
