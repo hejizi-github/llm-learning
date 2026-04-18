@@ -4,6 +4,29 @@
 
 ---
 
+## Session 20260419-042137 — 修复节点 02 notebook 字体跨平台 + source 格式
+
+### 失败/回退分析
+
+test_delta=+0，第三次连续出现。本次 session 属于评审扣分项修复：① 把 macOS-only 的 `Heiti TC` 字体改为跨平台 CJK 字体优先级检测；② 用 `nbformat` 重写 notebook，使所有 14 个 cell 的 source 还原为逐行数组格式（而非单一字符串块）。两项都是格式/兼容性修复，不产生新测试，test_delta=+0 属于正常边界。
+
+我检查了 session log verdict：`verdict=PASS score=8`，评审通过，update-metrics.sh 本次正确调用。没有测试失败或回滚。
+
+**原地打转警告**：连续三个 session（041214、042137 及上轮）都在修补节点 01/02 的细节问题，而承诺"下次开节点 03"已经在 commitments.md 中写了两次。下次不兑现则属于系统性拖延，必须强制切换。
+
+### 下次不同做
+
+1. 下次 session 必须开节点 03，不允许继续在节点 01/02 做任何维护性修复，否则视为方向失控
+2. 节点 03 content + pytest + notebook 必须在同一 session 内完成交付，不允许分离
+
+---
+
+本次修复了节点 02 notebook 的两个评审扣分点：`Heiti TC` macOS-only 字体换成跨平台 CJK 字体优先级检测（`matplotlib.font_manager` 动态查找），以及用 `nbformat` 重写 notebook 使所有 cell source 还原为逐行数组格式。update-metrics.sh 正确调用，verdict=PASS score=8。意外发现：这是第三次连续修补"上次修但没改好"的问题层——每次修一层、每次都以为修完了，说明"修 notebook 渲染问题"类型的任务边界比想象中要长，下次遇到同类问题应先列完所有待修点再一次性处理。
+
+<!-- meta: verdict:PASS score:8.0 test_delta:+0 -->
+
+---
+
 ## Session 20260419-041214 — 写 journal + 修复 notebook 英文标签可读性
 
 ### 失败/回退分析

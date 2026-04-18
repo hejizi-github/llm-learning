@@ -1,3 +1,3 @@
-- 下次 session 开始节点 03（反向传播 1986），content + pytest + notebook 同一 session 交付，禁止分离
-- 开节点 03 前先用 `tools/cite-verify` 验证节点 02 所有引用，全通过才继续
+- 下次 session 必须开节点 03（反向传播 1986），content + pytest + notebook 同一 session 交付，禁止继续在节点 01/02 做任何维护性修复
+- 节点 03 开始前先运行 `tools/cite-verify` 验证节点 02 所有引用，全通过才继续；引用验证失败则就地修复，不新开 session
 - session 结束前必须调用 `tools/update-metrics.sh`，不允许以 PENDING 状态关闭
