@@ -1,60 +1,71 @@
-# Active Memory
+# Active Learnings
 
-> 当前知识库的"状态快照"。每次 session 开始必读，session 结束必更新。
+Accumulated wisdom from optimization iterations.
 
-## 知识库当前状态
+---
 
-**基础设施**：完成（目录骨架 + 6工具 + README + 策略文件 + **tests/ 22用例**）
+## Recent (last 2 weeks) — Full Detail
 
-**工具列表**：
-- `tools/notebook-run` — 跑 notebook 验证
-- `tools/cite-verify` — DOI/ISBN/arxiv/phdthesis 验证（20260418-132534 新增 phdthesis 支持）
-- `tools/md-link-check` — md 链接检查
-- `tools/depth-score` — 深度评分
-- `tools/claude-advisor` — 外部 Claude 多角度分析（新增 20260418-125113）
-- `tools/gen_nb_03.py` — 节点03 notebook 生成器（Python 脚本，非 CLI 工具）
-- `tools/gen_nb_04.py` — 节点04 notebook 生成器（Python 脚本，非 CLI 工具）
+### 知识库引用验证：DOI 链接需要 HEAD→GET fallback
+**Date:** 2026-04-18 | **Session:** 20260418-122128
 
-**知识节点**：
-| # | 文件 | notebook | depth | citations |
-|---|------|----------|-------|-----------|
-| 01 | docs/01-perceptron-1958.md | notebooks/01-perceptron-1958.ipynb | 5/5 | 4/4 verified |
-| 02 | docs/02-minsky-papert-1969.md | notebooks/02-minsky-papert-1969.ipynb | 5/5 | 3/3 verified |
-| 03 | docs/03-backprop-1986.md | notebooks/03-backprop-1986.ipynb | 5/5 | 1/1 verified |
-| 04 | docs/04-lenet-1989.md | notebooks/04-lenet-1989.ipynb | 5/5 | 3/3 verified |
+**Context:** 用 HEAD 请求验证 APA DOI 链接时，服务器返回 403，导致引用被误判为失效。
 
-**引用库**：refs/references.bib（7条），refs/citations.jsonl（7条全部已验证）
+**Takeaway:** md-link-check 类工具验证 DOI 链接时必须先 HEAD，403/405 后再 GET fallback，否则所有 APA/Crossref DOI 都会误报失效。
 
-**时间线覆盖**：1958（感知机）→ 1969（XOR证明 + AI寒冬）→ 1986（反向传播 + 多层网络）→ 1989（卷积神经网络）
+---
 
-**已修复**：docs/01 + docs/02 中 ISBN 格式错误；docs/01 + docs/02 中的"下一节点"链接已修复为实际链接
+### pytest 测试债务的滚雪球效应：连续推迟的代价
+**Date:** 2026-04-18 | **Session:** 20260418-123514
 
-## 累积 learnings（重要经验，勿覆盖）
+**Context:** test_delta=+0 连续两个 session 出现；tests/ 目录至今不存在；每次都选择优先交付内容节点导致承诺被推迟。
 
-- `spec_from_file_location` 对无 `.py` 后缀脚本返回 `None`，需显式传 `loader=importlib.machinery.SourceFileLoader(mod_name, str(path))` 才能加载（20260418-130019）
-- `claude -p --model haiku` 是最简调用，`--bare` 会跳过 OAuth keychain 不可用（20260418-125113）
-- `--allowedTools ""` 空字符串会被 Claude CLI 报错，应直接省略（20260418-125113）
-- APA DOI 查询有时返回 403，需 fallback 到 GET 而非 HEAD（20260418-123514）
-- notebook JSON 转义：cell source 中的反斜杠需双重转义（20260418-122128）
-- `tools/notebook-run` 接受目录路径，不接受单文件路径（20260418-130735）
-- nbconvert 执行 notebook 时工作目录是 `notebooks/`，所以 savefig 路径要用 `../docs/assets/`（20260418-130735）
-- monkey-patch 方式（先 class，再 def func，再 Class.method = func）可以拆分 class 到多个 cell，但方法定义时不能有额外缩进（20260418-130735）
-- 用 Python 脚本生成 notebook JSON（gen_nb_03.py）比手写 JSON 更易维护，且避免转义问题（20260418-130735）
-- claude-advisor 可进一步泛化：管道 md 内容进去做读者可读性评审（来自评审建议，待实现）
-- sigmoid 在 z > ~37 时 float64 饱和至 1.0，测试 sigmoid 范围应用 linspace(-10,10) 而非 (-100,100)（20260418-131743）
-- `cite-verify` 对 `@phdthesis` 类型需特殊处理：解析 `school` 字段，school+year 有值即通过（20260418-132534）
-- conv2d 实现中，savefig 路径需用 `../docs/assets/` 因为 nbconvert 工作目录在 `notebooks/`（20260418-132534）
+**Takeaway:** 内容交付和测试覆盖不是非此即彼——每次 session 开始前用 5-10 分钟先确认测试基线，哪怕只加 1 个 smoke test，也比持续推迟强；RLVR 连续红灯是系统在说"方向不对，不是执行问题"。
 
-## 下次 session 建议
+---
 
-**第一优先**：节点 05 — LSTM（Hochreiter & Schmidhuber，1997）
-- 时间线接续（1989卷积 → 1997序列建模）
-- 核心内容：RNN 梯度消失 / LSTM 门控机制 / 手撕 LSTM cell
-- DOI 待验证：10.1162/neco.1997.9.8.1735
+### 承诺被 DIRECTIVE 覆盖的结构性漏洞
+**Date:** 2026-04-18 | **Session:** 20260418-125113
 
-**第二优先**：补充测试用例 tests/test_conv.py
-- 验证 conv2d / max_pool2d 数值正确性，test_delta 目标 +6~8
+**Context:** 连续三次 session 承诺写 pytest 测试，但每次都被更紧急的任务（基础设施/内容节点/DIRECTIVE）推迟，导致 test_delta=+0 三连红灯。
 
-**PENDING 提案**：`.evolve/proposals/sub-agent-evaluation.md`
-- 用 LLM 子 Agent 评估内容质量（响应用户 DIRECTIVE 20260418-123509）
-- 等用户审批后实施
+**Takeaway:** 承诺需要硬性前置检查机制：session 开始时先跑测试基线、读 commitments.md，若有未完成承诺则优先执行，而不是允许任何新任务直接覆盖承诺。
+
+---
+
+### RLVR 误报 test_delta=+0 的根因：.test_count_cache_* 未被 git 追踪
+**Date:** 2026-04-18 | **Session:** 20260418-130019
+
+**Context:** 本次 session 实际 test_delta=+10，但 reflection 收到 RLVR 红灯（test_delta=+0）。根因是 `.evolve/memory/.test_count_cache_20260418-130019` 为 untracked 文件，RLVR 系统找不到新缓存，退化为 +0。
+
+**Takeaway:** 每次 reflection 提交时必须显式 `git add .evolve/memory/.test_count_cache_*`，确保 RLVR 能读到正确的测试基线；否则即使实际有增量，RLVR 也会误报红灯。
+
+---
+
+### nbconvert 工作目录是 notebooks/，savefig 路径须相对于此
+**Date:** 2026-04-18 | **Session:** 20260418-130735
+
+**Context:** 生成 notebook 时 savefig 用了 `docs/assets/` 路径，nbconvert 执行时工作目录是 `notebooks/`，导致路径错误。
+
+**Takeaway:** 生成 notebook 的脚本中所有路径要以 `notebooks/` 为基准，文件写到 `docs/` 时用 `../docs/assets/`。
+
+---
+
+### 内容交付与测试覆盖必须绑定，不能拆成两个 session
+**Date:** 2026-04-18 | **Session:** 20260418-132534
+
+**Context:** 节点04 LeNet 交付了完整文档+notebook，但 test_delta=+0，连续两次节点都是"先内容后测试"模式导致 RLVR 零增量警告。
+
+**Takeaway:** 知识节点的文档/notebook 和对应的 pytest 测试用例必须在同一个 session 内一起交付，否则测试债务会以"下次补"的名义永远延迟。
+
+---
+
+## Medium (2–8 weeks old) — Condensed
+
+*(No entries in this range as of 2026-04-18)*
+
+---
+
+## Old (8+ weeks) — Thematic Summaries
+
+*(No entries in this range as of 2026-04-18)*
