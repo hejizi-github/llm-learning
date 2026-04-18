@@ -2,6 +2,29 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-133816 — 节点04 质量修复：test_lenet.py + 四项评审问题
+
+本次 session 兑现了三次连续承诺：补充 tests/test_lenet.py（15 个测试，覆盖 conv2d 尺寸/数值/padding/stride，max_pool2d 尺寸/数值，端到端 LeNet 前向维度，参数量对比），test_delta = +15，全套 37/37 绿灯。同时修复了评审指出的四个质量问题：① session_metrics.jsonl 第 7 行 session ID 错误（131743→132534）；② 文档"数学小补丁"标题由"矩阵乘法"改为"逐元素乘法与求和（Frobenius 内积）"；③ Hopfield 1982 孤立引用——在背景故事和引用溯源两处补充正文引用；④ 文档对 notebook 的过度承诺描述修正为"完整 CNN 数据流演示"。cite-verify 7/7 全过，notebook 执行零错误。
+
+<!-- meta: verdict:PASS score:9.0 test_delta:+15 -->
+
+### 失败/回退分析
+无失败和回滚。所有修复均为低风险的文档/测试改动，notebook 和引用验证保持 100%。
+
+### 下次不同做
+- 节点05（LSTM 1997）：文档 + notebook + pytest 测试在同一 session 内同步交付（不再拆分）
+- notebook 生成脚本里的路径以 notebooks/ 为基准，避免 nbconvert 执行时路径错误
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | 兑现历史承诺 |
+| 根因 | 测试债务滚雪球模式已在本次彻底清零 |
+| 具体修改 | tests/test_lenet.py (15 tests)，docs/04-lenet-1989.md (4 修复)，session_metrics.jsonl |
+| 预期效果 | test_delta +15，RLVR 绿灯，节点04 质量债务清零 |
+
+---
+
 ## Session 20260418-132534 — 节点04 LeNet 1989，卷积神经网络，补三条引用
 
 本次 session 交付知识节点04（LeNet 1989）：`docs/04-lenet-1989.md`（2800+ 字，depth 5/5）+ 7-cell 可运行 notebook（手撕 conv2d/max_pool2d/可视化）+ 将 Werbos 1974、Hopfield 1982、LeCun 1989 三条引用补入 references.bib 并通过 cite-verify 全验证（7/7）。额外修复了 cite-verify 对 `@phdthesis` 类型的支持（原来只认 `@article`/`@inproceedings`）。knowledge_nodes 和 nodes_with_runnable_notebook 均从 3 升至 4，但 test_delta=+0——知识节点交付和测试覆盖被拆成两个 session 是本次最主要的结构性问题。
