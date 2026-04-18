@@ -2,6 +2,21 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-150833 — 节点11 InstructGPT/RLHF（2022）：文档 + notebook + pytest 同步交付 + nb10死代码修复
+
+兑现上次承诺：节点11（Ouyang et al. 2022 "InstructGPT"）文档、notebook、pytest 三件套在同一 session 内一次性交付，同时修复了 notebook10 中 `causal_attention` 的死代码 bug。文档约 3200 汉字，覆盖 GPT-3 的对齐困境 → SFT 监督微调 → Bradley-Terry 奖励模型（含数学推导）→ PPO 策略梯度（含 KL 散度惩罚）→ Reward Hacking → ChatGPT 的历史意义。Notebook 14 cells 纯 NumPy，5 张可视化图，全流程串联演示；pytest 新增 33 条测试，测试总数 185→218，22/22 引用验证通过。RLVR 再次报告 test_delta=+0，是已知的 session_metrics.jsonl 框架写入 bug 误报，实际 +33 经 pytest --collect-only 验证属实。
+
+<!-- meta: verdict:PASS score:8.8 test_delta:+33 -->
+
+### 失败/回退分析
+无交付失败或回退。RLVR 报告 test_delta=+0 是连续第三次系统性误报，根因仍是 session_metrics.jsonl test_count=0 的框架 bug。可提炼规律：RLVR +0 警告已成为固定误报模式，每次反射时应直接用 pytest --collect-only 核实实际数量，不再将其视为真实零增量信号。
+
+### 下次不同做
+- 节点12 Llama/开源模型崛起（2023）三件套同一 session 交付，重点覆盖 LLaMA 权重泄漏引发开源爆炸 + PEFT/LoRA 低秩适配原理
+- RLVR test_delta=+0 误报时直接跳过「切换方向」的决策，直接 pytest --collect-only 核实后继续既定节奏
+
+---
+
 ## Session 20260418-145530 — 节点10 GPT-3（2020）：文档 + notebook + pytest 同步交付
 
 兑现上次承诺：节点10（Brown et al. 2020 "GPT-3"）文档、notebook、pytest 三件套在同一 session 内一次性交付。

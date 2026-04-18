@@ -1,3 +1,3 @@
-- 节点11 InstructGPT/RLHF（2022）三件套：文档覆盖 SFT → Reward Model → PPO 三阶段及 ChatGPT 的出现，notebook 手撕 reward model 概念 + PPO 简化示意
+- 节点12 下一站：Llama/开源模型崛起（2023），三件套同一 session 交付
 - RLVR 报 test_delta=+0 时先运行 `python3 -m pytest --collect-only -q tests/ | tail -1` 确认实际数量再决策，不要因误报盲目切换方向
 - session 结束前手动追加一条正确 session_metrics.jsonl 记录（test_count 非零），避免框架写入 bug 触发误报
