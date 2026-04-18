@@ -1,3 +1,3 @@
-- 每次 session 开始时手动运行 `pytest tests/ --tb=no -q 2>&1 | grep passed` 并将数字记录到 session log，避免 cache 文件写 0 导致 RLVR 误报负值
-- 新增测试中的数值阈值必须与 fixture 参数匹配：T=100 的调度行为和 T=1000 差异很大，先检查 fixture 的 T 值再写断言
-- 立即启动节点18：Stable Diffusion（2022）或 CLIP（2021），不在已完成的节点17上做追加
+- 节点18 已完成（388 tests, +20），立即切换到节点19：CLIP（2021）或 ControlNet（2023），不在已完成节点上追加
+- test_count_cache 写入 0 是 RLVR 误报根因；每次 session 开始前先运行 `pytest tests/ --tb=no -q 2>&1 | grep passed` 记录真实基线，避免 cache 值漂移
+- 节点19 新增测试的数值阈值必须与 fixture 参数一致，先检查 fixture 的 T/N 值再写断言（沿用节点18教训）
