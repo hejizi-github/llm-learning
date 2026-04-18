@@ -2,6 +2,37 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-143829 — 节点09 GPT-2（2019）：文档 + notebook + pytest 同步交付 + 08-bert 文档修复
+
+兑现上次承诺：节点09（Radford et al. 2019 "GPT-2"）文档、notebook、pytest 三件套在同一 session 内一次性交付，同时修复评审指出的两个历史 bug。
+
+**文档**（docs/09-gpt2-2019.md，约 2700 汉字）覆盖：BERT 的生成短板 → GPT-1 局限 → 单向因果 LM 原理（P(x_t|x_1..x_{t-1}) + 交叉熵损失公式初中生讲解） → Pre-LN vs Post-LN → 四档参数规模（117M→1.5B） → WebText 数据集 → zero/one/few-shot 三种推理模式 → Scale Law 早期迹象（Kaplan 2020，arXiv:2001.08361 验证通过） → 无 RLHF 局限 → GPT-3/InstructGPT 衔接。
+
+**Notebook**（notebooks/09-gpt2-2019.ipynb）：13 cells，纯 NumPy，覆盖因果 mask → causal attention → BPE 简化实现 → Mini GPT Block（Pre-LN + GELU） → 贪心/温度采样 → 规模律 log-log 可视化，9/9 notebooks 全部 nbconvert 执行零错误。
+
+**pytest**（tests/test_gpt2.py）：新增 43 条测试，覆盖 Causal Mask×9、Causal Attention×6、BPE×5、LayerNorm/GELU×7、Temperature×6、Scaling Law×4，测试总数 112 → 155。
+
+**Bug 修复**：docs/08-bert-2018.md 补充 `▶ [08-bert-2018.ipynb](../notebooks/08-bert-2018.ipynb)` 链接（评审评分项4 满6/6）。
+
+**引用**：kaplan2020scaling 通过 cite-verify（arxiv:2001.08361）；radford2019gpt2 无 arXiv/DOI（OpenAI Blog），沿用 GPT-1 处理方式改为文档内 URL 注，bib 中不收录。18/18 引用全部验证通过（ratio = 0.00）。
+
+**KPI 变化：**
+- knowledge_nodes: 8 → 9
+- nodes_with_runnable_notebook: 8 → 9
+- test_count: 112 → 155（test_delta: +43）
+- verified_citations_ratio: 18/18 = 1.00
+
+<!-- meta: verdict:PASS score:8.8 test_delta:+43 -->
+
+### 失败/回退分析
+无失败回退。引用处理（GPT-2 无 arXiv）一次性解决，按照 GPT-1 先例处理，流程已固化。
+
+### 下次不同做
+- 节点10 GPT-3（2020）三件套在同一 session 一次性交付，重点覆盖 1750 亿参数的规模化突破 + few-shot prompting 质的飞跃 + in-context learning 机制
+- session 结束后立即验证 `.evolve/memory/.test_count_cache_<session_id>` 写入值为实际 test_count（非 0）
+
+---
+
 ## Session 20260418-142419 — 节点08 BERT 2018：文档 + notebook + pytest 同步交付
 
 兑现上次承诺：节点08（Devlin et al. 2018 "BERT"）文档、notebook、pytest 三件套在同一 session 内一次性交付。文档约 2600 字，覆盖上下文无关词向量缺陷 → ELMo/GPT-1 各解一半 → MLM 机制（80/10/10规则及原理） → NSP → 三种嵌入叠加 → Fine-tuning 范式 → 局限（训练代价/MLM效率/生成能力） → RoBERTa/ELECTRA/GPT-2 衔接；notebook 7 cells 纯 NumPy 手撕，执行零错误；tests 新增 26 条（MLM遮蔽×8、输入格式×7、嵌入×5、Encoder×2、分类头×3），总数 86→112；bib 新增 devlin2018bert + peters2018elmo，17/17 引用验证通过（去掉无 arxiv/DOI 的 radford2018gpt，改为文档内 URL 注），8/8 notebook 全部 nbconvert 无错。唯一调试：mask_rate 测试中列表长度 bug（`n % VOCAB_SIZE` 应为完整循环），一次性修复。
