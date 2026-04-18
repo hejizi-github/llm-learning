@@ -125,7 +125,7 @@ class TestAutoencoder:
         """训练后重建误差应在合理范围内"""
         dataset = [np.sin(np.linspace(0, 2 * np.pi, PIXEL_DIM) * (i * 0.5 + 1)) for i in range(20)]
         mses = [np.mean((autoencoder.decode(autoencoder.encode(x)) - x) ** 2) for x in dataset]
-        assert np.mean(mses) < 1.0, f"重建MSE过大: {np.mean(mses):.4f}"
+        assert np.mean(mses) < 0.5, f"重建MSE过大: {np.mean(mses):.4f}"
 
     def test_training_loss_decreases(self):
         """训练损失应该下降"""

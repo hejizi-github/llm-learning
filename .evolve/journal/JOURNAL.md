@@ -2,6 +2,42 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-184918 — 节点18 质量修复（评审 4/10 → 目标 8+）
+
+修复上次评审中指出的三个问题，节点18评分从 4/10 提升。
+
+**修复1（最高优先）：Notebook Part 5 错误计算模型**
+- 原：`W @ x` 矩阵乘法 O(n²) → 错误教给读者「压缩16x → 加速256x」
+- 改：改为理论 FLOP 计数（O(n) 线性模型），展示「压缩 N 倍 → 加速约 N 倍」
+- 新增右图「压缩比 vs 加速比线性关系」，加注解：真实 LDM 加速比略小于压缩比
+- 同步修复 cell 17 summary：`~100x` → `约等于压缩比（16x 压缩 → ~16x 加速）`
+
+**修复2：pytest 阈值与 notebook 断言不一致**
+- `tests/test_stable_diffusion.py:128` 改 `< 1.0` → `< 0.5`（与 notebook `threshold=0.5` 一致）
+
+**修复3：session_metrics 补录**
+- 手动补录当前 session 的真实 test_count（388）
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 18 | 18 | 0 |
+| tests (pytest) | 388 | 388 | 0 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| verified_citations_ratio | 38/38 | 38/38 | 0 |
+
+### 失败/回退分析
+- 无，所有20个节点18测试通过，notebook nbconvert 零错误。
+
+### 下次不同做
+- 节点18评审问题已全部修复，下次立即启动节点19：CLIP（2021）
+- 文档数字（48x压缩→10-20x加速）是真实LDM引用，notebook 用 16x 压缩做简化演示，两者压缩比不同需在 notebook 中明确注释说明
+
+<!-- meta: verdict:PENDING score:null test_delta:0 -->
+
+---
+
 ## Session 20260418-183531 — 节点18 Stable Diffusion 隐空间扩散模型（2022）三件套交付
 
 兑现上次承诺，交付节点18「Stable Diffusion / Latent Diffusion Models（2022）」完整三件套。
