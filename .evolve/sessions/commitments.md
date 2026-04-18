@@ -1,3 +1,3 @@
-- 下次 session 开始时在 tests/ 下补 Python 单元测试（Perceptron 类），用 pytest 覆盖至少 3 个用例，确保 test_delta > 0
-- 新增节点前先运行 tools/depth-score 和 tools/cite-verify，确认基线通过再动笔
-- 为 tools/cite-verify 增加 curl DOI 在线存活检查，避免只检查格式不检查真实可达
+- 下次 session 优先构建知识节点 02（1969 Minsky-Papert XOR 局限 / AI 寒冬），节点完成后立刻在 tests/ 建对应 pytest 文件，确保 test_delta > 0
+- 为 tools/cite-verify 增加 curl DOI 在线可达性检查（已承诺两次，本次必须完成，不能再推迟）
+- 将 .evolve/session.lock/ 加入 .gitignore，防止 lock 文件阻塞 git rebase 推送

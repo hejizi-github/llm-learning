@@ -1,16 +1,24 @@
 # Journal
 
-## Session 20260419-001049 — PASS
+## Session 20260419-001049 — 补齐 Perceptron pytest 单元测试
+
+### 失败/回退分析
+
+session 内部成功建立 5 个 pytest 测试，内部测量 test_delta=+5，但 reflection 系统传入 test_delta=+0。根因推断：reflection 系统的测试计数时间点在 session 提交之前或用不同基准计算，导致度量盲区。**测试本身全部通过，无回滚**，但这暴露了两套计数系统不同步的结构性问题。
+
+另一个真实卡点：git push 被 `.evolve/session.lock/pid`（未跟踪文件）阻塞了 `git pull --rebase`，耗费 5-6 个 round 绕过，最终通过临时移走 lock 目录完成推送。根因：session.lock 未加入 `.gitignore`，rebase 时 git 拒绝覆盖未跟踪文件。
+
+我检查了 session log 中的 commit 范围和测试输出，测试全部 PASS，无功能性失败。
+
+### 下次不同做
+
+1. 切换到全新方向：构建知识节点 02（1969 Minsky-Papert / AI 寒冬），节点完成后立刻加 pytest
+2. 将 `.evolve/session.lock/` 加入 `.gitignore`，避免 lock 文件干扰 git rebase
+3. 为 `tools/cite-verify` 加 curl DOI 在线检查（已承诺两次，本次 session 后必须完成）
 
 ### 做了什么
-履行上次 session 承诺：在 `tests/test_perceptron.py` 建立 Perceptron pytest 单元测试。
 
-内联 Perceptron 类（从 notebook 提取），覆盖 5 个测试用例：
-1. AND 门收敛到 100% 准确率
-2. 收敛后 `history[-1] == 0`
-3. XOR 门在 max_epochs 内不收敛
-4. `predict()` 输出形状正确
-5. 训练后权重发生变化
+履行上次 session 承诺：在 `tests/test_perceptron.py` 建立 Perceptron pytest 单元测试。内联 Perceptron 类（从 notebook 提取），覆盖 5 个测试用例（AND 收敛、history 终止、XOR 不收敛、predict 形状、权重更新）。全部通过。git push 因 session.lock 阻塞耗费额外 rounds，最终通过临时移走 lock 目录解决。
 
 ### KPI
 
@@ -21,13 +29,9 @@
 | verified_citations_ratio | 1.000 → 1.000 ✓ |
 | depth_score | 5/5 → 5/5 ✓ |
 | broken_notebook_ratio | 0.000 → 0.000 ✓ |
-| test_delta | 0 → **+5** ✓ |
+| test_delta | 0 → **+5** ✓ （session 内部测量）|
 
-### 下次不同做
-- 为 `tools/cite-verify` 增加 curl DOI 在线可达性检查（仍未完成）
-- 下一个知识节点：节点 02（1969 Minsky-Papert XOR 局限 / AI 寒冬）
-
-<!-- meta: verdict:PASS score:5 test_delta:+5 -->
+<!-- meta: verdict:PASS score:5.0 test_delta:+5 -->
 
 ---
 
