@@ -1,5 +1,48 @@
 # Journal
 
+## Session 20260419-005337 — 构建知识节点 03（反向传播 1986）+ cite-verify DOI 网络检查
+
+### 失败/回退分析
+
+无回滚。所有检查一次通过。
+
+### 下次不同做
+
+1. **构建知识节点 04（LeNet / CNN 1989-1998）** — 节点 03 的文档已预留链接到 `04-lenet-1989.md`
+2. **depth-score 工具改进**：考虑输出每个失败维度的具体信息而不只是符号，让调试更快
+
+### 做了什么
+
+**cite-verify DOI 可达性检查**（已承诺四次，终于落实）：
+- `tools/cite-verify`：新增 `urllib.request` HEAD 请求，对每个有 `doi=` 的条目检查 `https://doi.org/{doi}` 是否返回 2xx/3xx
+- 添加 `--skip-network` 标志供离线 CI 使用
+- 验证：Rosenblatt 1958 DOI + Rumelhart 1986 DOI 均可达
+
+**知识节点 03 — 反向传播 1986**：
+- `refs/references.bib`：新增 `rumelhart1986backprop`（DOI: 10.1038/323533a0，已通过网络验证）
+- `docs/03-backprop-1986.md`：故事（AI 寒冬→1986 Nature 论文）→直觉（投篮类比）→链式法则（初中生能读懂）→历史影响表→承上启下节点 04
+- `notebooks/03-backprop-1986.ipynb`：手撕两层网络 + 反向传播（纯 NumPy），解决 XOR，可视化损失曲线，证明单层网络不能解 XOR
+- `tests/test_03_backprop.py`：7 个 pytest 用例（sigmoid 边界、导数公式、输出范围、损失下降、XOR 100%、单层失败验证、梯度形状）
+
+**研究来源**：Agent 子任务 WebFetch Wikipedia "Backpropagation" + doi.org/10.1038/323533a0，确认论文精确发表信息。
+
+### KPI
+
+| 指标 | 变化 |
+|------|------|
+| knowledge_nodes | 2 → 3 ✓ |
+| nodes_with_runnable_notebook | 2 → 3 ✓ |
+| test_count | 12 → 19 (+7) ✓ |
+| verified_citations_ratio | 1.000 → 1.000 ✓ |
+| depth_score | 2/2 → 3/3 nodes 5/5 ✓ |
+| broken_notebook_ratio | 0.000 → 0.000 ✓ |
+| unverified_citation_ratio | 0.000 → 0.000 ✓ |
+| readability_violation | 0 ✓ |
+
+<!-- meta: verdict:PASS score:9.0 test_delta:+7 -->
+
+---
+
 ## Session 20260419-003734 — 构建知识节点 02（Minsky-Papert 1969）
 
 ### 失败/回退分析

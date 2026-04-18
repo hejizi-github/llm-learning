@@ -2,11 +2,20 @@
 """
 Verify all citations in refs/references.bib have valid identifiers.
 Each @entry must have doi= or eprint= (arxiv) or isbn= field.
-Exit 1 if any unverified entries found.
+
+With --check-doi (default): also HEAD-request each doi via doi.org to confirm resolvable.
+With --skip-network: skip the network check (useful in offline CI).
+
+Exit 1 if any unverified or unreachable entries found.
 """
-import re, sys, pathlib
+import re, sys, pathlib, urllib.request, urllib.error, argparse
 
 BIB_FILE = pathlib.Path(__file__).parent.parent / "refs" / "references.bib"
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--skip-network", action="store_true",
+                    help="Skip DOI reachability HTTP check")
+args = parser.parse_args()
 
 if not BIB_FILE.exists():
     print(f"ERROR: {BIB_FILE} not found")
@@ -20,6 +29,8 @@ if not entries:
     sys.exit(0)
 
 unverified = []
+unreachable = []
+
 for key, body in entries:
     key = key.strip()
     has_doi   = bool(re.search(r'\bdoi\s*=', body, re.I))
@@ -27,13 +38,46 @@ for key, body in entries:
     has_isbn  = bool(re.search(r'\bisbn\s*=', body, re.I))
     if not (has_doi or has_arxiv or has_isbn):
         unverified.append(key)
+        continue
+
+    if has_doi and not args.skip_network:
+        doi_match = re.search(r'\bdoi\s*=\s*\{([^}]+)\}', body, re.I)
+        if doi_match:
+            doi = doi_match.group(1).strip()
+            url = f"https://doi.org/{doi}"
+            try:
+                req = urllib.request.Request(url, method="HEAD",
+                      headers={"User-Agent": "cite-verify/1.0 (llm-learning)"})
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    code = resp.status
+                if code >= 400:
+                    unreachable.append((key, doi, f"HTTP {code}"))
+            except urllib.error.HTTPError as e:
+                if e.code < 400:
+                    pass  # redirect resolved fine
+                else:
+                    unreachable.append((key, doi, f"HTTP {e.code}"))
+            except Exception as e:
+                unreachable.append((key, doi, str(e)))
 
 total = len(entries)
+ok = True
+
 if unverified:
     print(f"UNVERIFIED ({len(unverified)}/{total}):", unverified)
     ratio = len(unverified) / total
     print(f"unverified_citation_ratio: {ratio:.3f}  (max allowed: 0.05)")
-    sys.exit(1)
+    ok = False
 
-print(f"OK: {total} entries — all have doi/eprint/isbn identifiers")
-print(f"unverified_citation_ratio: 0.000")
+if unreachable:
+    print(f"UNREACHABLE DOIs ({len(unreachable)}):")
+    for key, doi, reason in unreachable:
+        print(f"  {key}: {doi} → {reason}")
+    ok = False
+
+if ok:
+    network_note = "" if args.skip_network else " (DOI reachability verified)"
+    print(f"OK: {total} entries — all have doi/eprint/isbn identifiers{network_note}")
+    print(f"unverified_citation_ratio: 0.000")
+
+sys.exit(0 if ok else 1)
