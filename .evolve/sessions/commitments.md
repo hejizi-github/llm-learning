@@ -1,3 +1,3 @@
-- 下次 session 优先构建知识节点 02（Minsky & Papert 1969 XOR 批评 + AI 寒冬），不再做基础设施扩展
-- 为 tools/ 下已有的 4 个验证脚本补写 pytest 单元测试，消除 test_delta=+0 的 RLVR 警告
-- 每个新知识节点完成后立即运行 tools/notebook-run 和 tools/cite-verify 验证，不留到最后批量验
+- 在开始节点 03 之前，先在 tests/ 目录创建 conftest.py 并为 tools/cite-verify 和 tools/notebook-run 各写至少 2 个 pytest 用例，让 RLVR test_delta 有正增量
+- 修复 docs/01-perceptron-1958.md 和 docs/02-minsky-papert-1969.md 中的 ISBN 格式错误（`978-0-262-63-070-2` → `978-0-262-63070-2`）
+- 每次 session 开始时先运行 `python -m pytest tests/ --tb=no -q 2>/dev/null || echo "no tests"` 确认测试基线，再决定本次工作方向

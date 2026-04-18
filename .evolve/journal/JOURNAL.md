@@ -94,7 +94,31 @@ _（还没有 session 记录。首次迭代由 `self-evolve run` 触发。）_
 
 ---
 
-## [2026-04-18 12:35] 20260418-123514
+## Session 20260418-123514 — 节点02 Minsky&Papert XOR证明+AI寒冬
+
+成功交付知识节点 02（Minsky & Papert 1969）：2600+字文档 + 9-cell 可运行 notebook + 3 张可视化，XOR 不可分的不等式代数证明严密，AI 寒冬历史叙述完整，Lighthill 报告无 DOI 故在正文引用而非入 bib，处理方式通过评审。同时修复了上一 session 遗留的 `--inplace` 标志 bug。让我意外的是：ISBN 修复时多打了一个连字符（`978-0-262-63-070-2` 而非 `978-0-262-63070-2`），评审捕获了这个回归。tests/ 目录至今不存在，test_delta=+0 连续两次警告说明这个债务一直在被推迟——本次 session 选择优先交付内容节点，但这个策略已经不可持续。
+
+<!-- meta: verdict:PASS score:8.5 test_delta:+0 -->
+
+### 失败/回退分析
+
+ISBN 修复引入了新的格式错误：`978-0-262-63-070-2` 多了一个连字符（正确为 `978-0-262-63070-2`），影响 docs/01 和 docs/02 两个文件。根因是手动输入 ISBN 时没有对照原始来源验证，只是"看起来像 ISBN 的格式"。tests/ 目录不存在，test_delta=+0 连续出现——上一 session 的承诺（写 pytest 测试）未执行，本 session 再次选择推迟，造成 RLVR 信号持续红灯。
+
+### 下次不同做
+- session 开始时先创建 tests/ 目录和 conftest.py，为 tools/ 写至少 4 个 pytest 用例，消除 test_delta=+0
+- ISBN 等精确字符串修改前，先从原始来源（Open Library API 或封面）复制粘贴，不手动输入
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | logic_error |
+| 根因 | ISBN 手动输入时多打了一个连字符，没有校验 |
+| 具体修改 | 下次 session 开始先修正两个 md 文件的 ISBN，用 `grep "978-0-262" docs/*.md` 统一检查 |
+| 预期效果 | ISBN 格式验证通过，评审不再报这个 regression |
+
+---
+
+## [2026-04-18 12:35] 20260418-123514（原始记录）
 
 ### 做了什么
 - **前置修复**：
@@ -114,18 +138,7 @@ _（还没有 session 记录。首次迭代由 `self-evolve run` 触发。）_
 - depth_score: 5/5（节点 02，6/6 rubric 维度全通过）
 - broken_notebook_ratio: 0.00（2/2 notebooks OK）
 - unverified_citation_ratio: 0.00
-- readability_violation: 未检测（工具仍待建）
-
-### learnings（新增）
-- notebook ipynb 文件里若有未转义 ASCII 双引号（如中文里的"努力"），会导致 JSON 解析失败；用 Python json.dump 生成是更安全的做法
-- 政府报告（如 Lighthill 1973）无 DOI，不应强行入 bib，应在正文中引用并加免责注释
-- depth-score 缺少 notebook 链接时只得 4/5，加一行链接即可满分——说明规则评分容易通过小改动满足，这也正是 DIRECTIVE 建议改用 LLM 评估的原因
 
 ### 下次该做什么
 - 节点 03：1986 反向传播（Rumelhart1986 已在 refs，需加 Werbos1974 arxiv 或 DOI 查验）
 - 等用户审批 .evolve/proposals/sub-agent-evaluation.md 后实施 LLM 评估工具
-
-### commit
-- （见 git log）
-
-<!-- meta: verdict:PENDING score:TBD test_delta:+0 -->

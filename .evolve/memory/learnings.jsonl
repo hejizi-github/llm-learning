@@ -1,1 +1,2 @@
 {"session": "20260418-122128", "date": "2026-04-18", "title": "知识库引用验证：DOI 链接需要 HEAD→GET fallback", "context": "用 HEAD 请求验证 APA DOI 链接时，服务器返回 403，导致引用被误判为失效", "takeaway": "md-link-check 类工具验证 DOI 链接时必须先 HEAD，403/405 后再 GET fallback，否则所有 APA/Crossref DOI 都会误报失效"}
+{"session": "20260418-123514", "date": "2026-04-18", "title": "pytest 测试债务的滚雪球效应：连续推迟的代价", "context": "test_delta=+0 连续两个 session 出现；tests/ 目录至今不存在；每次都选择优先交付内容节点导致承诺被推迟", "takeaway": "内容交付和测试覆盖不是非此即彼——每次 session 开始前用 5-10 分钟先确认测试基线，哪怕只加 1 个 smoke test，也比持续推迟强；RLVR 连续红灯是系统在说'方向不对，不是执行问题'"}
