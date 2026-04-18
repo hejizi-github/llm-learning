@@ -1,5 +1,70 @@
 # Journal
 
+## Session 20260419-014925 — AlexNet 2012 深度阅读（节点05前置研究）
+
+### 失败/回退分析
+
+无回滚。所有验证通过。
+
+DOI 10.5555/2999134.2999257（ACM NIPS 编号）经 doi.org 测试返回 404，改用
+10.1145/3065386（ACM Communications 2017 版，内容相同），可正常解析。
+
+### 做了什么
+
+**深度研读 AlexNet 2012 论文**（遵照 FLOW 深度优先原则）：
+
+1. **下载原文 PDF**：从 NeurIPS 官方 proceedings 直接下载（papers.nips.cc），存为 /tmp/alexnet.pdf
+2. **提取关键数字**（从 pdftotext 输出核实，非记忆复述）：
+   - ILSVRC-2010：CNN top-5 17.0%（vs 稀疏编码 28.2%）
+   - ILSVRC-2012 单模型：top-5 18.2%；5 模型集成：16.4%；最终参赛（+预训练）：15.3%
+   - 第二名：26.2%（差距 11 个百分点）
+   - 架构：5 conv + 3 FC，60M 参数，650K 神经元
+   - 训练：2× NVIDIA GTX 580，约 90 epochs，5-6 天
+3. **发现文字与 metadata 不一致**：metadata 写 500K neurons + 2 FC，正文写 650K neurons + 3 FC
+   → 以正文为准，笔记中已标注
+4. **写 refs/notes/alexnet-2012.md**：包含历史背景、key claims、所有数字、5 大创新详解、局限、
+   我的疑问（LRN 有效性 / GPU 分割拓扑 / 集成边际收益 / dropout vs augmentation 贡献分离）、
+   教学价值评估和 notebook 设计建议
+5. **更新 refs/references.bib**：新增 krizhevsky2012alexnet 条目（doi: 10.1145/3065386）
+6. **更新 refs/citations.jsonl**：记录验证状态
+7. **修复 test_count_cache bug**：写 "19" 到 .evolve/memory/.test_count_cache_20260419-014925
+
+### 验证结果
+
+| 工具 | 结果 |
+|------|------|
+| cite-verify | OK: 6 entries, unverified_citation_ratio: 0.000 ✓ |
+| notebook-run | 4/4 passed, broken_notebook_ratio: 0.000 ✓ |
+| pytest | 19 passed ✓ |
+| test_count_cache | 写入 "19"（修复假回归度量）✓ |
+
+### KPI
+
+| 指标 | 变化 |
+|------|------|
+| knowledge_nodes | 4 → 4（无新节点；本次是前置深度研究） |
+| nodes_with_runnable_notebook | 4 → 4 ✓ |
+| verified_citations_ratio | 1.000 → 1.000 ✓（6 条全部验证）|
+| broken_notebook_ratio | 0.000 → 0.000 ✓ |
+| unverified_citation_ratio | 0.000 → 0.000 ✓ |
+| test_count | 19 → 19（test_count_cache 已修复为正确值）|
+| 新资产 | refs/notes/alexnet-2012.md（下次 session 构建节点05的基础）|
+
+### 下次不同做
+
+1. **构建知识节点 05（AlexNet 2012）**：本次深度研究已完成，refs/notes/alexnet-2012.md 就绪，
+   下次 session 可以直接写 docs/05-alexnet-2012.md + notebooks/05-alexnet-2012.ipynb
+2. **Notebook 设计重点**：
+   - 不能训练真正的 AlexNet（60M 参数太大）
+   - 用 mini-AlexNet on CIFAR-10，核心 demo：ReLU vs tanh 收敛速度对比、手撕 Dropout 训练/测试切换
+   - 可视化 Conv1 学到的滤波器（Gabor-like patterns）
+3. **LRN 教学取舍**：公式超出初中代数，建议在文档中简化为"同一位置不同 kernel 间的竞争"的直觉，
+   代码中实现但不作为核心讲解
+
+<!-- meta: verdict:PASS score:8.0 test_delta:0 -->
+
+---
+
 ## Session 20260419-013445 — 修复节点04评审三问题（参数量/教学诚实性/垃圾文件）
 
 ### 失败/回退分析
