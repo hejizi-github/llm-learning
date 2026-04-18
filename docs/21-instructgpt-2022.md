@@ -212,7 +212,7 @@ PPO 在强化学习中以难以调参著称。KL 惩罚系数 β 选错了，要
 ## 8. 历史意义：从 InstructGPT 到 ChatGPT
 
 2022 年的时间线：
-- **2022-01**：InstructGPT 论文发布（arXiv:2203.02155）
+- **2022-03**：InstructGPT 论文发布（arXiv:2203.02155）
 - **2022-11**：ChatGPT 发布（基于 InstructGPT 思路 + GPT-3.5 + 更多 RLHF 数据）
 
 ChatGPT 并非凭空出现——它是 InstructGPT 方法论的产品化。RLHF 从一篇学术论文变成了改变整个 AI 行业的核心技术。

@@ -264,22 +264,61 @@ class TestRLHFIntegration:
         assert correct / 20 >= 0.7
 
     def test_kl_penalty_prevents_reward_hacking(self):
-        np.random.seed(4)
-        base_logits = np.zeros(10)
-        hacked_logits = base_logits + 8.0 * np.random.randn(10)
+        # A "hacking" policy: slightly higher RM score but much larger KL deviation.
+        # With KL penalty, the hacker's objective should be LOWER despite better RM.
+        p_base = softmax(np.zeros(10))  # uniform baseline
 
-        p_base = softmax(base_logits)
-        p_hacked = softmax(hacked_logits)
+        # Normal policy: small logit shift → small KL
+        normal_logits = np.array([0.2] + [0.0] * 9, dtype=float)
+        kl_normal = kl_divergence(softmax(normal_logits), p_base)
 
-        kl_normal = kl_divergence(softmax(base_logits + 0.1 * np.random.randn(10)), p_base)
-        kl_hacked = kl_divergence(p_hacked, p_base)
+        # Hacking policy: large logit shift → huge KL
+        hacked_logits = np.array([5.0] + [0.0] * 9, dtype=float)
+        kl_hacked = kl_divergence(softmax(hacked_logits), p_base)
 
-        high_rm_score = 10.0
-        obj_normal = ppo_objective(high_rm_score * 0.5, kl_normal, beta=0.5)
-        obj_hacked = ppo_objective(high_rm_score, kl_hacked, beta=0.5)
+        rm_normal, rm_hacked = 3.0, 3.5  # hacker has 16% better RM score
+        beta = 0.5
 
-        # With sufficient KL penalty, hacking (huge KL) loses even with high RM score
-        assert obj_normal > obj_hacked or kl_hacked > kl_normal * 5
+        obj_normal = ppo_objective(rm_normal, kl_normal, beta=beta)
+        obj_hacked = ppo_objective(rm_hacked, kl_hacked, beta=beta)
+
+        # Both assertions must independently hold
+        assert kl_hacked > kl_normal * 100, f"Hacker KL should dominate: {kl_hacked:.3f} vs {kl_normal:.3f}"
+        assert obj_normal > obj_hacked, (
+            f"KL penalty should make hacking lose: "
+            f"obj_normal={obj_normal:.3f} > obj_hacked={obj_hacked:.3f}"
+        )
+
+    def test_ppo_two_trajectories_kl_controlled(self):
+        # Verify that beta>0 trajectory has lower KL drift than beta=0 trajectory.
+        # This mirrors the notebook's two-trajectory simulation.
+        def run_trajectory(beta, n_steps=40):
+            np.random.seed(0)
+            vocab_size = 20
+            orig_logits = np.random.randn(vocab_size)
+            orig_probs = softmax(orig_logits)
+            preferred = 3
+            base_step = 0.12
+            logits = orig_logits.copy()
+            kl_history = []
+            for _ in range(n_steps):
+                probs = softmax(logits)
+                kl = kl_divergence(probs, orig_probs)
+                kl_history.append(kl)
+                effective_step = base_step * max(0.01, 1.0 - beta * kl)
+                logits[preferred] += effective_step
+            return kl_history
+
+        kl_free = run_trajectory(beta=0.0)
+        kl_constrained = run_trajectory(beta=0.3)
+
+        # Core property: KL constraint reduces drift
+        assert kl_constrained[-1] < kl_free[-1], (
+            f"Constrained KL ({kl_constrained[-1]:.3f}) should be less than "
+            f"unconstrained KL ({kl_free[-1]:.3f})"
+        )
+        # Unconstrained should keep growing
+        assert kl_free[-1] > kl_free[0], "Unconstrained KL should grow over time"
 
 
 # ─── 6. Document Structure (Node 21) ─────────────────────────────────────

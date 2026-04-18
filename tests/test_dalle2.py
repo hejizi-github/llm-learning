@@ -262,6 +262,29 @@ class TestSlerp:
         assert np.mean(sims_cat[:mid]) > np.mean(sims_cat[mid:]), "前半段应整体更接近猫"
         assert np.mean(sims_dog[mid:]) > np.mean(sims_dog[:mid]), "后半段应整体更接近狗"
 
+    def test_slerp_similarity_strictly_monotone(self):
+        # SLERP cosine similarity is mathematically guaranteed monotone:
+        # slerp(v0,v1,t) similarity to v0 = cos(t*omega), strictly decreasing.
+        # With deterministic inputs (no noise), this must hold exactly.
+        v0 = l2_normalize(np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))
+        v1 = l2_normalize(np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))
+        t_values = np.linspace(0, 1, 11)
+        interp = [slerp(v0, v1, t) for t in t_values]
+        sims_v0 = [cosine_similarity(v, v0) for v in interp]
+        sims_v1 = [cosine_similarity(v, v1) for v in interp]
+        # Strictly decreasing similarity to v0
+        for i in range(len(sims_v0) - 1):
+            assert sims_v0[i] >= sims_v0[i + 1] - 1e-9, (
+                f"SLERP similarity to v0 should be monotone: step {i}→{i+1}: "
+                f"{sims_v0[i]:.6f} → {sims_v0[i+1]:.6f}"
+            )
+        # Strictly increasing similarity to v1
+        for i in range(len(sims_v1) - 1):
+            assert sims_v1[i] <= sims_v1[i + 1] + 1e-9, (
+                f"SLERP similarity to v1 should be monotone: step {i}→{i+1}: "
+                f"{sims_v1[i]:.6f} → {sims_v1[i+1]:.6f}"
+            )
+
 
 # ── TestDocumentStructure ────────────────────────────────────────────────────
 

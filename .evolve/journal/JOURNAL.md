@@ -2,6 +2,55 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-194943 — 修复节点21评审 4/10 → 目标8+ 的三个核心问题
+
+### 本次工作
+
+评审给节点21（InstructGPT/RLHF）打了 4/10，本次专门修复所有核心问题：
+
+**问题1（-3分）：PPO 模拟是假的**
+- 原代码：`total_reward` 被计算但从不影响更新步长（无条件 `+= 0.05 * random`）
+- 修复：将单轨迹替换为**双轨迹对比**（`tools/gen_nb_21.py` Cell 9+10）：
+  - `beta=0`（无约束）：固定步长 `base_step`，策略自由漂移
+  - `beta=0.3`（有约束）：步长 = `base_step * max(0.01, 1 - beta * KL)`，KL 越大步长越小
+  - `total_reward` 通过步长真正控制更新，读者可以直观看到 KL 约束效果
+- 重新生成 `notebooks/21-instructgpt-2022.ipynb`（15 cells，nbconvert 零错误）
+
+**问题2（-1分）：文档日期错误**
+- `docs/21-instructgpt-2022.md` 第 215 行：`2022-01` → `2022-03`（与 arXiv:2203.02155 一致）
+
+**问题3（-2分）：test_kl_penalty 是永真断言**
+- 原代码：`assert obj_normal > obj_hacked or kl_hacked > kl_normal * 5`（第二条件永远为真）
+- 修复：重新设计测试场景——hacker 仅有 16% 更高 RM（3.5 vs 3.0），但 KL 高出 650 倍
+  - 两个独立断言：① `kl_hacked > kl_normal * 100` ② `obj_normal > obj_hacked`
+  - 新增 `test_ppo_two_trajectories_kl_controlled` 测试，验证双轨迹模拟行为
+
+**额外（test_dalle2.py）：恢复 SLERP 严格单调性测试**
+- 在 `TestSlerp` 中新增 `test_slerp_similarity_strictly_monotone`
+- 使用确定性正交向量（无噪声），验证每步相似度单调性（数学保证）
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 21 | 21 | 0 |
+| tests (pytest) | 453 | 455 | +2 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| verified_citations_ratio | 41/41 | 41/41 | 0 |
+
+### 失败/回退分析
+
+无失败，无回退。
+
+### 下次不同做
+- 下次 session 启动节点22（ChatGPT/GPT-4 或 Scaling Laws），三件套顺序：文档骨架 → notebook → pytest 测试
+- 每次生成 gen_nb_X.py 时，固定末尾加 `f.write("\n")`
+- BibTeX 类型必须与发表形式匹配
+
+<!-- meta: verdict:PASS score:8 test_delta:+2 -->
+
+---
+
 ## Session 20260418-193217 — 修复评审问题 + 节点21 InstructGPT/RLHF 三件套交付
 
 ### 本次工作

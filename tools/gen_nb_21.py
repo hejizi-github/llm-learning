@@ -217,10 +217,15 @@ PPO 优化时加了一个 KL 散度惩罚：
 **总奖励 = RM分数 - β × KL(新策略, 原策略)**
 
 这防止模型为了高分而完全改变自己的"说话风格"（奖励Hacking）。
-我们用简化模拟展示：随着优化，策略得分上升，但 KL 散度被控制在合理范围。\
+
+我们用**双轨迹对比**展示 KL 约束的真实效果：
+- **轨迹A（β=0，无约束）**：步长固定，策略随意漂移
+- **轨迹B（β=0.3，有约束）**：步长被 total_reward 控制——KL 越大步长越小
+
+两者用**相同的优化目标方向**，唯一区别是 KL 惩罚是否真正影响更新。\
 """, "markdown"))
 
-# ── Cell 10: KL constraint simulation ─────────────────────────────────────
+# ── Cell 10: KL constraint simulation — two-trajectory comparison ──────────
 cells.append(cell("""\
 def kl_divergence(p, q):
     \"\"\"离散分布 KL(P||Q) — 防数值下溢\"\"\"
@@ -234,63 +239,89 @@ def softmax(logits):
     e = np.exp(logits - logits.max())
     return e / e.sum()
 
-# 模拟原始策略（SFT模型）的输出分布
+# 原始策略（SFT 模型基线）
 np.random.seed(0)
 vocab_size = 20
 original_logits = np.random.randn(vocab_size)
 original_probs = softmax(original_logits)
+preferred_word = 3  # 假设词3是 RM 偏好的词
+base_step = 0.12   # 每步最大移动量
 
-# 模拟 PPO 优化过程：逐渐调整策略
-beta = 0.1  # KL 惩罚系数
-n_steps = 30
-rm_scores = []
-kl_values = []
-total_rewards = []
+def run_ppo_trajectory(beta, n_steps=40):
+    \"\"\"
+    简化 PPO 模拟：
+    - beta=0：步长恒定，策略自由漂移
+    - beta>0：步长 = base_step × max(0.01, 1 - beta * KL)
+              KL 越大 → 惩罚越重 → 步长越小 → 漂移减缓
+    这正是 KL 约束的作用：total_reward 通过步长直接控制策略更新幅度。
+    \"\"\"
+    logits = original_logits.copy()
+    kl_history, rm_history, obj_history = [], [], []
 
-current_logits = original_logits.copy()
-for step in range(n_steps):
-    # 模拟梯度更新（朝着高 RM 分数方向）
-    # RM 分数 = 简化为策略的某个特征（偏好特定词）
-    preferred_word = 3  # 假设词3是"好词"
-    current_logits[preferred_word] += 0.05 * np.random.uniform(0.5, 1.5)
+    for _ in range(n_steps):
+        probs = softmax(logits)
+        kl = kl_divergence(probs, original_probs)
+        rm = probs[preferred_word] * 5.0          # 简化 RM 分数
+        obj = rm - beta * kl                       # PPO 目标函数
 
-    current_probs = softmax(current_logits)
-    kl = kl_divergence(current_probs, original_probs)
-    rm_score = current_probs[preferred_word] * 5.0  # 简化奖励函数
-    total_reward = rm_score - beta * kl
+        kl_history.append(kl)
+        rm_history.append(rm)
+        obj_history.append(obj)
 
-    rm_scores.append(rm_score)
-    kl_values.append(kl)
-    total_rewards.append(total_reward)
+        # 关键：KL 约束通过步长真正影响更新
+        # beta=0：step = base_step（KL 不影响步长）
+        # beta>0：step 随 KL 增大而缩小，KL 过大时步长趋近于 0
+        effective_step = base_step * max(0.01, 1.0 - beta * kl)
+        logits[preferred_word] += effective_step
 
-print(f"最终 RM 分数：{rm_scores[-1]:.4f}")
-print(f"最终 KL 散度：{kl_values[-1]:.4f}")
-print(f"最终总奖励（含KL惩罚）：{total_rewards[-1]:.4f}")
-print(f"KL 约束效果：避免策略漂移过远（KL={kl_values[-1]:.2f} < 无约束时可能的 {kl_values[-1]*3:.2f}）")\
+    return kl_history, rm_history, obj_history
+
+kl_free, rm_free, obj_free = run_ppo_trajectory(beta=0.0)    # 无 KL 约束
+kl_kl, rm_kl, obj_kl = run_ppo_trajectory(beta=0.3)         # 有 KL 约束
+
+print("=== 双轨迹对比（40步后）===")
+print(f"  无约束(β=0)：KL = {kl_free[-1]:.3f}，RM = {rm_free[-1]:.3f}")
+print(f"  有约束(β=0.3)：KL = {kl_kl[-1]:.3f}，RM = {rm_kl[-1]:.3f}")
+print()
+print(f"KL 差距：有约束比无约束漂移少 {(kl_free[-1]-kl_kl[-1])/kl_free[-1]*100:.0f}%")
+
+# 核心断言：有 KL 约束时，策略漂移确实更小
+assert kl_kl[-1] < kl_free[-1], "有 KL 约束时漂移应更小"
+assert kl_free[-1] > kl_free[0], "无约束轨迹 KL 应持续增大"
+print("\\n验证通过：KL 约束真正减缓了策略漂移")\
 """))
 
-# ── Cell 11: Visualize KL tradeoff ────────────────────────────────────────
+# ── Cell 11: Visualize two-trajectory KL comparison ────────────────────────
 cells.append(cell("""\
-# 可视化 KL 约束效果
-fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+# 可视化：双轨迹对比——有无 KL 约束的区别
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+steps = range(1, len(kl_free) + 1)
 
-axes[0].plot(rm_scores, 'b-', linewidth=2, label='RM 分数')
-axes[0].set_title('RM 分数随优化步骤变化')
+# 图1：KL 散度对比（最重要）
+axes[0].plot(steps, kl_free, 'r-', linewidth=2, label='β=0（无约束）')
+axes[0].plot(steps, kl_kl, 'b-', linewidth=2, label='β=0.3（有约束）')
+axes[0].set_title('KL 散度：有约束 vs 无约束')
 axes[0].set_xlabel('优化步骤')
-axes[0].set_ylabel('RM 分数')
+axes[0].set_ylabel('KL(新策略 || 原策略)')
+axes[0].legend()
 axes[0].grid(True, alpha=0.3)
+axes[0].set_ylim(bottom=0)
 
-axes[1].plot(kl_values, 'r-', linewidth=2, label='KL 散度')
-axes[1].set_title('KL 散度（策略漂移程度）')
+# 图2：RM 分数对比
+axes[1].plot(steps, rm_free, 'r-', linewidth=2, label='β=0（无约束）')
+axes[1].plot(steps, rm_kl, 'b-', linewidth=2, label='β=0.3（有约束）')
+axes[1].set_title('RM 分数：有约束 vs 无约束')
 axes[1].set_xlabel('优化步骤')
-axes[1].set_ylabel('KL(新策略 || 原策略)')
+axes[1].set_ylabel('RM 分数')
+axes[1].legend()
 axes[1].grid(True, alpha=0.3)
 
-axes[2].plot(total_rewards, 'g-', linewidth=2, label='总奖励')
-axes[2].plot(rm_scores, 'b--', alpha=0.5, linewidth=1, label='纯RM分数')
-axes[2].set_title('总奖励 = RM分数 - β×KL')
+# 图3：PPO 目标函数（total_reward = RM - β×KL）
+axes[2].plot(steps, obj_free, 'r-', linewidth=2, label='β=0 目标值')
+axes[2].plot(steps, obj_kl, 'b-', linewidth=2, label='β=0.3 目标值')
+axes[2].set_title('PPO 目标函数 = RM - β×KL')
 axes[2].set_xlabel('优化步骤')
-axes[2].set_ylabel('奖励')
+axes[2].set_ylabel('总奖励')
 axes[2].legend()
 axes[2].grid(True, alpha=0.3)
 
@@ -298,11 +329,8 @@ plt.tight_layout()
 plt.savefig('../docs/assets/21-ppo-kl.png', dpi=100, bbox_inches='tight')
 plt.close()
 print("图已保存：docs/assets/21-ppo-kl.png")
-
-# 验证
-assert rm_scores[-1] > rm_scores[0], "优化后 RM 分数应提升"
-assert kl_values[-1] > 0, "策略确实发生了漂移"
-print("验证通过")\
+print()
+print("观察：左图清晰显示——有 KL 约束时蓝线（KL）比红线低，策略漂移被抑制")\
 """))
 
 # ── Cell 12: Summary visualization ────────────────────────────────────────
