@@ -1,3 +1,3 @@
-- 节点18 已完成（388 tests, +20），立即切换到节点19：CLIP（2021）或 ControlNet（2023），不在已完成节点上追加
-- test_count_cache 写入 0 是 RLVR 误报根因；每次 session 开始前先运行 `pytest tests/ --tb=no -q 2>&1 | grep passed` 记录真实基线，避免 cache 值漂移
-- 节点19 新增测试的数值阈值必须与 fixture 参数一致，先检查 fixture 的 T/N 值再写断言（沿用节点18教训）
+- 立即启动节点19（CLIP 2021）三件套，不在已完成节点上继续追加
+- 文档引用数字与 notebook 演示值不同时，必须在 notebook cell 中明确注释说明（文档数字来自论文，notebook 用简化示例演示原理）
+- 计算量对比演示必须用理论 FLOP 计数（O(n) 线性模型），不用实际矩阵乘法（O(n²) 会给读者错误的加速比结论）
