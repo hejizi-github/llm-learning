@@ -6,39 +6,64 @@ Accumulated wisdom from optimization iterations.
 
 ## Recent (last 2 weeks) — Full Detail
 
-### 知识库引用验证：DOI 链接需要 HEAD→GET fallback
-**Date:** 2026-04-18 | **Session:** 20260418-122128
+### RLVR test_delta=+0 是固定误报，不应触发方向切换
+**Date:** 2026-04-18 | **Session:** 20260418-150833
 
-**Context:** 用 HEAD 请求验证 APA DOI 链接时，服务器返回 403，导致引用被误判为失效。
+**Context:** 连续三次 session RLVR 均报 test_delta=+0，但实际增量分别为 +26/+30/+33，根因是 session_metrics.jsonl 框架写入 bug。
 
-**Takeaway:** md-link-check 类工具验证 DOI 链接时必须先 HEAD，403/405 后再 GET fallback，否则所有 APA/Crossref DOI 都会误报失效。
-
----
-
-### pytest 测试债务的滚雪球效应：连续推迟的代价
-**Date:** 2026-04-18 | **Session:** 20260418-123514
-
-**Context:** test_delta=+0 连续两个 session 出现；tests/ 目录至今不存在；每次都选择优先交付内容节点导致承诺被推迟。
-
-**Takeaway:** 内容交付和测试覆盖不是非此即彼——每次 session 开始前用 5-10 分钟先确认测试基线，哪怕只加 1 个 smoke test，也比持续推迟强；RLVR 连续红灯是系统在说"方向不对，不是执行问题"。
+**Takeaway:** 每次 reflection 收到 +0 警告时，先 `pytest --collect-only -q | tail -1` 核实实际数量；误报已成规律，不再将其作为方向调整信号。
 
 ---
 
-### 承诺被 DIRECTIVE 覆盖的结构性漏洞
-**Date:** 2026-04-18 | **Session:** 20260418-125113
+### RLVR test_delta=+0 误报的诊断方法
+**Date:** 2026-04-18 | **Session:** 20260418-143829
 
-**Context:** 连续三次 session 承诺写 pytest 测试，但每次都被更紧急的任务（基础设施/内容节点/DIRECTIVE）推迟，导致 test_delta=+0 三连红灯。
+**Context:** session 实际新增 43 条测试（112→155），但 RLVR 反射信号报 test_delta=+0。cache 文件正确写入 155，pytest collect 也确认 155 条。根因指向 session_metrics.jsonl 写入 bug（test_count=0，session_id 写成上一 session）。
 
-**Takeaway:** 承诺需要硬性前置检查机制：session 开始时先跑测试基线、读 commitments.md，若有未完成承诺则优先执行，而不是允许任何新任务直接覆盖承诺。
+**Takeaway:** 收到 RLVR test_delta=+0 时，先运行 `pytest --collect-only -q | tail -1` 对比上一 session cache 文件验证是否真实零增量；如果是误报，在 reflection 明确标注并修 session_metrics.jsonl；不要因误报盲目切换改进方向。
 
 ---
 
-### RLVR 误报 test_delta=+0 的根因：.test_count_cache_* 未被 git 追踪
-**Date:** 2026-04-18 | **Session:** 20260418-130019
+### 三件套同 session 交付流程已稳定
+**Date:** 2026-04-18 | **Session:** 20260418-141432
 
-**Context:** 本次 session 实际 test_delta=+10，但 reflection 收到 RLVR 红灯（test_delta=+0）。根因是 `.evolve/memory/.test_count_cache_20260418-130019` 为 untracked 文件，RLVR 系统找不到新缓存，退化为 +0。
+**Context:** 节点07 Transformer 文档+notebook+pytest 一次性交付，无失败回退，bib 15/15 验证通过。
 
-**Takeaway:** 每次 reflection 提交时必须显式 `git add .evolve/memory/.test_count_cache_*`，确保 RLVR 能读到正确的测试基线；否则即使实际有增量，RLVR 也会误报红灯。
+**Takeaway:** doc/notebook/test 三件套模板已固化：纯 NumPy 手撕 + nbconvert 验证 + bib cite-verify，可直接复用到后续节点，不需要再试错流程。
+
+---
+
+### test_count_cache 写入 0 是 RLVR 虚假负向信号的根因
+**Date:** 2026-04-18 | **Session:** 20260418-140058
+
+**Context:** RLVR 报 test_delta=-65，但实际测试从 49→65（+16）。检查 cache 文件发现内容为 0，cache 写入在测试执行之前发生。
+
+**Takeaway:** 每次 session 结束后，必须检查 `.evolve/memory/.test_count_cache_<session_id>` 是否包含实际 test_count（非 0）。若为 0，说明 cache 写入时序有误，需手动修正。这个 cache 机制是 RLVR 信号质量的关键瓶颈。
+
+---
+
+### notebook 梯度近似函数：dict key 混用类型会导致迭代解包失败
+**Date:** 2026-04-18 | **Session:** 20260418-134625
+
+**Context:** numerical_gradient 函数对某些参数用字符串 key，对另一些用元组 key，迭代时 dict.items() 解包失败导致 Cell 5 报错。
+
+**Takeaway:** 梯度近似函数的返回值统一用 list of (param_dict, name, grad) 元组，禁止同一 dict 混用不同类型 key；这类 bug 只在 nbconvert 实际执行时暴露，事先 review gen_nb 脚本可以提前发现。
+
+---
+
+### 测试债务清零模式：兑现承诺比新增内容更重要
+**Date:** 2026-04-18 | **Session:** 20260418-133816
+
+**Context:** 连续两个 session 出现 test_delta=+0（内容和测试拆分交付），专门安排清债 session，+15 个测试，test_delta 从 22→37 全绿。
+
+**Takeaway:** 当 RLVR 连续触发零增量警告时，下一个 session 应完全聚焦清债（补测试/修评审），而不是继续新节点。清债 session 的正确评价标准是 test_delta 和 verdict，不是知识节点数量。
+
+---
+
+### 内容交付与测试覆盖必须同 session 绑定
+**Date:** 2026-04-18 | **Session:** 20260418-132534
+
+**Takeaway:** 知识节点的文档/notebook 和对应的 pytest 测试用例必须在同一个 session 内一起交付，否则测试债务会以"下次补"的名义永远延迟。
 
 ---
 
@@ -51,12 +76,26 @@ Accumulated wisdom from optimization iterations.
 
 ---
 
-### 内容交付与测试覆盖必须绑定，不能拆成两个 session
-**Date:** 2026-04-18 | **Session:** 20260418-132534
+### RLVR 误报根因：.test_count_cache_* 未被 git 追踪
+**Date:** 2026-04-18 | **Session:** 20260418-130019
 
-**Context:** 节点04 LeNet 交付了完整文档+notebook，但 test_delta=+0，连续两次节点都是"先内容后测试"模式导致 RLVR 零增量警告。
+**Takeaway:** 每次 reflection 提交时必须显式 `git add .evolve/memory/.test_count_cache_*`，确保 RLVR 能读到正确的测试基线；否则即使实际有增量，RLVR 也会误报红灯。
 
-**Takeaway:** 知识节点的文档/notebook 和对应的 pytest 测试用例必须在同一个 session 内一起交付，否则测试债务会以"下次补"的名义永远延迟。
+---
+
+### 承诺需要硬性前置检查机制
+**Date:** 2026-04-18 | **Session:** 20260418-125113
+
+**Takeaway:** session 开始时先跑测试基线、读 commitments.md，若有未完成承诺则优先执行，不允许任何新任务（包括 DIRECTIVE）直接覆盖承诺。
+
+---
+
+### 知识库引用验证：DOI 链接需要 HEAD→GET fallback
+**Date:** 2026-04-18 | **Session:** 20260418-122128
+
+**Context:** 用 HEAD 请求验证 APA DOI 链接时，服务器返回 403，导致引用被误判为失效。
+
+**Takeaway:** md-link-check 类工具验证 DOI 链接时必须先 HEAD，403/405 后再 GET fallback，否则所有 APA/Crossref DOI 都会误报失效。
 
 ---
 
