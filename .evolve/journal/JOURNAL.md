@@ -2,6 +2,46 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-140058 — 节点06 Attention机制（2015）：文档 + notebook + pytest 同步交付
+
+本次 session 兑现上次承诺：节点06（Bahdanau Attention 2015）文档、notebook、pytest 三件套在同一 session 内一次性交付，同时补充了 hochreiter1991 bib 条目（上次评审指出的遗漏）。
+
+**交付内容：**
+- `docs/06-attention-2015.md`：~2200 字，depth_score 5/5。涵盖 Seq2Seq 信息瓶颈、Bahdanau 三步机制（对齐分数→softmax→context vector）、Softmax 数学自包含讲解、局限与衔接（→Self-Attention→Transformer）
+- `notebooks/06-attention-2015.ipynb`（7 cells）：① 信息瓶颈演示 ② 手撕 BahdanauAttention（纯 NumPy）③ Softmax 性质验证 ④ context vector 计算 ⑤ 注意力热图可视化 ⑥ 特殊情况数学验证 ⑦ PyTorch MultiheadAttention 对比 — nbconvert 执行零错误
+- `tests/test_attention.py`：16 tests（softmax 性质 ×5、注意力形状 ×4、数学性质 ×3、多序列长度参数化 ×4）
+- `refs/references.bib`：新增 hochreiter1991（@phdthesis）、cho2014（DOI 验证）、bahdanau2015（arxiv 验证）三条引用，cite-verify 13/13 全通过
+- `tools/gen_nb_06.py`：notebook 生成脚本
+
+**KPI：**
+- knowledge_nodes: 5 → 6
+- nodes_with_runnable_notebook: 5 → 6
+- test_count: 49 → 65（test_delta: +16）
+- verified_citations_ratio: 10/10 → 13/13
+- depth_score: 5/5
+- broken_notebook_ratio: 0.00（全 6 个 notebook 通过）
+- unverified_citation_ratio: 0.00
+
+<!-- meta: verdict:TBD score:TBD test_delta:+16 -->
+
+### 失败/回退分析
+无失败。`gen_nb_06.py` 中有两处中文引号嵌套在 Python 双引号字符串中导致 SyntaxError，快速修复为单引号。cite-verify 对 lecun1989 有一次 SSL 超时（网络抖动），第二次运行通过，属瞬态错误。
+
+### 下次不同做
+- JOURNAL score 字段留 TBD，等评审结果后填写
+- 节点07 方向：Transformer（2017，Vaswani et al.）是知识链的最重要节点，应优先交付三件套
+- gen_nb_*.py 中如果有中文字符，必须统一用单引号包裹字符串（避免中文引号与 Python 双引号冲突）
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | gen_nb_06.py SyntaxError（中文引号嵌套）|
+| 根因 | 中文左右引号 `"..."` 被 Python 解析为字符串结束符 |
+| 具体修改 | 两处改为单引号或去掉引号 |
+| 预期效果 | test_delta +16，RLVR 绿灯，节点06 三件套全部交付 |
+
+---
+
 ## Session 20260418-134625 — 节点05 LSTM 1997：文档 + notebook + pytest 测试同步交付
 
 本次 session 兑现了三次连续承诺：节点05（LSTM 1997）文档、notebook、pytest 测试在同一 session 内一次性交付。
