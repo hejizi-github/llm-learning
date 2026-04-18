@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""
+notebook-run: 批量执行所有 .ipynb，检测报错。
+用法: tools/notebook-run [notebooks_dir]
+返回: 0 成功, 1 有失败
+"""
+import sys
+import os
+import json
+import subprocess
+import tempfile
+from pathlib import Path
+
+def run_notebook(nb_path: Path) -> tuple[bool, str]:
+    """执行单个 notebook，返回 (success, error_msg)."""
+    with tempfile.NamedTemporaryFile(suffix='.ipynb', delete=False) as tmp:
+        tmp_path = tmp.name
+    try:
+        result = subprocess.run(
+            [
+                'jupyter', 'nbconvert', '--to', 'notebook',
+                '--execute', '--inplace',
+                '--ExecutePreprocessor.timeout=120',
+                '--output', tmp_path,
+                str(nb_path)
+            ],
+            capture_output=True, text=True, timeout=180
+        )
+        if result.returncode != 0:
+            return False, result.stderr[-2000:]
+        # 检查 output 里有没有 error cells
+        with open(tmp_path) as f:
+            nb = json.load(f)
+        for cell in nb.get('cells', []):
+            for output in cell.get('outputs', []):
+                if output.get('output_type') == 'error':
+                    tb = ''.join(output.get('traceback', []))
+                    return False, f"{output.get('ename')}: {output.get('evalue')}\n{tb}"
+        return True, ''
+    except subprocess.TimeoutExpired:
+        return False, 'Timeout (>180s)'
+    except Exception as e:
+        return False, str(e)
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+def main():
+    nb_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('notebooks')
+    if not nb_dir.exists():
+        print(f"Directory not found: {nb_dir}")
+        sys.exit(1)
+
+    notebooks = sorted(nb_dir.rglob('*.ipynb'))
+    if not notebooks:
+        print(f"No notebooks found in {nb_dir}")
+        sys.exit(0)
+
+    total = len(notebooks)
+    failed = []
+
+    print(f"Running {total} notebook(s)...\n")
+    for nb in notebooks:
+        print(f"  [{nb.name}] ... ", end='', flush=True)
+        ok, err = run_notebook(nb)
+        if ok:
+            print("OK")
+        else:
+            print("FAILED")
+            failed.append((nb, err))
+
+    print()
+    if failed:
+        print(f"FAILED {len(failed)}/{total} notebooks:\n")
+        for nb, err in failed:
+            print(f"  {nb}:")
+            print(f"    {err[:300]}\n")
+        print(f"broken_notebook_ratio = {len(failed)/total:.2f}")
+        sys.exit(1)
+    else:
+        print(f"All {total} notebook(s) passed.")
+        print(f"broken_notebook_ratio = 0.00")
+        sys.exit(0)
+
+if __name__ == '__main__':
+    main()

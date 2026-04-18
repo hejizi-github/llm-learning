@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+"""
+depth-score: 用 rubric 给知识节点 md 文档打深度分（1-5 分）。
+评分维度：
+  1. 背景故事    — 是否有历史背景/动机 (0/1)
+  2. 原理讲解    — 是否有核心机制解释 (0/1)
+  3. 数学自包含  — 涉及公式是否有面向初中生的讲解 (0/1)
+  4. notebook链接 — 是否链接了可运行 notebook (0/1)
+  5. 局限与衔接  — 是否分析了局限、指向下一突破 (0/1)
+  6. 引用溯源    — 是否有可验证引用 (0/1)
+
+满分 6，转换为 1-5 分（6→5, 5→4, 4→3, 3→2, 1-2→1）。
+
+用法: tools/depth-score [docs/file.md or docs/]
+返回: 打印每个文档的得分
+"""
+import sys
+import re
+from pathlib import Path
+
+RUBRIC = [
+    {
+        'name': '背景故事',
+        'patterns': [
+            r'(背景|历史|年代|时代|动机|来自|起源|那时|1[89]\d{2}|20[0-2]\d)',
+            r'(why|background|history|motivated|circa|before|problem with)',
+        ],
+        'min_matches': 2,
+    },
+    {
+        'name': '原理讲解',
+        'patterns': [
+            r'(原理|机制|如何|工作|算法|步骤|流程|怎么)',
+            r'(how it works|mechanism|algorithm|step|process)',
+        ],
+        'min_matches': 1,
+    },
+    {
+        'name': '数学自包含',
+        'patterns': [
+            r'\$[^$]+\$',       # inline math
+            r'\$\$[^$]+\$\$',   # block math
+            r'```math',
+            r'(公式|数学|计算|加权|权重|阈值|函数|方程)',
+        ],
+        'min_matches': 2,
+    },
+    {
+        'name': 'notebook链接',
+        'patterns': [
+            r'\[.*\]\(.*\.ipynb\)',
+            r'notebook',
+            r'\.ipynb',
+        ],
+        'min_matches': 1,
+    },
+    {
+        'name': '局限与衔接',
+        'patterns': [
+            r'(局限|问题|不足|缺陷|无法|只能|限制|然而|但是)',
+            r'(limitation|cannot|only|however|but|problem|weakness)',
+            r'(下一|引出|导致|启发|促成|next|leads to|inspired)',
+        ],
+        'min_matches': 2,
+    },
+    {
+        'name': '引用溯源',
+        'patterns': [
+            r'\[.*\]\(https?://',        # 外部链接
+            r'(doi|arxiv|DOI|arXiv)',
+            r'(参考|引用|来源|Reference)',
+            r'\[\^',                      # footnote
+        ],
+        'min_matches': 1,
+    },
+]
+
+def score_doc(md_path: Path) -> dict:
+    text = md_path.read_text(encoding='utf-8')
+    text_lower = text.lower()
+    scores = {}
+    total = 0
+    for criterion in RUBRIC:
+        matches = 0
+        for pat in criterion['patterns']:
+            found = len(re.findall(pat, text, re.IGNORECASE))
+            matches += found
+        passed = matches >= criterion['min_matches']
+        scores[criterion['name']] = {'passed': passed, 'matches': matches}
+        if passed:
+            total += 1
+
+    # 6点 → 1-5分
+    if total == 6:
+        star = 5
+    elif total == 5:
+        star = 4
+    elif total == 4:
+        star = 3
+    elif total == 3:
+        star = 2
+    else:
+        star = 1
+
+    return {'criteria': scores, 'raw': total, 'star': star}
+
+def main():
+    target = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('docs')
+
+    if target.is_file():
+        md_files = [target]
+    elif target.is_dir():
+        md_files = sorted(target.rglob('*.md'))
+    else:
+        print(f"Not found: {target}")
+        sys.exit(1)
+
+    if not md_files:
+        print(f"No markdown files found in {target}")
+        sys.exit(0)
+
+    for md in md_files:
+        result = score_doc(md)
+        print(f"\n{md}")
+        print(f"  Depth score: {result['star']}/5 (raw: {result['raw']}/6)")
+        for name, info in result['criteria'].items():
+            status = "✓" if info['passed'] else "✗"
+            print(f"  {status} {name} ({info['matches']} matches)")
+
+if __name__ == '__main__':
+    main()

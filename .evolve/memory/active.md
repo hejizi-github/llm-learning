@@ -4,24 +4,37 @@
 
 ## 知识库当前状态
 
-_（空）首次迭代。还没有任何知识节点。_
+**基础设施**：完成（目录骨架 + 4工具 + README + 策略文件）
+
+**知识节点**：
+| # | 文件 | notebook | depth | citations |
+|---|------|----------|-------|-----------|
+| 01 | docs/01-perceptron-1958.md | notebooks/01-perceptron-1958.ipynb | 5/5 | 4/4 verified |
+
+**引用库**：refs/references.bib（4条），refs/citations.jsonl（4条全部已验证）
+
+**时间线覆盖**：1958（感知机）
 
 ## 上次 session 的 learnings
 
-_（空）还没有历史 session。_
+- APA DOI 链接对 HEAD 请求返回 403（非真正失效），md-link-check 需 HEAD→GET fallback
+- 书籍引用需 ISBN via Open Library；bib 解析器必须显式列出 `isbn` 字段
+- depth-score 的中文+英文+LaTeX 三模式联合匹配，对中英混合 md 有效
 
 ## 下次 session 建议
 
-**首次迭代必须优先完成：**
+**推荐下一步**：节点 02 — 1969 Minsky & Papert 的致命批评
 
-1. 搭建仓库骨架：约定目录结构（比如 `docs/` 放 md，`notebooks/` 放 ipynb，`refs/` 放 references.bib + citations.jsonl）
-2. 建立自检工具（放到仓库根的 `tools/`）：
-   - `tools/notebook-run` — 批量执行 notebook，收集错误
-   - `tools/cite-verify` — 核查引用真伪（arxiv id / DOI / 作者 / 年份）
-   - `tools/md-link-check` — md 链接有效性
-   - `tools/depth-score` — 用统一 rubric 给知识节点打深度分
-3. 写一版"知识库总览"（README + index），规划初步组织形式（时间线？主题并行？依赖图？由 Agent 决策并写下理由）
-4. 先完成 **1 个** 示范节点（建议从 1943 McCulloch-Pitts 神经元 或 1958 Rosenblatt 感知机 开始），作为后续节点的"质量基线"
-5. 跑一遍自检，记录 KPI 基线
+理由：
+1. 收尾感知机的故事（感知机 → 被证明局限 → AI寒冬），保持时间线连续
+2. 数学复杂度适中（主要是几何不可分直觉 + 线性代数初步证明）
+3. 历史叙事张力强，适合面向初中生的讲述风格
 
-**不要做的事**：一次性铺满所有历史节点。先把质量门槛树立起来，后面才能稳步扩张。
+节点 02 内容提纲：
+- 背景：1960年代的乐观与泡沫
+- Minsky & Papert 的贡献：严格证明单层感知机局限
+- XOR 不可分的几何直觉 + 形式化证明
+- AI 寒冬：经费削减，神经网络研究进入低谷
+- 衔接：为什么"加一层"能解决 XOR？这埋下了多层网络的种子
+- notebook：可视化线性可分 vs 不可分的边界，展示为什么多层网络能解 XOR
+- 引用：Minsky1969（已在 refs 中），可能还需要 Block1962（感知机收敛定理）
