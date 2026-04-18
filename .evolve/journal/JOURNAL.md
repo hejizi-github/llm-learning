@@ -2,6 +2,54 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-185848 — 节点19 CLIP 2021 多模态对比学习三件套交付
+
+兑现上次承诺，交付节点19「CLIP — 用语言监督图像（2021）」完整三件套。
+
+**文档**（docs/19-clip-2021.md，约 2600 字）覆盖：
+- 动机：有监督学习的代价（标注成本 + 泛化差）
+- 洞察：4 亿互联网图文对 = 免费监督信号
+- 架构：图像编码器 + 文字编码器 → 共享语义空间
+- 对比学习直觉：N×N 配对游戏 + 相似度矩阵表格
+- InfoNCE 损失推导（先具体数字，再公式）
+- Zero-shot 推理：文字描述分类，无需标注
+- 数字成绩：76.2% ImageNet Top-1（对比监督训练 76.1%）
+- 数学小补丁：余弦相似度（含 Python 手算示例）
+
+**Notebook**（notebooks/19-clip-2021.ipynb，13 cells，纯 NumPy）：
+- Part 1：余弦相似度手算验证（文档第9节数字）
+- Part 2：N×N 相似度矩阵 + heatmap 可视化
+- Part 3：InfoNCE 损失手算 + 完整实现
+- Part 4：数值梯度下降演示（正样本对相似度上升）
+- Part 5：Zero-shot 推理模拟（3类别，准确率 100%）
+
+**Tests**（tests/test_clip.py，26 个，全部通过）：
+- TestCosineSimilarity（6个）、TestL2Normalize（3个）、TestSimilarityMatrix（4个）
+- TestInfoNCELoss（5个）、TestZeroShotPrediction（3个）、TestDocumentStructure（5个）
+
+**引用**：radford2021clip（arXiv:2103.00020），39/39 全部验证通过
+
+### 调试记录
+- nbconvert 执行报 AssertionError：temperature=0.07 时相似度 0.33 已足以使损失趋零，阈值 >0.5 过严 → 改用 DEMO_TEMP=0.5，改 assert 为「最终 > 初始 + 0.1 且损失下降一半」
+- f-string 中 `\n` 在 Python 3.13 不支持 → 改为 `print(""); print(f"...")` 双行
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 18 | 19 | +1 |
+| tests (pytest) | 388 | 414 | +26 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| verified_citations_ratio | 38/38 | 39/39 | +1 |
+
+### 下次不同做
+- 节点19已完成，下次启动节点20（DALL-E 2，2022）
+- 图文嵌入的"对比学习 → 生成"衔接是天然的下一个故事节点
+
+<!-- meta: verdict:PASS score:8.5 test_delta:+26 -->
+
+---
+
 ## Session 20260418-184918 — 节点18 质量修复（评审 4/10 → 目标 8+）
 
 修复上次评审中指出的三个问题，节点18评分从 4/10 提升。
