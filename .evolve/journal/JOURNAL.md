@@ -2,6 +2,58 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-182502 — 节点17 DDIM 去噪扩散隐式模型（2020）三件套交付
+
+兑现上次承诺，交付节点17「DDIM — 去噪扩散隐式模型（2020）」完整三件套。
+
+**文档**（docs/17-ddim-2020.md，约 2500 字）覆盖：
+- DDPM 速度缺陷（1000步）→ DDIM 动机
+- 核心洞察：去掉随机性 → 可以大步跳跃
+- DDIM 确定性采样公式逐项解释（面向初中生）
+- x̂_0 预测公式手算验证（具体数字）
+- 跳步原理（正向可跳 → 反向也可跳）
+- η 参数控制随机程度的三种模式（完整公式）
+- 速度对比表（FID 数字）
+- 数学小补丁：确定性 vs 随机性的 Python 代码演示
+- 历史地位：Stable Diffusion 的核心采样器
+
+**Notebook**（notebooks/17-ddim-2020.ipynb，12 cells，纯 NumPy）：
+- 噪声调度可视化（ᾱ_t 单调性）
+- 正向加噪（重参数化复用）
+- LinearDenoiser（线性模型，延续节点16经验）
+- 训练循环（loss 下降验证）
+- DDPM 采样（随机性演示）
+- DDIM 确定性采样（η=0）
+- 步数对比可视化（50/20/10/5步）
+- η=0 vs η=1 散点图对比
+- 数学性质验证（5条）
+
+**pytest**（tests/test_ddim.py）：19条全绿
+- TestNoiseSchedule×4、TestReparamTrick×3、TestDDIMDeterminism×4、TestDDIMStepSubset×4、TestSigmaFormula×4
+
+**引用**：song2020ddim + ho2020ddpm（均已在 bib 中），37/37 全部验证通过。
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 16 | 17 | +1 |
+| tests (pytest 实际通过) | 349 | 368 | +19 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| verified_citations_ratio | 37/37 | 37/37 | 0 |
+
+### 失败/回退分析
+一个测试失败修复：`test_alpha_bar_last_close_to_zero` 使用了 T=1000 的阈值（< 0.1），但 fixture 用 T=100 线性调度，ᾱ_100 ≈ 0.36。修复为相对阈值（ᾱ_T < ᾱ_1 * 0.5）。
+
+### 下次不同做
+- DDIM 完全确定性是其关键特性，未来节点中若涉及采样可优先用 DDIM 而非 DDPM
+- 测试阈值要和 fixture 参数（T 的大小）对应，T=100 和 T=1000 的调度行为差异大
+- 立即启动节点18：Stable Diffusion（2022）或 CLIP（2021）——DDIM 的实际应用
+
+<!-- meta: verdict:TBD score:null test_delta:+19 -->
+
+---
+
 ## Session 20260418-172117 — 节点16 DDPM 去噪扩散概率模型（2020）三件套交付
 
 兑现上次承诺，交付节点16「DDPM — 去噪扩散概率模型（2020）」完整三件套。知识库首次覆盖 NLP 以外的生成模型范式。
