@@ -6,7 +6,7 @@
 
 本次 session 交付知识节点 03（1986 反向传播）：`docs/03-backprop-1986.md`（~3000字，depth 5/5）+ `notebooks/03-backprop-1986.ipynb`（17 cells，全部跑通）+ `tools/gen_nb_03.py`（notebook 生成器）。主文档涵盖：17年寒冬背景、信用分配问题提出、导数/链式法则自包含讲解、反向传播四步推导、XOR 终于被解决的意义、以及三个局限（局部最优/梯度消失/计算量）如何催生后续突破。调试发现两个问题：① `tools/notebook-run` 只接受目录路径；② nbconvert 执行时工作目录是 `notebooks/`，所以 savefig 路径要用 `../docs/assets/`。两个问题都通过更新 gen_nb_03.py 修复。同时修复了节点01/02的"下一节点"链接（原为待写占位符）。
 
-<!-- meta: verdict:PASS score:? test_delta:+0 -->
+<!-- meta: verdict:PASS score:7.5 test_delta:+0 -->
 
 ### 失败/回退分析
 

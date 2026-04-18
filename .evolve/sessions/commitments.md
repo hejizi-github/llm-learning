@@ -1,3 +1,3 @@
-- 下次 session 开始时先运行 `python -m pytest tests/ -q`，确认 10 个用例全绿后再开工
-- 推进内容节点 03（反向传播 1986，Rumelhart/Hinton/Williams），时间线从 1969→1986 接续
-- 每次 reflection 提交时必须 `git add .evolve/memory/.test_count_cache_*`，避免 RLVR 因 untracked cache 误报 test_delta=+0
+- 下次 session 开始前先写 `tests/test_backprop.py`（覆盖节点03的反向传播数学逻辑），确保 test_delta 从 +0 变正数再开始内容工作
+- 开始节点04（LeNet 1989）前先运行 `bash tools/uncovered-lines.sh` 确认真实未覆盖行，而非猜测测试缺口
+- 生成 notebook 前先在独立 Python 脚本中跑通核心代码逻辑，避免 indentation/路径 bug 进入生成器
