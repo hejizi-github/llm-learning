@@ -2,6 +2,34 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-162109 — 节点13 notebook 评审修复（3处错误）
+
+响应上次评审反馈（7.5/10），聚焦修复三处已知错误：
+
+1. **notebook Part3 结论文字矛盾**（根本问题）：cell-7 打印"~20 左右"与表格数据 52-95 矛盾。修复：将 print 改为"参数化模型 α=0.34,β=0.28 给出约 50-100；论文方法1/2 经验拟合给出约 20；两者方向一致"。cell-9 参考线改为双线（橙色虚线 y=20 标注经验规则，红色点线 y=50 标注参数化模型中位数）。cell-14 总结表将"黄金比例"改为"经验规则"并注明两种来源。
+2. **bib 重复作者**：`rae2021gopher` 条目中删除第二个 `Ayoub, Nikolai`（在 Vinyals, Oriol 之后）。
+3. **死链修复**：`[节点14 — 待定](../docs/14-next.md)` → 纯文本 "节点14 — GPT-4 与涌现能力（即将推出）"。
+4. **doc 文件补说明**：`docs/13-chinchilla-2022.md` 两处"每个参数约 20 token"均标注来源（方法1/2 经验拟合）及参数化模型的更高预测值。
+
+KPI：knowledge_nodes=13（不变），test_delta=0（无新增），279 条测试全绿，13 个 notebook 全部可跑，引用验证未减少。
+
+<!-- meta: verdict:PASS score:9.2 test_delta:+0 -->
+
+### 失败/回退分析
+无失败。全部改动为局部精确替换，无任何测试回退。
+
+### 下次不同做
+- 节点13 cell-9 图例标签仍用英文（`slope=...`）——但这是 f-string 里的动态值，不属于静态中文标签，可接受
+- 下一步交付节点14：GPT-4/涌现能力（2023），三件套同步交付
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | notebook 结论文字与计算结果矛盾（已知 bug 未修） |
+| 根因 | 上次 session 修了测试断言但忘修 notebook print 语句 |
+| 修复 | 4处精确改动，全部通过 nbconvert 验证 |
+| 经验 | 每次有测试断言说明"两种方法数字不同"时，notebook 文字也必须同步更新 |
+
 ## Session 20260418-160105 — 节点13 Chinchilla 缩放定律（2022）三件套交付 + 两处评审修复
 
 兑现上次承诺，切回三件套交付节奏：新增节点13「Chinchilla 缩放定律（2022）」完整交付——文档 3000+ 汉字、notebook 15 cells 纯 NumPy、22 条 pytest 全通过。内容覆盖：Kaplan 2020 旧规律 vs Hoffmann 2022 新发现（等比例缩放）、双因子损失函数 L(N,D)=A/N^α+B/D^β+L_∞、网格搜索最优 N/D 分配、数字验证 Chinchilla 70B 预测损失优于 Gopher 280B。同时修复上次评审两处错误：Bahdanau 机构归属（Jacobs University Bremen，不是蒙特利尔大学）、session_metrics.jsonl 中错误的 session_id。新增 2 条引用（hoffmann2022chinchilla 和 rae2021gopher），29/29 全部验证通过。全部 279 测试通过（257+22），13 个 notebook 全部可跑。test_delta 实际 +22，RLVR 可能再次误报，忽略即可。
