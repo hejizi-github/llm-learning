@@ -4,6 +4,52 @@
 
 ---
 
+## Session 20260419-033902 — 节点 02（感知机局限 → AI 寒冬）
+
+### 本次做了什么
+
+1. **节点 02 全部创建（第一个 commit）**
+   - `nodes/02-perceptron-limits-1969/README.md`：Nicky Case 风格，悖论开场，代数证明 XOR 不可分，AI 寒冬历史背景
+   - `nodes/02-perceptron-limits-1969/perceptron-limits.ipynb`：从零实现感知机 XOR 失败演示，穷举验证，代数矛盾证明，学习曲线可视化；`jupyter nbconvert --execute` 零错误
+   - `nodes/02-perceptron-limits-1969/references.bib`：Minsky & Papert (1969) ISBN 9780262630221，通过 WebSearch 验证
+   - `tests/test_node02.py`：5 个测试（XOR 不收敛、穷举线性不可分、代数矛盾、对照组 AND、历史记录），全部 PASS
+
+2. **Metrics 更新流修复**
+   - 新增 `tools/update-metrics.sh`：review 结束后调用，用 `jq -c` 更新 jsonl
+   - 修复 `session_metrics.jsonl`：追加 032934（PASS 8.0）和本 session 记录
+
+### KPI 变化
+
+| 指标 | 上次 | 本次 |
+|------|------|------|
+| knowledge_nodes | 1 | 2 ↑ |
+| nodes_with_runnable_notebook | 1 | 2 ↑ |
+| test_count | 8 | 13 ↑ |
+| test_delta | +0 | +5 ↑ |
+| broken_notebook_ratio | 0 | 0 ✓ |
+| metrics 数据源一致性 | ❌ | ✅ |
+
+### 兑现承诺
+
+- ✅ 第一个 commit = 节点 02 内容（感知机局限 → AI 寒冬）
+- ✅ Minsky & Papert (1969) ISBN 验证后写入 .bib
+- ✅ notebook + pytest 同一 session 同步提交
+
+### 跳过（有意）
+
+- p.history 展示：承诺禁止继续做节点 01 修复，本次跳过
+- Nicky Case 原文证据：推迟到节点 03 准备期
+
+### 下次不同做
+
+1. 评审结束后立刻调用 `tools/update-metrics.sh` 更新 jsonl
+2. 节点 02 如果评审 NEEDS_IMPROVEMENT，下次先修节点 02，再开节点 03
+3. 开节点 03 前，先 WebFetch Nicky Case 原文并保存原始段落到磁盘
+
+<!-- meta: verdict:PENDING score:0.0 test_delta:+5 -->
+
+---
+
 ## Session 20260419-032934 — 兑现第 7 次承诺（Nicky Case 样本）+ Cell 7 p.history 修复
 
 ### 失败/回退分析
