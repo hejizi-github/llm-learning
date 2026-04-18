@@ -1,0 +1,482 @@
+"""gen_nb_11.py -- generate notebooks/11-instructgpt-2022.ipynb
+
+节点11: InstructGPT & RLHF (2022)
+涵盖: Bradley-Terry偏好模型 | Reward Model训练 | KL散度 | PPO简化示意 | RLHF全流程
+"""
+import json, os
+
+def cell(source, cell_type="code", outputs=None):
+    if cell_type == "markdown":
+        return {"cell_type": "markdown", "metadata": {}, "source": source}
+    return {
+        "cell_type": "code",
+        "execution_count": None,
+        "metadata": {},
+        "outputs": outputs or [],
+        "source": source,
+    }
+
+cells = []
+
+# ── Cell 0: Title ──────────────────────────────────────────────────────────
+cells.append(cell(
+    '# 节点11：InstructGPT 与 RLHF（2022）——让 AI 学会"听话"\n'
+    "\n"
+    "> **论文**：Ouyang et al. 2022 \"Training language models to follow instructions with human feedback\"\n"
+    "> arXiv:2203.02155 | NeurIPS 2022\n"
+    "\n"
+    "本 notebook 将手撕 RLHF 的三个核心组件：\n"
+    "1. **Bradley-Terry 偏好模型**：如何把「A 比 B 好」转化为可训练的目标\n"
+    "2. **Reward Model**：用偏好数据训练一个人类品味打分器\n"
+    "3. **PPO 中的 KL 惩罚**：为什么强化学习需要「不要走太远」的约束\n"
+    "4. **RLHF 全流程串联**：SFT → RM → PPO 的完整数据流",
+    cell_type="markdown"
+))
+
+# ── Cell 1: Imports ────────────────────────────────────────────────────────
+cells.append(cell(
+    "import numpy as np\n"
+    "import matplotlib.pyplot as plt\n"
+    "import matplotlib\n"
+    "matplotlib.rcParams['font.family'] = 'DejaVu Sans'\n"
+    "np.random.seed(42)\n"
+    "print('NumPy version:', np.__version__)"
+))
+
+# ── Cell 2: Sigmoid & Bradley-Terry ───────────────────────────────────────
+cells.append(cell(
+    "# =============================================================\n"
+    "# Part 1: Bradley-Terry 偏好模型\n"
+    "# =============================================================\n"
+    "\n"
+    "def sigmoid(x):\n"
+    "    \"\"\"Sigmoid 函数：把任意数字压缩到 (0, 1)。\"\"\"\n"
+    "    return 1.0 / (1.0 + np.exp(-x))\n"
+    "\n"
+    "def bradley_terry_prob(r_w, r_l):\n"
+    "    \"\"\"\n"
+    "    Bradley-Terry 模型：计算「chosen (r_w) 比 rejected (r_l) 好」的概率。\n"
+    "    P(w > l) = sigmoid(r_w - r_l)\n"
+    "    \"\"\"\n"
+    "    return sigmoid(r_w - r_l)\n"
+    "\n"
+    "def rm_loss(r_w, r_l):\n"
+    "    \"\"\"\n"
+    "    Reward Model 的损失函数（最大化对数似然的负值 = 最小化负对数似然）。\n"
+    "    L = -log(sigmoid(r_w - r_l))\n"
+    "    \"\"\"\n"
+    "    return -np.log(bradley_terry_prob(r_w, r_l) + 1e-8)\n"
+    "\n"
+    "# 演示：当 chosen 比 rejected 分高时，loss 应该很小\n"
+    "examples = [\n"
+    "    (2.0, -1.0, '明显更好'),\n"
+    "    (1.0, 0.5,  '稍微更好'),\n"
+    "    (0.5, 0.5,  '分不清楚'),\n"
+    "    (-0.5, 1.0, '反了！chosen 比 rejected 差'),\n"
+    "]\n"
+    "print(f'{'场景':<20} {'chosen分':>8} {'rejected分':>10} {'胜出概率':>8} {'Loss':>8}')\n"
+    "print('-' * 60)\n"
+    "for r_w, r_l, desc in examples:\n"
+    "    prob = bradley_terry_prob(r_w, r_l)\n"
+    "    loss = rm_loss(r_w, r_l)\n"
+    "    print(f'{desc:<20} {r_w:>8.2f} {r_l:>10.2f} {prob:>8.4f} {loss:>8.4f}')"
+))
+
+# ── Cell 3: Sigmoid visualization ─────────────────────────────────────────
+cells.append(cell(
+    "# 可视化：Bradley-Terry 概率曲线\n"
+    "delta = np.linspace(-4, 4, 200)  # r_w - r_l 的范围\n"
+    "prob = sigmoid(delta)\n"
+    "\n"
+    "fig, ax = plt.subplots(figsize=(8, 4))\n"
+    "ax.plot(delta, prob, 'b-', linewidth=2)\n"
+    "ax.axhline(0.5, color='gray', linestyle='--', alpha=0.7, label='P=0.5 (无差异)')\n"
+    "ax.axvline(0, color='gray', linestyle='--', alpha=0.7)\n"
+    "ax.fill_between(delta, 0.5, prob, where=(delta > 0), alpha=0.2, color='green', label='chosen 更好')\n"
+    "ax.fill_between(delta, prob, 0.5, where=(delta < 0), alpha=0.2, color='red', label='chosen 更差')\n"
+    "ax.set_xlabel('r_chosen - r_rejected（分数差）')\n"
+    "ax.set_ylabel('P(chosen 比 rejected 好)')\n"
+    "ax.set_title('Bradley-Terry 偏好模型：分数差 vs 概率')\n"
+    "ax.legend()\n"
+    "ax.grid(alpha=0.3)\n"
+    "plt.tight_layout()\n"
+    "plt.savefig('../docs/assets/bt_prob.png', dpi=100, bbox_inches='tight')\n"
+    "plt.show()\n"
+    "print('Bradley-Terry 概率曲线已保存')"
+))
+
+# ── Cell 4: Reward Model Training ─────────────────────────────────────────
+cells.append(cell(
+    "# =============================================================\n"
+    "# Part 2: 训练一个简化 Reward Model\n"
+    "# =============================================================\n"
+    "\n"
+    "# 场景：用 5 个特征来表示一个回答的质量\n"
+    "# 特征：[相关性, 清晰度, 无害性, 简洁性, 准确性]（人工标注）\n"
+    "# 真实 RM 的输入是 token 序列，这里用特征向量模拟\n"
+    "\n"
+    "def reward_model(features, weights):\n"
+    "    \"\"\"简化的 Reward Model：特征加权求和。\"\"\"\n"
+    "    return float(np.dot(features, weights))\n"
+    "\n"
+    "def train_reward_model(preference_data, n_features=5, n_epochs=200, lr=0.05):\n"
+    "    \"\"\"\n"
+    "    用偏好对数据训练 Reward Model。\n"
+    "    preference_data: list of (chosen_features, rejected_features)\n"
+    "    \"\"\"\n"
+    "    weights = np.zeros(n_features)\n"
+    "    losses = []\n"
+    "\n"
+    "    for epoch in range(n_epochs):\n"
+    "        epoch_loss = 0.0\n"
+    "        grad = np.zeros(n_features)\n"
+    "\n"
+    "        for chosen, rejected in preference_data:\n"
+    "            r_w = reward_model(chosen, weights)\n"
+    "            r_l = reward_model(rejected, weights)\n"
+    "            prob = bradley_terry_prob(r_w, r_l)\n"
+    "            loss = -np.log(prob + 1e-8)\n"
+    "            epoch_loss += loss\n"
+    "\n"
+    "            # 梯度：dL/dw = -(1 - prob) * (chosen - rejected)\n"
+    "            grad += -(1 - prob) * (chosen - rejected)\n"
+    "\n"
+    "        weights -= lr * grad / len(preference_data)\n"
+    "        losses.append(epoch_loss / len(preference_data))\n"
+    "\n"
+    "    return weights, losses\n"
+    "\n"
+    "# 生成模拟偏好数据：好的回答各维度分数高，差的回答分数低\n"
+    "np.random.seed(0)\n"
+    "n_samples = 100\n"
+    "n_features = 5\n"
+    "\n"
+    "# 好回答：特征均值在 0.7 左右；差回答：特征均值在 0.3 左右\n"
+    "chosen_features = np.random.beta(7, 3, (n_samples, n_features))   # 偏高\n"
+    "rejected_features = np.random.beta(3, 7, (n_samples, n_features)) # 偏低\n"
+    "preference_data = list(zip(chosen_features, rejected_features))\n"
+    "\n"
+    "weights, losses = train_reward_model(preference_data)\n"
+    "print('训练完成！')\n"
+    "print(f'最终权重（各维度重要性）: {weights.round(3)}')\n"
+    "print(f'所有权重均为正数（高分特征 → 高奖励）: {all(w > 0 for w in weights)}')"
+))
+
+# ── Cell 5: RM training curve ─────────────────────────────────────────────
+cells.append(cell(
+    "# 可视化训练曲线\n"
+    "fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))\n"
+    "\n"
+    "# Loss 下降曲线\n"
+    "ax1.plot(losses, 'b-', linewidth=1.5)\n"
+    "ax1.set_xlabel('训练轮次')\n"
+    "ax1.set_ylabel('平均 Loss')\n"
+    "ax1.set_title('Reward Model 训练曲线')\n"
+    "ax1.grid(alpha=0.3)\n"
+    "\n"
+    "# 权重可视化\n"
+    "feature_names = ['相关性', '清晰度', '无害性', '简洁性', '准确性']\n"
+    "colors = ['#2196F3' if w > 0 else '#F44336' for w in weights]\n"
+    "ax2.barh(feature_names, weights, color=colors)\n"
+    "ax2.set_xlabel('权重（正值=高分特征更受偏好）')\n"
+    "ax2.set_title('Reward Model 学到的特征权重')\n"
+    "ax2.grid(alpha=0.3, axis='x')\n"
+    "ax2.axvline(0, color='black', linewidth=0.8)\n"
+    "\n"
+    "plt.tight_layout()\n"
+    "plt.savefig('../docs/assets/rm_training.png', dpi=100, bbox_inches='tight')\n"
+    "plt.show()\n"
+    "print('Reward Model 训练图已保存')"
+))
+
+# ── Cell 6: Preference accuracy ───────────────────────────────────────────
+cells.append(cell(
+    "# 验证：RM 是否真的能分辨好坏？\n"
+    "# 对每个偏好对，检查 RM 是否给 chosen 打了更高的分\n"
+    "correct = 0\n"
+    "for chosen, rejected in preference_data:\n"
+    "    r_w = reward_model(chosen, weights)\n"
+    "    r_l = reward_model(rejected, weights)\n"
+    "    if r_w > r_l:\n"
+    "        correct += 1\n"
+    "\n"
+    "accuracy = correct / len(preference_data)\n"
+    "print(f'偏好准确率: {accuracy:.1%}（{correct}/{len(preference_data)} 对排序正确）')\n"
+    "print('RM 已经学会了人类偏好：chosen 的分数通常高于 rejected')"
+))
+
+# ── Cell 7: KL divergence ─────────────────────────────────────────────────
+cells.append(cell(
+    "# =============================================================\n"
+    "# Part 3: KL 散度——PPO 的「刹车」\n"
+    "# =============================================================\n"
+    "\n"
+    "def kl_divergence(p, q, eps=1e-10):\n"
+    "    \"\"\"\n"
+    "    KL 散度：衡量分布 P 与 Q 的差异。\n"
+    "    KL(P||Q) = sum(P * log(P/Q))\n"
+    "    KL = 0 当且仅当 P = Q\n"
+    "    \"\"\"\n"
+    "    p = np.array(p, dtype=float)\n"
+    "    q = np.array(q, dtype=float)\n"
+    "    # 归一化\n"
+    "    p = p / p.sum()\n"
+    "    q = q / q.sum()\n"
+    "    return float(np.sum(p * np.log((p + eps) / (q + eps))))\n"
+    "\n"
+    "def softmax(x):\n"
+    "    e = np.exp(x - x.max())\n"
+    "    return e / e.sum()\n"
+    "\n"
+    "# 演示：SFT 模型 vs PPO 更新后的模型\n"
+    "vocab_size = 10\n"
+    "np.random.seed(1)\n"
+    "\n"
+    "# SFT 模型的 token 概率分布（初始参考分布）\n"
+    "sft_logits = np.random.randn(vocab_size)\n"
+    "sft_probs = softmax(sft_logits)\n"
+    "\n"
+    "# 三种 PPO 更新后的分布（小步、中步、大步）\n"
+    "scenarios = [\n"
+    "    ('小幅更新 (beta=0.1 约束)', softmax(sft_logits + 0.2 * np.random.randn(vocab_size))),\n"
+    "    ('中幅更新 (beta=0.01 约束)', softmax(sft_logits + 1.0 * np.random.randn(vocab_size))),\n"
+    "    ('大幅更新 (无 KL 约束)',  softmax(sft_logits + 5.0 * np.random.randn(vocab_size))),\n"
+    "]\n"
+    "\n"
+    "print('KL 散度演示：PPO 更新后与 SFT 基线的距离')\n"
+    "print('-' * 55)\n"
+    "for name, ppo_probs in scenarios:\n"
+    "    kl = kl_divergence(ppo_probs, sft_probs)\n"
+    "    print(f'{name}: KL = {kl:.4f}')\n"
+    "print()\n"
+    "print('KL = 0 表示与原始 SFT 完全一样；KL 越大，偏离越远')"
+))
+
+# ── Cell 8: KL visualization ──────────────────────────────────────────────
+cells.append(cell(
+    "# 可视化：三种更新幅度下的概率分布对比\n"
+    "fig, axes = plt.subplots(1, 3, figsize=(14, 4))\n"
+    "x = np.arange(vocab_size)\n"
+    "\n"
+    "for ax, (name, ppo_probs) in zip(axes, scenarios):\n"
+    "    kl = kl_divergence(ppo_probs, sft_probs)\n"
+    "    ax.bar(x - 0.2, sft_probs, width=0.4, label='SFT（基线）', alpha=0.8, color='blue')\n"
+    "    ax.bar(x + 0.2, ppo_probs, width=0.4, label='PPO 更新后', alpha=0.8, color='orange')\n"
+    "    ax.set_title(f'{name}\\nKL={kl:.3f}', fontsize=9)\n"
+    "    ax.set_xlabel('Token')\n"
+    "    ax.set_ylabel('概率')\n"
+    "    ax.legend(fontsize=7)\n"
+    "    ax.grid(alpha=0.3)\n"
+    "\n"
+    "plt.suptitle('KL 散度：PPO 更新幅度 vs 偏离 SFT 的程度', y=1.02)\n"
+    "plt.tight_layout()\n"
+    "plt.savefig('../docs/assets/kl_divergence.png', dpi=100, bbox_inches='tight')\n"
+    "plt.show()\n"
+    "print('KL 散度对比图已保存')"
+))
+
+# ── Cell 9: PPO objective ─────────────────────────────────────────────────
+cells.append(cell(
+    "# =============================================================\n"
+    "# Part 4: PPO 目标函数的简化模拟\n"
+    "# =============================================================\n"
+    "\n"
+    "def ppo_objective(rm_score, kl, beta=0.05):\n"
+    "    \"\"\"\n"
+    "    PPO 在 RLHF 中的目标（每次生成的奖励信号）。\n"
+    "    J = rm_score - beta * kl\n"
+    "    rm_score: Reward Model 打的分（越高越好）\n"
+    "    kl: 与 SFT 基线的 KL 散度（太大会被惩罚）\n"
+    "    beta: 平衡系数\n"
+    "    \"\"\"\n"
+    "    return rm_score - beta * kl\n"
+    "\n"
+    "# 模拟：不同 KL 下的 PPO 目标值\n"
+    "rm_scores = np.linspace(-1, 3, 100)  # RM 分数从低到高\n"
+    "kl_values = [0.5, 2.0, 5.0]          # 三种 KL 水平\n"
+    "beta = 0.1\n"
+    "\n"
+    "fig, ax = plt.subplots(figsize=(8, 5))\n"
+    "for kl in kl_values:\n"
+    "    objectives = [ppo_objective(r, kl, beta) for r in rm_scores]\n"
+    "    ax.plot(rm_scores, objectives, linewidth=2, label=f'KL={kl:.1f} (惩罚={beta*kl:.2f})')\n"
+    "\n"
+    "ax.axhline(0, color='black', linewidth=0.5)\n"
+    "ax.set_xlabel('Reward Model 分数')\n"
+    "ax.set_ylabel('PPO 目标值 (越高越好)')\n"
+    "ax.set_title(f'PPO 目标：RM分数 - beta*KL (beta={beta})')\n"
+    "ax.legend()\n"
+    "ax.grid(alpha=0.3)\n"
+    "plt.tight_layout()\n"
+    "plt.savefig('../docs/assets/ppo_objective.png', dpi=100, bbox_inches='tight')\n"
+    "plt.show()\n"
+    "print('KL 惩罚越大，即使 RM 分数高，最终目标值也会被压低')\n"
+    "print('这就是为什么需要 beta 系数：防止模型走极端')"
+))
+
+# ── Cell 10: Reward Hacking demo ──────────────────────────────────────────
+cells.append(cell(
+    "# =============================================================\n"
+    "# Part 5: Reward Hacking 演示——为什么 KL 惩罚必不可少\n"
+    "# =============================================================\n"
+    "\n"
+    "# 场景：语言模型在没有 KL 约束时，发现了一个钻空子的策略：\n"
+    "# 只输出「非常好！」这句话——RM 误打高分，但完全没用\n"
+    "\n"
+    "class MockLanguageModel:\n"
+    "    def __init__(self, strategy='normal'):\n"
+    "        self.strategy = strategy\n"
+    "\n"
+    "    def generate(self, prompt):\n"
+    "        if self.strategy == 'hacking':\n"
+    "            # Reward Hacking：找到让 RM 打高分的固定模板\n"
+    "            return '非常感谢您的提问！这个问题非常重要，我完全同意您的观点。总之，一切都很好！'\n"
+    "        else:\n"
+    "            return f'[正常回答 {prompt} 的内容...]'\n"
+    "\n"
+    "class MockRewardModel:\n"
+    "    def score(self, response):\n"
+    "        # 简化的 RM：偏好「非常」、「感谢」、「重要」这类词\n"
+    "        keywords = ['非常', '感谢', '重要', '同意', '好']\n"
+    "        score = sum(response.count(kw) for kw in keywords) * 0.5\n"
+    "        return score\n"
+    "\n"
+    "rm = MockRewardModel()\n"
+    "normal_model = MockLanguageModel('normal')\n"
+    "hacking_model = MockLanguageModel('hacking')\n"
+    "\n"
+    "prompt = '请解释什么是黑洞'\n"
+    "normal_resp = normal_model.generate(prompt)\n"
+    "hacking_resp = hacking_model.generate(prompt)\n"
+    "\n"
+    "normal_score = rm.score(normal_resp)\n"
+    "hacking_score = rm.score(hacking_resp)\n"
+    "\n"
+    "print('=== Reward Hacking 演示 ===\\n')\n"
+    "print(f'正常回答: \"{normal_resp}\"')\n"
+    "print(f'RM 分数: {normal_score:.1f}\\n')\n"
+    "print(f'Hacking 回答: \"{hacking_resp}\"')\n"
+    "print(f'RM 分数: {hacking_score:.1f}\\n')\n"
+    "print('---')\n"
+    "print(f'Hacking 分数比正常高 {hacking_score - normal_score:.1f} 分，但完全没用！')\n"
+    "print('这就是为什么需要 KL 惩罚：让模型不能走太偏')"
+))
+
+# ── Cell 11: Full RLHF pipeline ───────────────────────────────────────────
+cells.append(cell(
+    "# =============================================================\n"
+    "# Part 6: RLHF 全流程串联\n"
+    "# =============================================================\n"
+    "\n"
+    "print('=== RLHF 全流程模拟 ===\\n')\n"
+    "\n"
+    "# ── 阶段1：SFT ──\n"
+    "print('【阶段1】SFT（监督微调）')\n"
+    "print('  人工标注员为 1000 个 prompt 写出理想回答')\n"
+    "print('  用这些示范数据微调 GPT-3 → 得到 SFT 模型')\n"
+    "print(f'  示范数据量: ~13000 条（来自 OpenAI 论文）')\n"
+    "print()\n"
+    "\n"
+    "# ── 阶段2：Reward Model ──\n"
+    "print('【阶段2】Reward Model 训练')\n"
+    "print('  对每个 prompt，让 SFT 生成 4-9 个候选回答')\n"
+    "print('  标注员对候选回答排序（比写示范快 4x）')\n"
+    "print('  训练 RM 学会预测人类偏好')\n"
+    "print(f'  偏好对数量: ~33000 对（来自 OpenAI 论文）')\n"
+    "print()\n"
+    "\n"
+    "# ── 阶段3：PPO ──\n"
+    "print('【阶段3】PPO 强化学习')\n"
+    "print('  对新 prompt，SFT 模型生成回答')\n"
+    "print('  RM 给回答打分 → 作为强化学习奖励')\n"
+    "print('  PPO 更新模型参数（附 KL 惩罚防止走极端）')\n"
+    "print('  反复迭代 → InstructGPT')\n"
+    "print()\n"
+    "\n"
+    "# ── 结果 ──\n"
+    "print('=== 关键结果 ===')\n"
+    "print('  1.3B InstructGPT vs 175B GPT-3：')\n"
+    "print('  → 人类评估者 85% 的情况下更偏好 InstructGPT')\n"
+    "print('  → 参数量相差 134 倍，但对齐的小模型胜过未对齐的大模型！')\n"
+    "print()\n"
+    "print('  2022年11月30日：ChatGPT 上线')\n"
+    "print('  → 5天用户突破100万，2个月月活超过1亿')\n"
+    "print('  → 有史以来增长最快的消费者应用')"
+))
+
+# ── Cell 12: Model comparison chart ──────────────────────────────────────
+cells.append(cell(
+    "# InstructGPT 模型系列对比\n"
+    "fig, ax = plt.subplots(figsize=(10, 5))\n"
+    "\n"
+    "models = ['GPT-3\\n175B\\n(未对齐)', 'InstructGPT\\n1.3B\\n(RLHF)', 'InstructGPT\\n6B\\n(RLHF)', 'InstructGPT\\n175B\\n(RLHF)']\n"
+    "# 人类偏好评分（论文中的相对评分，以 GPT-3 175B 为基准 50%）\n"
+    "human_preference = [15, 85, 87, 88]  # 与 GPT-3 175B 的对比胜率\n"
+    "params = [175, 1.3, 6, 175]  # 参数量 B\n"
+    "\n"
+    "colors = ['#F44336', '#4CAF50', '#2196F3', '#9C27B0']\n"
+    "bars = ax.bar(models, human_preference, color=colors, alpha=0.8, edgecolor='white')\n"
+    "ax.axhline(50, color='gray', linestyle='--', linewidth=1.5, label='基准线 (50% = 平手)')\n"
+    "\n"
+    "for bar, pref in zip(bars, human_preference):\n"
+    "    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1, \n"
+    "            f'{pref}%', ha='center', va='bottom', fontweight='bold')\n"
+    "\n"
+    "ax.set_ylabel('人类偏好率（vs GPT-3 175B）')\n"
+    "ax.set_title('InstructGPT vs GPT-3：对齐让小模型胜过大模型\\n（Ouyang et al. 2022, arXiv:2203.02155）')\n"
+    "ax.set_ylim(0, 100)\n"
+    "ax.legend()\n"
+    "ax.grid(alpha=0.3, axis='y')\n"
+    "plt.tight_layout()\n"
+    "plt.savefig('../docs/assets/instructgpt_comparison.png', dpi=100, bbox_inches='tight')\n"
+    "plt.show()\n"
+    "print('InstructGPT 模型对比图已保存')\n"
+    "print('\\n关键洞察：1.3B 的对齐模型胜过 175B 的未对齐模型！')\n"
+    "print('对齐（Alignment）与规模（Scale）同样重要。')"
+))
+
+# ── Cell 13: Summary ──────────────────────────────────────────────────────
+cells.append(cell(
+    "# =============================================================\n"
+    "# 总结：RLHF 教会了我们什么\n"
+    "# =============================================================\n"
+    "\n"
+    "summary = {\n"
+    "    'RLHF 三阶段': ['SFT（有示范数据做监督微调）',\n"
+    "                  'Reward Model（用偏好排序训练打分器）',\n"
+    "                  'PPO（用 RM 分数做强化学习 + KL 约束）'],\n"
+    "    '核心数学': ['Bradley-Terry: P(w>l) = σ(r_w - r_l)',\n"
+    "              'RM Loss: -log(σ(r_w - r_l))',\n"
+    "              'PPO Goal: r_RM(x,y) - β·KL(π||π_SFT)'],\n"
+    "    '关键洞察': ['1.3B InstructGPT > 175B GPT-3（对齐让小模型胜大模型）',\n"
+    "              'Reward Hacking 是真实威胁（KL 惩罚必不可少）',\n"
+    "              'RLHF 开启了现代 LLM 对齐的标准范式'],\n"
+    "    '局限': ['RM 只能学到标注员的偏好（可能有偏差）',\n"
+    "           'PPO 训练不稳定（后来 DPO 尝试绕开它）',\n"
+    "           '仍有幻觉，不能彻底消除'],\n"
+    "}\n"
+    "\n"
+    "for section, items in summary.items():\n"
+    "    print(f'\\n【{section}】')\n"
+    "    for item in items:\n"
+    "        print(f'  • {item}')"
+))
+
+# ── Notebook metadata ─────────────────────────────────────────────────────
+notebook = {
+    "nbformat": 4,
+    "nbformat_minor": 5,
+    "metadata": {
+        "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
+        "language_info": {"name": "python", "version": "3.9.0"},
+    },
+    "cells": cells,
+}
+
+out_path = os.path.join(os.path.dirname(__file__), "..", "notebooks", "11-instructgpt-2022.ipynb")
+out_path = os.path.normpath(out_path)
+with open(out_path, "w", encoding="utf-8") as f:
+    json.dump(notebook, f, indent=1, ensure_ascii=False)
+
+print(f"Generated: {out_path}")
+print(f"Total cells: {len(cells)}")

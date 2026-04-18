@@ -612,3 +612,34 @@ ISBN 修复引入了新的格式错误：`978-0-262-63-070-2` 多了一个连字
 | 预期效果 | 后续节点 PyTorch 比较 cell 统一 try/except 模式 |
 
 <!-- meta: verdict:PASS score:TBD test_delta:+21 -->
+
+---
+
+## Session 20260418-150833 — 节点11 InstructGPT/RLHF（2022）：文档 + notebook + pytest 同步交付 + notebook10 死代码修复
+
+兑现上次承诺：节点11（Ouyang et al. 2022 "InstructGPT"）文档、notebook、pytest 三件套在同一 session 内一次性交付，同时修复评审指出的 notebook10 死代码。
+
+**死代码修复**（notebooks/10-gpt3-2020.ipynb + tools/gen_nb_10.py）：删除 `causal_attention` 函数中错误实现的 `attn = softmax(scores.reshape(-1)).reshape(scores.shape)` 行——该行对整矩阵做 softmax（错误），且被后续正确的逐行 softmax 覆盖，对读者有误导风险。
+
+**文档**（docs/11-instructgpt-2022.md，约3200汉字）覆盖：GPT-3 的对齐问题（不听话/有害/幻觉）→ RLHF 三阶段（SFT/RM/PPO）→ Bradley-Terry 偏好模型数学（初中生友好版）→ KL散度数学讲解 → PPO目标函数 → Reward Hacking → 1.3B打败175B的关键结果 → ChatGPT 2022.11.30 发布 → 局限（RM偏差/Reward Hacking/PPO不稳定）→ 衍生方向（DPO/RLAIF/RLVR）。
+
+**Notebook**（notebooks/11-instructgpt-2022.ipynb）：14 cells，纯 NumPy，覆盖：Bradley-Terry 概率曲线可视化 → RM 训练（梯度下降 + 偏好准确率验证）→ KL散度三种更新幅度对比可视化 → PPO 目标函数（beta系数效果）→ Reward Hacking 演示 → RLHF 全流程串联 → InstructGPT 模型系列对比图，11/11 notebooks 全部 nbconvert 执行零错误。
+
+**pytest**（tests/test_instructgpt.py）：新增 33 条测试，覆盖 Sigmoid×5、Bradley-Terry×6、RM Loss×4、RM Training×5、KL散度×5、PPO Objective×5、RLHF Integration×3，全部通过（33/33）。测试总数 185 → 218。
+
+**引用**（refs/references.bib）：新增 ouyang2022instructgpt（arXiv:2203.02155）、schulman2017ppo（arXiv:1707.06347）、christiano2017rlhf（arXiv:1706.03741），cite-verify 验证 22/22 全部通过（ratio = 0.00）。
+
+**KPI 变化：**
+- knowledge_nodes: 10 → 11
+- nodes_with_runnable_notebook: 10 → 11
+- test_count: 185 → 218（test_delta: +33）
+- verified_citations_ratio: 22/22 = 1.00
+
+### 失败/回退分析
+无交付失败回退。notebook10 死代码修复经 nbconvert 验证通过，不影响现有测试。
+
+### 下次不同做
+- 节点12 方向待定：可考虑 DPO（Direct Preference Optimization，2023）或 GPT-4/Claude 的涌现能力
+- session_metrics.jsonl test_count 继续手动追加正确值，避免框架 bug
+
+<!-- meta: verdict:PASS score:TBD test_delta:+33 -->

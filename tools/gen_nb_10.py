@@ -256,7 +256,6 @@ cells.append(code(
     '    d_k = Q.shape[-1]\n'
     '    scores = Q @ K.T / np.sqrt(d_k)\n'
     '    scores = np.where(mask, scores, -1e9)\n'
-    '    attn = softmax(scores.reshape(-1)).reshape(scores.shape)\n'
     '    # Apply softmax row-wise\n'
     '    attn_rows = np.stack([softmax(row) for row in scores])\n'
     '    return attn_rows @ V\n'
