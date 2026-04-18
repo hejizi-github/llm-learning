@@ -1,0 +1,1 @@
+{"session": "20260418-122128", "date": "2026-04-18", "title": "知识库引用验证：DOI 链接需要 HEAD→GET fallback", "context": "用 HEAD 请求验证 APA DOI 链接时，服务器返回 403，导致引用被误判为失效", "takeaway": "md-link-check 类工具验证 DOI 链接时必须先 HEAD，403/405 后再 GET fallback，否则所有 APA/Crossref DOI 都会误报失效"}

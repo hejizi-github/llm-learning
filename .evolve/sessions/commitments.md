@@ -1,0 +1,3 @@
+- 下次 session 优先构建知识节点 02（Minsky & Papert 1969 XOR 批评 + AI 寒冬），不再做基础设施扩展
+- 为 tools/ 下已有的 4 个验证脚本补写 pytest 单元测试，消除 test_delta=+0 的 RLVR 警告
+- 每个新知识节点完成后立即运行 tools/notebook-run 和 tools/cite-verify 验证，不留到最后批量验
