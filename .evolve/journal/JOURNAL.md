@@ -1,5 +1,36 @@
 # Journal
 
+## Session 20260419-001049 — PASS
+
+### 做了什么
+履行上次 session 承诺：在 `tests/test_perceptron.py` 建立 Perceptron pytest 单元测试。
+
+内联 Perceptron 类（从 notebook 提取），覆盖 5 个测试用例：
+1. AND 门收敛到 100% 准确率
+2. 收敛后 `history[-1] == 0`
+3. XOR 门在 max_epochs 内不收敛
+4. `predict()` 输出形状正确
+5. 训练后权重发生变化
+
+### KPI
+
+| 指标 | 变化 |
+|------|------|
+| knowledge_nodes | 1 → 1（不变）|
+| nodes_with_runnable_notebook | 1 → 1（不变）|
+| verified_citations_ratio | 1.000 → 1.000 ✓ |
+| depth_score | 5/5 → 5/5 ✓ |
+| broken_notebook_ratio | 0.000 → 0.000 ✓ |
+| test_delta | 0 → **+5** ✓ |
+
+### 下次不同做
+- 为 `tools/cite-verify` 增加 curl DOI 在线可达性检查（仍未完成）
+- 下一个知识节点：节点 02（1969 Minsky-Papert XOR 局限 / AI 寒冬）
+
+<!-- meta: verdict:PASS score:5 test_delta:+5 -->
+
+---
+
 ## Session 20260419-000050 — REVERTED
 
 Reason: Agent modified constitution files: .evolve/config.toml
