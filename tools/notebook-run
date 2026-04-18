@@ -1,0 +1,37 @@
+#!/bin/bash
+# Run all notebooks, report failures. Exit 1 if any fail.
+set -euo pipefail
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+FAILED=0; TOTAL=0
+
+if ! command -v jupyter &>/dev/null; then
+    echo "ERROR: jupyter not found. Install with: pip install jupyter"
+    exit 1
+fi
+
+NOTEBOOK_LIST="$(find "$REPO/notebooks" -name "*.ipynb" | sort)"
+if [ -z "$NOTEBOOK_LIST" ]; then
+    echo "No notebooks found in notebooks/"
+    exit 0
+fi
+
+while IFS= read -r nb; do
+    TOTAL=$((TOTAL + 1))
+    printf "%-60s " "$(basename "$nb")"
+    if jupyter nbconvert --to notebook --execute --inplace "$nb" \
+        --ExecutePreprocessor.timeout=120 \
+        --ExecutePreprocessor.kernel_name=python3 \
+        2>/tmp/_nb_err_$$.txt; then
+        echo "OK"
+    else
+        echo "FAILED"
+        grep -E "Error|Traceback|Exception" /tmp/_nb_err_$$.txt | head -5 | sed 's/^/  /'
+        FAILED=$((FAILED + 1))
+    fi
+    rm -f /tmp/_nb_err_$$.txt
+done <<< "$NOTEBOOK_LIST"
+
+echo ""
+echo "Results: $((TOTAL-FAILED))/$TOTAL passed, $FAILED failed"
+echo "broken_notebook_ratio: $(python3 -c "print(f'{$FAILED/$TOTAL:.3f}')" 2>/dev/null || echo "$FAILED/$TOTAL")"
+[ $FAILED -eq 0 ]

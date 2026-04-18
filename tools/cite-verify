@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+"""
+Verify all citations in refs/references.bib have valid identifiers.
+Each @entry must have doi= or eprint= (arxiv) or isbn= field.
+Exit 1 if any unverified entries found.
+"""
+import re, sys, pathlib
+
+BIB_FILE = pathlib.Path(__file__).parent.parent / "refs" / "references.bib"
+
+if not BIB_FILE.exists():
+    print(f"ERROR: {BIB_FILE} not found")
+    sys.exit(1)
+
+text = BIB_FILE.read_text()
+entries = re.findall(r'@\w+\{([^,]+),(.*?)\n\}', text, re.DOTALL)
+
+if not entries:
+    print("No entries found in references.bib")
+    sys.exit(0)
+
+unverified = []
+for key, body in entries:
+    key = key.strip()
+    has_doi   = bool(re.search(r'\bdoi\s*=', body, re.I))
+    has_arxiv = bool(re.search(r'\beprint\s*=', body, re.I))
+    has_isbn  = bool(re.search(r'\bisbn\s*=', body, re.I))
+    if not (has_doi or has_arxiv or has_isbn):
+        unverified.append(key)
+
+total = len(entries)
+if unverified:
+    print(f"UNVERIFIED ({len(unverified)}/{total}):", unverified)
+    ratio = len(unverified) / total
+    print(f"unverified_citation_ratio: {ratio:.3f}  (max allowed: 0.05)")
+    sys.exit(1)
+
+print(f"OK: {total} entries — all have doi/eprint/isbn identifiers")
+print(f"unverified_citation_ratio: 0.000")
