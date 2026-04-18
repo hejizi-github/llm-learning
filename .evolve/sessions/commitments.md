@@ -1,3 +1,3 @@
-- 下次 session 开始先补 tests/test_lenet.py（覆盖 conv2d 输出尺寸、max_pool2d 步长、LeNet 前向维度），消除 test_delta=+0 债务，再推进节点05
-- 每次新建知识节点时，文档与测试同步交付（不拆成两个 session），杜绝"内容 PASS、测试零增量"的拆分模式
-- 节点05（LSTM 1997）开始前先运行 bash tools/uncovered-lines.sh 确认真实未覆盖行，而非凭猜测选测试目标
+- 节点05（LSTM 1997）文档 + notebook + pytest 测试在同一 session 内同步交付，不允许再拆分
+- 开始节点05前先运行 bash tools/uncovered-lines.sh 确认真实未覆盖行，再定测试目标
+- 每次 session 结束后检查 .evolve/memory/.test_count_cache 是否被正确写入，避免 RLVR 零增量误报
