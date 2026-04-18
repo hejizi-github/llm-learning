@@ -106,7 +106,23 @@ def check_readme_references(readme_path):
             print(f"Checking README URL: {url}")
             url_results.append(check_url(url, label))
             time.sleep(0.3)
-        # else: has ISBN or other non-URL identifier — counts as verifiable but no URL to check
+        elif has_doi:
+            doi_match = re.search(r'10\.\d{4,}/\S+', line)
+            if doi_match:
+                url = f"https://doi.org/{doi_match.group(0).rstrip('.')}"
+                label = f"README DOI: {line[:50]}"
+                print(f"Checking README DOI: {url}")
+                url_results.append(check_url(url, label))
+                time.sleep(0.3)
+        elif has_arxiv:
+            arxiv_match = re.search(r'arXiv:(\d{4}\.\d{4,5})', line, re.IGNORECASE)
+            if arxiv_match:
+                url = f"https://arxiv.org/abs/{arxiv_match.group(1)}"
+                label = f"README arXiv: {line[:50]}"
+                print(f"Checking README arXiv: {url}")
+                url_results.append(check_url(url, label))
+                time.sleep(0.3)
+        # else: has ISBN — counts as verifiable but no URL to check
 
     return unverifiable, url_results, total_count
 
