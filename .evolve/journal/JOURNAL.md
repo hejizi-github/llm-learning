@@ -1,5 +1,60 @@
 # Journal
 
+## Session 20260419-011545 — 构建知识节点 04（LeNet/CNN 1989-1998）
+
+### 失败/回退分析
+
+无回滚。所有检查通过。
+
+**两次 notebook 执行失败**（快速修复，未回滚）：
+1. 中文 ASCII 双引号 `"右边探测器"` 破坏 JSON → 替换为 `[右边探测器]`
+2. 卷积断言 `result[0,1] > result[0,0]` 数学错误（边缘宽图像两位置都是最大值）→ 换成 6 列图片 + 均匀区域/边缘区域对比断言
+3. MiniCNN 全局 max pooling 丢失位置信息 → 改为 flatten 全特征图 + FC(9→1)，准确率 58% → 100%
+
+### 下次不同做
+
+1. **构建知识节点 05（AlexNet 2012）** — 这是 CNN 沉寂 14 年后的爆发，自然下一步
+2. **cite-verify 的 403/418 处理**已修复（本次 session 同时修复），不再误报 paywall 为不可达
+3. **notebook 中避免中文 ASCII 双引号**（用 `「」` 或 `[]`）——历史上已碰到两次
+
+### 做了什么
+
+**先决修复（blockquote 矛盾）**：
+- `docs/03-backprop-1986.md` 第 116-117 行：把 `L = (y-ŷ)²` 改为正确的 `L = mean((y-ŷ)²) = (1/N)·∑(y-ŷ)²`，导数 `-2/N·(y-ŷ)` 明确说明 `2/N` 是被吸收的常数
+
+**引用验证**：
+- 通过 CrossRef API 验证 LeCun 1989 (DOI 10.1162/neco.1989.1.4.541) 和 1998 (DOI 10.1109/5.726791)
+- 添加到 `refs/references.bib`（2 条新引用）
+
+**知识节点 04**：
+- `docs/04-lenet-1989.md`：面向 14 岁读者，故事 → 全连接死穴 → 卷积直觉 → 数学（初中版） → 池化 → LeNet 结构 → 局限 → 历史意义
+- `notebooks/04-lenet-1989.ipynb`：手写 2D 卷积 + max pooling + MiniCNN 从零训练（100% 测试准确率） + 参数量对比（全连接 794,000 vs CNN 6,700）
+
+**工具修复**：
+- `tools/cite-verify`：HTTP 403/418 响应不再误判为不可达（paywall 是合法响应，DOI 已存在）
+
+**session_metrics.jsonl**：
+- 删除 010713 的重复行（test_count=0 那条）
+- 补充 010713 的 review_score=6 和 review_verdict
+- 历史 test_count=12 的三个 session 加 `test_count_note: "estimated_from_git_history"` 标记（避免伪精确）
+- 当前 session 011545 写入 test_count=19（pytest 实测）
+
+### KPI
+
+| 指标 | 变化 |
+|------|------|
+| knowledge_nodes | 3 → 4 ✓ |
+| nodes_with_runnable_notebook | 3 → 4 ✓ |
+| verified_citations_ratio | 1.000 → 1.000 ✓ |
+| broken_notebook_ratio | 0.000 → 0.000 ✓ |
+| unverified_citation_ratio | 0.000 → 0.000 ✓ |
+| depth_score | 全部 ≥4/5 ✓ |
+| test_count | 19 → 19（无新 pytest，notebook 本身含断言） |
+
+<!-- meta: verdict:PASS score:? test_delta:0 -->
+
+---
+
 ## Session 20260419-010713 — 修复评审三问题（公式一致性 / cite-verify 死代码 / session_metrics）
 
 ### 失败/回退分析

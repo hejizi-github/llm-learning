@@ -53,7 +53,11 @@ for key, body in entries:
                 if code >= 400:
                     unreachable.append((key, doi, f"HTTP {code}"))
             except urllib.error.HTTPError as e:
-                unreachable.append((key, doi, f"HTTP {e.code}"))
+                # 403 = access denied (paywall) — DOI resolves, content is restricted.
+                # 418 = publisher anti-bot; DOI still live.
+                # Both confirm the DOI exists; do NOT treat as unreachable.
+                if e.code not in (403, 418):
+                    unreachable.append((key, doi, f"HTTP {e.code}"))
             except Exception as e:
                 unreachable.append((key, doi, str(e)))
 
