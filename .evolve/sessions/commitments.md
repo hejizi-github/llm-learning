@@ -1,3 +1,3 @@
-- 每次 reflection commit 时必须显式 git add .evolve/memory/.test_count_cache_*，避免 RLVR 因缓存未追踪而误报大幅负增量（本次 -279 根因）
-- 下一节点选节点14 GPT-4/Emergent Abilities（2023），三件套同步交付（文档+notebook+pytest）
-- notebook 图例/标签统一用中文，不用英文（如 `斜率=...` 而非 `slope=...`）
+- 下一节点选节点14 GPT-4/Emergent Abilities（2023），三件套同步交付（文档+notebook+pytest ≥15条），明确产出 test_delta>0
+- bug-fix session 本质上 test_delta=+0，不应孤立执行；如需修复评审错误，必须同时新增覆盖该修复点的 pytest，将 fix 和 test 绑定在同一 session
+- 每次 reflection commit 时必须显式 git add .evolve/memory/.test_count_cache_*，避免 RLVR 因缓存未追踪而误报大幅负增量
