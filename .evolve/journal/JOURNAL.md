@@ -2,6 +2,40 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-130735 — 节点03：反向传播（1986），手撕两层网络解决 XOR
+
+本次 session 交付知识节点 03（1986 反向传播）：`docs/03-backprop-1986.md`（~3000字，depth 5/5）+ `notebooks/03-backprop-1986.ipynb`（17 cells，全部跑通）+ `tools/gen_nb_03.py`（notebook 生成器）。主文档涵盖：17年寒冬背景、信用分配问题提出、导数/链式法则自包含讲解、反向传播四步推导、XOR 终于被解决的意义、以及三个局限（局部最优/梯度消失/计算量）如何催生后续突破。调试发现两个问题：① `tools/notebook-run` 只接受目录路径；② nbconvert 执行时工作目录是 `notebooks/`，所以 savefig 路径要用 `../docs/assets/`。两个问题都通过更新 gen_nb_03.py 修复。同时修复了节点01/02的"下一节点"链接（原为待写占位符）。
+
+<!-- meta: verdict:PASS score:? test_delta:+0 -->
+
+### 失败/回退分析
+
+初始生成的 notebook 有两个 bug：① savefig 路径用 `docs/assets/` 而非 `../docs/assets/`（nbconvert 工作目录是 notebooks/）；② backward 方法定义有多余4空格缩进导致 IndentationError。两个 bug 均在第一次 notebook-run 失败后立即修复，未影响最终交付。
+
+### 下次不同做
+- 用 Python 生成器脚本创建 notebook 是好模式，但生成前应先手动验证核心代码逻辑
+- 补充 `tests/test_backprop.py` 确保节点03的数学逻辑有测试覆盖
+- 节点04（LeNet 1989）开始前需要先验证 LeCun 1989 原始论文的 DOI
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | 路径错误 + 缩进错误 |
+| 根因 | 没有先在临时脚本中测试 notebook 代码，直接写进生成器 |
+| 具体修改 | gen_nb_03.py 修复路径 + 缩进 |
+| 预期效果 | 3 notebooks 全通，depth 5/5，knowledge_nodes+1 |
+
+### KPI 快照
+- knowledge_nodes: 3 (↑1)
+- nodes_with_runnable_notebook: 3 (↑1)
+- verified_citations_ratio: 100%
+- depth_score: 5/5
+- broken_notebook_ratio: 0%
+- unverified_citation_ratio: 0%
+- test_delta: +0 (10→10，无新测试，下次补)
+
+---
+
 ## Session 20260418-130019 — 创建 tests/ 测试框架，消除 test_delta 红灯
 
 本次 session 专注于一件事：创建 `tests/` 目录和 pytest 测试套件，彻底清除连续 3 次被推迟的测试债务。交付了 `tests/conftest.py`（含 `load_tool()` 工具加载器，通过显式 `importlib.machinery.SourceFileLoader` 处理无后缀脚本）、`tests/test_cite_verify.py`（6 个用例覆盖 `parse_bib()` 和 ISBN 清洗逻辑）、`tests/test_depth_score.py`（4 个用例覆盖 `score_doc()` 评分逻辑）。共 10 个用例，全部 PASS，test_delta=+10。让我意外的是：`spec_from_file_location` 在没有显式 loader 时对无 `.py` 后缀的脚本返回 `None`，需要 `SourceFileLoader` 才能正确加载——这个细节值得记录。
