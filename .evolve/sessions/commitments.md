@@ -1,3 +1,3 @@
-- 下次 session 启动节点22（ChatGPT/GPT-4 或 Scaling Laws），三件套顺序：文档骨架 → notebook → pytest 测试，不并行开始
-- 每次生成 gen_nb_X.py 时，固定末尾加 `f.write("\n")`，不再遗漏末尾换行
-- BibTeX 类型必须与发表形式匹配：ICML/NeurIPS/ICLR 论文一律用 `@inproceedings`，不用 `@article`
+- 新建节点时，BibTeX `@inproceedings` 条目必须包含 `eprint` 字段（不是 `url`），否则 cite-verify 无法通过验证
+- 节点23开始时先确定主题（Flash Attention / CoT / MoE），再按三件套顺序：文档骨架 → gen_nb → pytest，不并行启动
+- 修复描述错误前先用 grep 确认代码实际行为，做到「代码-描述-测试」三者一致

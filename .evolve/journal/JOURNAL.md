@@ -28,6 +28,10 @@
 | broken_notebook_ratio | 0 | 0 | 0 |
 | verified_citations_ratio | 41/41 | 42/42 | 0% |
 
+### 失败/回退分析
+
+我检查了 session log、commit 范围和测试数字归因，未发现失败或回退。节点21描述修复是单行精准改动，节点22三件套一次通过 nbconvert + pytest。唯一需要注意的是：初始 BibTeX 条目只写了 `url` 字段，cite-verify 脚本不识别 `url`（只认 `eprint`/`doi`），导致需要补加 `eprint=2106.09685`——这不算失败，但是个可避免的摩擦点。
+
 ### 下次不同做
 - BibTeX `@inproceedings` 条目必须包含 `eprint` 字段，否则cite-verify无法验证（`url`字段不被识别）
 - 节点23候选：Flash Attention (2022) 或 MoE/Mixtral (2024) 或 Chain-of-Thought (2022)
