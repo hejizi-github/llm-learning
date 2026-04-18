@@ -658,3 +658,33 @@ ISBN 修复引入了新的格式错误：`978-0-262-63-070-2` 多了一个连字
 - session_metrics.jsonl test_count 继续手动追加正确值，避免框架 bug
 
 <!-- meta: verdict:PASS score:TBD test_delta:+33 -->
+
+---
+
+## Session 20260418-152409 — 节点12 LLaMA/开源爆炸（2023）：文档 + notebook + pytest 同步交付 + Node11 死链修复
+
+兑现上次承诺：节点12（LLaMA 与开源爆炸，2023）文档、notebook、pytest 三件套在同一 session 内一次性交付，同时修复了节点11的死链（`./12-future.md` → `./12-llama-2023.md`）。
+
+**文档**（docs/12-llama-2023.md，约 3200 汉字）覆盖：GPT-3 的围墙花园困境 → LLaMA-1（Touvron et al. 2023，7B~65B，1.4T tokens）→ 权重泄漏事件始末（2023-03-03 4chan 泄漏 → 开源爆炸）→ Alpaca/Self-Instruct（500美元复现 ChatGPT 能力）→ LoRA 数学推导（ΔW=BA，低秩分解直觉，α/r 缩放）→ QLoRA（4-bit NF4 量化，65B 可在单 48GB GPU 微调）→ LLaMA-2（商用许可，GQA，4096 上下文）→ 局限与 DPO 衔接。
+
+**Notebook**（notebooks/12-llama-2023.ipynb）：22 cells，纯 NumPy，覆盖 LoRALayer 手撕（B=0 初始化验证）→ rank 参数量对比可视化 → 低秩近似误差曲线（SVD截断）→ Self-Instruct 格式演示 → 量化精度对比（8-bit vs 4-bit）→ LLaMA vs GPT-3 性能对比图 → 合并权重等价验证，12/12 notebooks 全部 nbconvert 执行零错误。
+
+**pytest**（tests/test_llama.py）：新增 39 条测试，覆盖 LoRALayerShape×6、LoRAParamCount×4、LoRAInitialization×4、LoRAScaling×4、LoRAMerge×2、LowRankApprox×4、Quantization×6、AlpacaFormat×5、CompressionRatio×4，测试总数 218 → 257。
+
+**引用**（refs/references.bib）：新增 5 条（touvron2023llama arXiv:2302.13971、touvron2023llama2 arXiv:2307.09288、hu2021lora arXiv:2106.09685、dettmers2023qlora arXiv:2305.14314、wang2022selfinstruct arXiv:2212.10560），cite-verify 验证 27/27 全部通过（ratio = 0.00）。
+
+**KPI 变化：**
+- knowledge_nodes: 11 → 12
+- nodes_with_runnable_notebook: 11 → 12
+- test_count: 218 → 257（test_delta: +39）
+- verified_citations_ratio: 27/27 = 1.00
+
+### 失败/回退分析
+无交付失败。notebook 生成脚本中出现 Python 字符串内双引号冲突（中文"训练"引号被解析为字符串结束符），已修复为「训练」中文书名号。测试中有 RuntimeWarning（overflow in matmul、divide by zero）但均为 warnings 而非 failures，测试 39/39 全部通过。
+
+### 下次不同做
+- 节点13 DPO（Direct Preference Optimization，Rafailov et al. 2023）三件套同一 session 交付，重点覆盖绕开奖励模型直接优化偏好的数学推导
+- gen_nb 脚本中含汉字双引号的字符串统一改用「」书名号或 f-string，避免 Python 语法冲突
+- session 结束前手动追加正确 session_metrics.jsonl 记录（test_count=257）
+
+<!-- meta: verdict:PASS score:8.7 test_delta:+39 -->
