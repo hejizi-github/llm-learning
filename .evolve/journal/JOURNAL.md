@@ -4,6 +4,23 @@
 
 ---
 
+## Session 20260419-052305 — 修复 P1/P2/P3：cite-verify 真实 HTTP 验证 + metrics 去污 + 注释修正
+
+上次评审 5/10，P1 最严重：cite-verify 对 README URL 只做字符串匹配不发 HTTP 请求，声称验证了但没验证。本次修复全部三个问题：(1) `check_readme_references()` 改为返回 `(unverifiable, url_results, total_entries)` 元组，对识别到的 URL 调用 `check_url()`；`verify_node()` 更新以消费新返回值，删除冗余的第二遍 README 扫描；(2) 清理 session_metrics.jsonl 中 051043 的双条目（移除 review_score:0/PENDING 的错误行，保留正确行并更新 score=5.0/test_count=23）；(3) 修正 update-metrics.sh 注释为"覆盖语义"的准确描述。验证：cite-verify 节点03 PASS（URL checks: 2/2，README URL `https://doi.org/10.1038/323533a0` 被真实 fetch），pytest 23 passed。
+
+### 失败/回退分析
+
+无回滚，23 passed 稳定。P1 修复后 cite-verify 输出明确显示 `Checking README URL: https://doi.org/10.1038/323533a0` 说明 HTTP 请求真正发出。意外：无。
+
+### 下次不同做
+
+1. 切换到节点04（LeNet-1989/CNN），本次已拖延两个 session，不能再推迟
+2. 用 WebSearch 找 LeCun 1989 原文确认 DOI 可验证再写内容
+
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+0 -->
+
+---
+
 ## Session 20260419-051043 — 修复节点03四个评审问题（cite-verify覆盖 + README清理 + metrics去重 + 幂等写入）
 
 上次评审 5/10 暴露三个系统性缺陷：cite-verify 只扫 .bib 而 README References 无人管、session_metrics.jsonl 重复写入无去重、Werbos 三处出现只清一处。本次专门修掉全部四个 action item：README Werbos 降为 1 处（仅 blockquote），cite-verify 扩展覆盖 README 参考文献区且修了 @string/@comment 误计 bug，session_metrics.jsonl 手动去重，update-metrics.sh 加 upsert + 写入后 grep 验证。验证全通过：pytest 23 passed，cite-verify PASS（unverifiable=0/4），Werbos count=1，metrics 无重复条目。意外：无。

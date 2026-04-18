@@ -57,9 +57,15 @@ def check_unverifiable_entries(content):
     return warnings
 
 def check_readme_references(readme_path):
-    """Scan README.md's 参考文献 section for plain-text citations lacking identifiers."""
+    """Scan README.md's 参考文献 section.
+
+    Returns (unverifiable, url_results, total_entries):
+      - unverifiable: entries with no DOI/arXiv/ISBN/URL
+      - url_results: HTTP check results (bool) for entries that have URLs
+      - total_entries: count of all reference entries found
+    """
     if not os.path.exists(readme_path):
-        return []
+        return [], [], 0
 
     with open(readme_path, encoding='utf-8') as f:
         content = f.read()
@@ -70,25 +76,39 @@ def check_readme_references(readme_path):
         content, re.DOTALL
     )
     if not ref_section_match:
-        return []
+        return [], [], 0
 
     ref_section = ref_section_match.group(1)
     unverifiable = []
+    url_results = []
+    total_count = 0
 
-    # Each non-empty line in the ref section is a potential citation
     for line in ref_section.splitlines():
         line = line.strip()
         if not line or not (line.startswith('-') or line.startswith('*') or re.match(r'^\d+\.', line)):
             continue
+        total_count += 1
+
         has_doi = bool(re.search(r'doi\.org|DOI:', line, re.IGNORECASE))
         has_arxiv = bool(re.search(r'arxiv\.org|arXiv:', line, re.IGNORECASE))
         has_isbn = bool(re.search(r'ISBN', line, re.IGNORECASE))
-        has_url = bool(re.search(r'https?://', line))
+        # Extract first URL, stopping before markdown link-closing ) or ] and whitespace
+        url_match = re.search(r'https?://[^\s\)\]>"\',;]+', line)
+        has_url = bool(url_match)
+
         if not (has_doi or has_arxiv or has_isbn or has_url):
             print(f"  WARN (README): {line[:80]} — no DOI/arXiv/ISBN/URL")
             unverifiable.append(line[:80])
+        elif url_match:
+            # Actually verify the URL via HTTP request
+            url = url_match.group(0)
+            label = f"README: {line[:50]}"
+            print(f"Checking README URL: {url}")
+            url_results.append(check_url(url, label))
+            time.sleep(0.3)
+        # else: has ISBN or other non-URL identifier — counts as verifiable but no URL to check
 
-    return unverifiable
+    return unverifiable, url_results, total_count
 
 def verify_bib(path):
     with open(path) as f:
@@ -146,24 +166,11 @@ def verify_node(node_dir):
         print(f"No references.bib found in {node_dir}")
 
     print(f"\n=== README 参考文献 section: {readme_path} ===")
-    readme_unverifiable = check_readme_references(readme_path)
+    readme_unverifiable, readme_url_results, readme_total = check_readme_references(readme_path)
+    all_results.extend(readme_url_results)
     all_unverifiable.extend(readme_unverifiable)
-    total_entries += len(readme_unverifiable)  # each unverifiable README entry counts as one
+    total_entries += readme_total
 
-    # Count verifiable README entries (entries WITH identifiers)
-    if os.path.exists(readme_path):
-        with open(readme_path, encoding='utf-8') as f:
-            content = f.read()
-        ref_match = re.search(r'##\s*参考文献\s*\n(.*?)(?=\n##\s|\Z)', content, re.DOTALL)
-        if ref_match:
-            ref_section = ref_match.group(1)
-            for line in ref_section.splitlines():
-                line = line.strip()
-                if not line or not (line.startswith('-') or line.startswith('*') or re.match(r'^\d+\.', line)):
-                    continue
-                has_id = bool(re.search(r'doi\.org|DOI:|arxiv\.org|arXiv:|ISBN|https?://', line, re.IGNORECASE))
-                if has_id:
-                    total_entries += 1  # this entry is verifiable, count it
     if readme_unverifiable:
         print(f"  {len(readme_unverifiable)} unverifiable README reference(s) found")
     else:

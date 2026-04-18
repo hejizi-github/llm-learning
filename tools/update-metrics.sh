@@ -5,7 +5,7 @@
 # 在 review 结束后调用，将 review 结果写回 session_metrics.jsonl。
 # 只更新 review_verdict 和 review_score 字段，其他字段保留原值。
 #
-# 幂等保护：若 session_id 已有非 PENDING 记录，跳过追加（防止重复写入）。
+# 幂等性：对同一 session 多次调用会用新传入的 verdict/score 覆盖已有值（覆盖语义，不跳过）。
 
 set -euo pipefail
 
