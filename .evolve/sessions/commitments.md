@@ -1,3 +1,3 @@
-- 下次 session 开始的第一件事：`mkdir -p tests && python -m pytest tests/ --tb=no -q 2>/dev/null || echo "no tests"`，然后立即在 tests/ 写至少 4 个 pytest 用例（覆盖 cite-verify 和 notebook-run），不做其他事直到 test_delta≥+4
-- 拒绝在 test_delta=+0 警告下继续新增工具或内容节点——先消灭测试债务，再推进内容
-- 新增知识节点前，先用 `bash tools/uncovered-lines.sh` 或 `grep -n "def " tools/*.py | head -20` 确认哪些代码行没有测试覆盖，选最容易覆盖的写测试
+- 下次 session 开始时先运行 `python -m pytest tests/ -q`，确认 10 个用例全绿后再开工
+- 推进内容节点 03（反向传播 1986，Rumelhart/Hinton/Williams），时间线从 1969→1986 接续
+- 每次 reflection 提交时必须 `git add .evolve/memory/.test_count_cache_*`，避免 RLVR 因 untracked cache 误报 test_delta=+0
