@@ -8,7 +8,7 @@
 | 指标 | 定义 | 如何衡量 |
 |---|---|---|
 | knowledge_nodes | nodes/ 下的知识节点数量 | `find nodes/ -name README.md | wc -l` |
-| nodes_with_runnable_notebook | notebooks/ 下能零错误执行的 .ipynb 数量 | `tools/notebook-run` |
+| nodes_with_runnable_notebook | nodes/ 下能零错误执行的 .ipynb 数量 | `find nodes/ -name "*.ipynb" -exec jupyter nbconvert --execute {} \;` 或 `tools/notebook-run` |
 | verified_citations_ratio | 通过 DOI/arxiv 验证的引用 / 总引用数 | `tools/cite-verify` |
 | depth_score | 节点平均深度分 (0-10) | `tools/depth-score` |
 
