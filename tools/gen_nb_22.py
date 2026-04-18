@@ -75,7 +75,7 @@ np.random.seed(42)
 d, k, r = 100, 100, 4  # d×k矩阵，rank=r
 A = np.random.randn(r, k) * 0.02  # 随机初始化，均值0
 B = np.zeros((d, r))              # 初始化为0，保证ΔW=BA=0在开始时
-delta_W = B @ A  # 初始更新量为零
+delta_W = np.zeros((d, k))  # B@A = 零矩阵（B全为零，不触发matmul警告）
 print(f"全量微调需要更新: {d*k} 个参数")
 print(f"LoRA 只需要更新: {d*r + r*k} 个参数")
 print(f"压缩比: {d*k / (d*r + r*k):.1f}x")
@@ -110,6 +110,11 @@ W_eff = W_pretrained + B @ A = W_pretrained + 0 = W_pretrained
 # ── Cell 5: LoRA vs full fine-tuning simulation ───────────────────────────
 cells.append(cell("""\
 # 模拟 LoRA 微调：在简单线性回归问题上对比全量微调 vs LoRA
+#
+# 关键设计：目标权重变化 W_target_delta 是 rank=4 的低秩矩阵。
+# 这样 LoRA(rank=4) 理论上能完美拟合，演示才能说明 LoRA 有效。
+import warnings
+warnings.filterwarnings('ignore', category=RuntimeWarning)  # 抑制特定BLAS版本的误报警告
 
 np.random.seed(0)
 
@@ -117,8 +122,10 @@ np.random.seed(0)
 d_out, d_in = 20, 20  # 输出维度、输入维度
 rank = 4              # LoRA rank
 
-# 生成"真实目标"权重（模拟微调任务的目标）
-W_target_delta = np.random.randn(d_out, d_in) * 0.3  # 真实的权重变化
+# 生成"真实目标"权重——关键：目标变化是低秩的（rank=4）
+# 只有这样，rank=4 的 LoRA 才能理论上完美拟合，演示才有说服力
+r_true = 4
+W_target_delta = (np.random.randn(d_out, r_true) @ np.random.randn(r_true, d_in)) * 0.3
 
 # 预训练权重（固定）
 W_pretrained = np.random.randn(d_out, d_in)
@@ -164,7 +171,7 @@ print("=== 训练结果对比 ===")
 print(f"全量微调  最终 Loss: {losses_full[-1]:.4f}  可训练参数: {d_out * d_in}")
 print(f"LoRA r={rank}  最终 Loss: {losses_lora[-1]:.4f}  可训练参数: {d_out*rank + rank*d_in}")
 print(f"\\nLoRA 压缩比: {d_out * d_in / (d_out*rank + rank*d_in):.1f}x")
-print(f"性能差距: {abs(losses_lora[-1] - losses_full[-1]):.4f}  (接近0 = 效果相当)")
+print(f"性能差距: {abs(losses_lora[-1] - losses_full[-1]):.4f}  (目标是低秩的，LoRA 理应能接近全量微调)")
 \
 """))
 
@@ -192,7 +199,7 @@ axes[1].plot(range(201, 301), losses_lora[200:], 'r--', linewidth=2,
              label=f'LoRA r={rank}（最终：{losses_lora[-1]:.4f}）')
 axes[1].set_xlabel('训练步数（后100步）')
 axes[1].set_ylabel('MSE Loss')
-axes[1].set_title('收敛阶段放大：两者效果相当')
+axes[1].set_title('收敛阶段放大：低秩目标下两者接近')
 axes[1].legend()
 axes[1].grid(True, alpha=0.3)
 
