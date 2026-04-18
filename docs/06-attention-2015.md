@@ -35,7 +35,7 @@
 
 ### 突破口：Bahdanau 的洞见
 
-2014 年，来自蒙特利尔大学的 Dzmitry Bahdanau 和合作者（Cho、Bengio）问了一个关键问题：
+2014 年，来自雅各布大学不来梅（Jacobs University Bremen）的 Dzmitry Bahdanau，与蒙特利尔大学的 Kyunghyun Cho 和 Yoshua Bengio 合作，问了一个关键问题：
 
 > **"翻译每个词时，真的需要把整段话都塞进一个向量再吐出来吗？"**
 
