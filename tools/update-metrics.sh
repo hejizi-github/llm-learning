@@ -105,18 +105,26 @@ if [[ -z "$existing" ]]; then
   echo "$new_entry" >> "$METRICS_FILE"
   echo "新建 session $SESSION_ID 记录: verdict=$VERDICT score=$SCORE commit_count=$auto_commit_count"
 else
-  # 存在该 session：更新 review_verdict 和 review_score
+  # 存在该 session：更新 review_verdict、review_score 和 commit_count
+  # 重新计算 commit_count（harness 预插入的是 0，这里覆写为真实值）
+  set +e
+  auto_commit_count=$(git -C "$(dirname "$METRICS_FILE")/../.." log --oneline 2>/dev/null \
+    | grep "evolve(${SESSION_ID})" | grep -v "reflection" | wc -l | tr -d '[:space:]')
+  set -e
+  auto_commit_count=$(echo "${auto_commit_count:-0}" | tr -d '[:space:]')
+
   tmpfile=$(mktemp)
   while IFS= read -r line; do
     echo "$line" | jq -c --arg sid "$SESSION_ID" \
                          --arg verdict "$VERDICT" \
                          --argjson score "$SCORE" \
+                         --argjson cc "$auto_commit_count" \
       'if .session == $sid then
-         .review_verdict = $verdict | .review_score = $score
+         .review_verdict = $verdict | .review_score = $score | .commit_count = $cc
        else . end'
   done < "$METRICS_FILE" > "$tmpfile"
   mv "$tmpfile" "$METRICS_FILE"
-  echo "已更新 session $SESSION_ID: verdict=$VERDICT score=$SCORE"
+  echo "已更新 session $SESSION_ID: verdict=$VERDICT score=$SCORE commit_count=$auto_commit_count"
 fi
 
 # 立即验证写入结果（用 jq 读回，不依赖 grep 格式）

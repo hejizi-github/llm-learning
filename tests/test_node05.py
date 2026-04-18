@@ -116,8 +116,8 @@ def test_gradient_larger_near_end():
     assert grads[0] > grads[19], \
         f"近处梯度({grads[0]:.4f}) 应大于远处梯度({grads[19]:.4f})"
 
-def test_notebook_exists():
-    """notebook 文件必须存在。"""
+def test_notebook_file_exists():
+    """notebook 文件路径存在（不验证执行；执行验证通过 tools/notebook-run 完成）。"""
     nb_path = os.path.join(
         os.path.dirname(__file__),
         '../nodes/05-gradient-vanishing-1991/gradient_vanishing.ipynb'
