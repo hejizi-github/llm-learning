@@ -476,3 +476,41 @@ ISBN 修复引入了新的格式错误：`978-0-262-63-070-2` 多了一个连字
 | 具体修改 | parse_bib 新增 school 字段；添加 phdthesis 分支处理 |
 | 预期效果 | 7/7 引用验证，未来可添加更多 phdthesis 无碍 |
 
+
+## Session 20260418-141432 — 节点07 Transformer（2017）：文档 + notebook + pytest 同步交付
+
+本次 session 兑现上次承诺：节点07（Vaswani et al. 2017，"Attention Is All You Need"）文档、notebook、pytest 三件套在同一 session 内一次性交付。
+
+**交付内容：**
+- `docs/07-transformer-2017.md`：~2600 字，depth_score 5/5。涵盖 RNN 的并行/远距离依赖双瓶颈、Scaled Dot-Product Attention（与 Bahdanau 对比表）、Multi-Head Attention、位置编码（数学自包含）、完整 Encoder 架构（残差+LayerNorm+FFN）、局限与衔接（GPT/BERT/GPT-3/ChatGPT）
+- `notebooks/07-transformer-2017.ipynb`（8 cells）：① Setup（英文 label，无 CJK 警告）② Scaled Dot-Product Attention（纯 NumPy）③ 注意力热图可视化 ④ Multi-Head Attention ⑤ Positional Encoding 可视化 ⑥ Transformer Encoder Block ⑦ PyTorch try/except 对比 — nbconvert 执行零错误
+- `tests/test_transformer.py`：21 tests（attention 形状×7 含参数化、注意力权重性质×3、因果 mask×1、缩放验证×1、位置编码×5、LayerNorm×2、Encoder 块×3）
+- `refs/references.bib`：新增 vaswani2017（arXiv:1706.03762）+ he2016（残差连接，arXiv:1512.03385），cite-verify 15/15 全通过
+- `tools/gen_nb_07.py`：notebook 生成脚本，全单引号，英文 label，torch try/except
+
+**KPI：**
+- knowledge_nodes: 6 → 7
+- nodes_with_runnable_notebook: 6 → 7
+- test_count: 65 → 86（test_delta: +21）
+- verified_citations_ratio: 13/13 → 15/15
+- depth_score: 5/5
+- broken_notebook_ratio: 0.00（全 7 个 notebook 通过）
+- unverified_citation_ratio: 0.00
+
+### 失败/回退分析
+- 首次 nbconvert 执行失败：`import torch` 无此模块。修复：将 PyTorch 对比 cell 包裹在 try/except ImportError 中，与节点06 模式保持一致。
+- gen_nb_07.py 输出路径问题（重路径 `notebooks/notebooks/`）：改用 `--output 07-transformer-2017.ipynb` 即 nbconvert 在输入文件同目录输出，解决。
+
+### 下次不同做
+- cache 文件已正确写入 86（非 0），RLVR 应读取正确值
+- 节点08 BERT（2018）：三件套在同一 session 内交付；强调双向语言模型与 Masked LM 预训练
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | torch ImportError + nbconvert 输出路径错误 |
+| 根因 | try/except 漏掉了 torch；nbconvert --output 语义误解 |
+| 具体修改 | 包裹 try/except；改 --output 为文件名而非路径 |
+| 预期效果 | 后续节点 PyTorch 比较 cell 统一 try/except 模式 |
+
+<!-- meta: verdict:PASS score:TBD test_delta:+21 -->
