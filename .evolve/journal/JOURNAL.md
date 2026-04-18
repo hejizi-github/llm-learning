@@ -2,6 +2,64 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-191429 — 修复节点19评审问题 + 节点20 DALL-E 2 三件套交付
+
+### 本次工作
+
+**优先修复上次评审的 3 个问题（4/10 → 目标修复到 8+）**：
+
+1. **Notebook Part 3 矛盾注释**（`notebooks/19-clip-2021.ipynb` Cell 7）：
+   - `infonce_loss` 随机损失调用加 `temperature=1.0`，使输出与注释一致（≈log(N)）
+   - 注释改为"temperature=1.0" 明确标注前提条件
+
+2. **session_metrics.jsonl 错误数据**（`.evolve/memory/session_metrics.jsonl`）：
+   - 追加正确记录：session_id=20260418-185848，test_count=414，knowledge_nodes=19，verdict=NEEDS_IMPROVEMENT，score=4
+
+3. **历史顺序说明**（`docs/19-clip-2021.md` Section 0）：
+   - 加了醒目的「历史时序说明」blockquote：CLIP 2021-03 早于 SD 2022-08，课程顺序与历史顺序关系明确说明
+
+**节点20 DALL-E 2（2022）三件套**：
+
+**文档**（docs/20-dalle2-2022.md，378行）：
+- Section 0：历史位置（DALL-E 1 → CLIP → DALL-E 2 → SD 时间线）
+- Section 1：DALL-E 1 的局限（dVAE + 自回归 Transformer，低分辨率，慢）
+- Section 2：CLIP 语义空间直觉（"地图"类比）
+- Section 3：三组件架构（CLIP文字编码器 + Prior + 扩散解码器）
+- Section 4：为什么要 Prior（语言语义 vs 图像语义的微妙差异）
+- Section 5：数字成绩（FID + 人类评估）
+- Section 6：局限性（文字渲染、解剖、空间关系）
+- Section 7：CLIP → DALL-E 2 故事线完整叙述
+- Section 8：数学小补丁（FID 直觉、余弦相似度回顾、Prior 损失函数）
+
+**Notebook**（notebooks/20-dalle2-2022.ipynb，14 cells，纯 NumPy）：
+- Part 1：CLIP 语义空间（猫/狗/飞机三概念相似度矩阵）
+- Part 2：Prior 模拟（文字嵌入 → 图像嵌入，扩散去噪 20 步可视化）
+- Part 3：扩散解码器（图像嵌入 → 16×16 像素，MSE 下降可视化）
+- Part 4：语义插值 Slerp（猫 → 狗，10 个中间点，相似度曲线）
+
+**Tests**（tests/test_dalle2.py，31 个，全部通过）：
+- TestL2Normalize（4个）、TestCosineSimilarity（5个）
+- TestSemanticSpace（3个）、TestPrior（4个）、TestDecoder（4个）
+- TestSlerp（5个）、TestDocumentStructure（6个）
+
+**引用**：ramesh2022dalle2（arXiv:2204.06125）+ ramesh2021dalle（arXiv:2102.12092），41/41 全部验证通过
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 19 | 20 | +1 |
+| tests (pytest) | 414 | 445 | +31 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| verified_citations_ratio | 39/39 | 41/41 | +2 |
+
+### 下次不同做
+- 节点20已完成，下次启动节点21（InstructGPT / RLHF，2022）
+- DALL-E 2 和 InstructGPT 是 2022 年的两条平行主线（生成 vs 对齐），是天然的对比节点
+- notebook 要包含 RLHF 奖励模型训练的简化演示（偏好对数据 → 奖励模型）
+
+<!-- meta: verdict:PENDING score:TBD test_delta:+31 -->
+
 ## Session 20260418-185848 — 节点19 CLIP 2021 多模态对比学习三件套交付
 
 兑现上次承诺，交付节点19「CLIP — 用语言监督图像（2021）」完整三件套。
