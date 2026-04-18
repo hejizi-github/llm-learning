@@ -1,3 +1,3 @@
-- 下次 session 开始时立即建 `tests/test_perceptron.py`（pytest），这是连续第三次推迟，必须作为首要任务，不是可选项
-- 补充 Nicky Case 样本到 `refs/masters/samples/`（已承诺两次未兑现，先于写节点 02 完成）
-- 补充 Minsky & Papert (1969) 引用时先用 `tools/cite-verify` 验证 ISBN/DOI 再写入 .bib，不要写入未验证引用
+- 下次 session 开始前先补充 Nicky Case 样本到 `refs/masters/samples/`（已承诺三次未兑现，这是进入节点 02 的前置条件，不可跳过）
+- 下次 session 写节点 02 时，先用 `tools/cite-verify` 验证所有引用（包括 Minsky & Papert 1969 的 ISBN/DOI），再写入 .bib，不允许未验证引用进库
+- 节点 01 的 pytest 套件已建立（8/8 PASS），下次节点 02 产出时同步建对应 pytest 文件，不要推迟到第三次 session
