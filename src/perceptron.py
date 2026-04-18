@@ -2,51 +2,46 @@ import numpy as np
 
 
 class Perceptron:
-    """感知机 — 从零实现，不使用任何 ML 库"""
+    """感知机 — 从零实现，不使用任何 ML 库。
+    与 nodes/01-perceptron-1958/perceptron.ipynb 内联实现完全一致。
+    """
 
-    def __init__(self, learning_rate=0.1, max_epochs=100):
+    def __init__(self, n_features, learning_rate=0.1):
+        # 权重初始化为全 0（也可以随机，效果一样）
+        self.w = np.zeros(n_features)
+        self.bias = 0.0           # 偏置，相当于阈值的反面
         self.lr = learning_rate
-        self.max_epochs = max_epochs
-        self.weights = None
-        self.bias = None
-        self.history = []  # 记录每轮的错误数
+        self.history = []         # 记录每轮错误数
 
-    def _step(self, z):
-        """阶跃函数：z >= 0 返回 1，否则返回 0"""
-        return (z >= 0).astype(int)
+    def predict(self, x):
+        """给一个输入 x，返回 0 或 1。"""
+        weighted_sum = np.dot(x, self.w) + self.bias
+        # 超过 0 就输出 1，否则输出 0
+        return 1 if weighted_sum > 0 else 0
 
-    def predict(self, X):
-        """预测：z = X·w + b，然后用阶跃函数变成 0/1"""
-        X = np.atleast_2d(X)
-        z = X @ self.weights + self.bias  # 矩阵乘法 = 加权求和
-        return self._step(z)
+    def train_one_epoch(self, X, y):
+        """对所有数据跑一轮，更新权重。返回本轮错误数。"""
+        errors = 0
+        for xi, yi in zip(X, y):
+            y_hat = self.predict(xi)   # 我猜的答案
+            if y_hat != yi:            # 猜错了
+                delta = self.lr * (yi - y_hat)
+                self.w    += delta * xi   # 调整权重
+                self.bias += delta        # 调整偏置
+                errors += 1
+        return errors
 
-    def fit(self, X, y):
-        """训练：感知机学习规则"""
-        n_samples, n_features = X.shape
-        # 初始化权重为 0
-        self.weights = np.zeros(n_features)
-        self.bias = 0.0
+    def fit(self, X, y, max_epochs=100):
+        """训练到收敛或达到最大轮数。供测试和快捷使用。"""
         self.history = []
-
-        for epoch in range(self.max_epochs):
-            errors = 0
-            for xi, yi in zip(X, y):
-                pred = self.predict(xi)[0]
-                error = int(yi) - int(pred)      # 误差：真相 - 预测
-                if error != 0:
-                    # 更新权重：w = w + lr × error × x
-                    self.weights += self.lr * error * xi
-                    self.bias    += self.lr * error
-                    errors += 1
+        for epoch in range(max_epochs):
+            errors = self.train_one_epoch(X, y)
             self.history.append(errors)
             if errors == 0:
-                print(f'收敛！第 {epoch + 1} 轮，错误数降到 0')
                 return self
-
-        print(f'达到最大轮数 {self.max_epochs}，停止训练（可能未收敛）')
         return self
 
     def accuracy(self, X, y):
-        preds = self.predict(X)
-        return np.mean(preds == y)
+        """计算在数据集上的准确率。"""
+        correct = sum(self.predict(xi) == yi for xi, yi in zip(X, y))
+        return correct / len(y)
