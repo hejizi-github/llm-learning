@@ -1,3 +1,3 @@
-- 下一 session 切换回「新增测试」方向，选节点07-transformer 或 11-instructgpt 做三件套交付（文档+notebook+pytest），而非继续纯文档可读性改造
-- 可读性改造不能单独作为 session 目标（test_delta 永远是 +0）；若要改造可读性，必须同步在同一 session 内新增至少 10 条对应 pytest，形成可量化增量
-- RLVR test_delta=+0 且本次已确认是「纯文档重写」时，直接在下次 session 切回三件套交付节奏，不需要再用 pytest --collect-only 核实
+- 每次 reflection commit 时必须显式 git add .evolve/memory/.test_count_cache_*，避免 RLVR 因缓存未追踪而误报大幅负增量（本次 -279 根因）
+- 下一节点选节点14 GPT-4/Emergent Abilities（2023），三件套同步交付（文档+notebook+pytest）
+- notebook 图例/标签统一用中文，不用英文（如 `斜率=...` 而非 `slope=...`）
