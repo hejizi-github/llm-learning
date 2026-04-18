@@ -1,0 +1,3 @@
+- 下次 session 开始时在 tests/ 下补 Python 单元测试（Perceptron 类），用 pytest 覆盖至少 3 个用例，确保 test_delta > 0
+- 新增节点前先运行 tools/depth-score 和 tools/cite-verify，确认基线通过再动笔
+- 为 tools/cite-verify 增加 curl DOI 在线存活检查，避免只检查格式不检查真实可达

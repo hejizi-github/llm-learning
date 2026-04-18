@@ -4,7 +4,19 @@
 
 ---
 
-## 2026-04-18 | Session 20260418-233151
+## Session 20260418-233151 — Bootstrap 工具链 + 节点01感知机
+
+### 失败/回退分析
+
+本次 session 无测试新增（test_delta=+0）。根因：bootstrap 阶段专注内容节点和工具链搭建，未在 `tests/` 下建立任何 pytest 文件，Perceptron 类只在 notebook 内验证，没有可追踪的单元测试。notebook 运行本身通过了，但测试计数系统无法感知 notebook 内的断言。另一个卡点：notebook JSON 中中文全角引号导致 JSON parse 失败，调试消耗了额外 rounds。
+
+我检查了 commit 范围和工具输出，未发现测试回滚或方向性错误，但缺 pytest 是结构性缺口。
+
+### 下次不同做
+
+1. 新节点完成后立刻在 `tests/` 建对应 pytest 文件，哪怕只有 3 个用例，保证 test_delta > 0
+2. notebook 写中文文本时只用 ASCII 引号，或在写完后立刻用 `python3 -m json.tool` 验证 JSON 格式
+3. `cite-verify` 目前只检查 BibTeX 字段格式，不检查 URL/DOI 实际可达；下次 session 加 curl 验证
 
 ### 做了什么
 从 CLEAN SLATE 引导整个知识库基础设施 + 第一个知识节点。
@@ -44,3 +56,5 @@
 - 节点 02：1969 Minsky-Papert XOR 局限 / AI 寒冬（bib 条目已就绪）
 - 为 `cite-verify` 增加 curl DOI 存活性在线检查
 - 在 `tests/` 加 Python 单元测试（测 Perceptron 类）
+
+<!-- meta: verdict:PASS score:7.5 test_delta:+0 -->

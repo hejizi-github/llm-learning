@@ -1,0 +1,1 @@
+{"session": "20260418-233151", "date": "2026-04-18", "title": "Bootstrap session 必须同步建 pytest，否则 test_delta 永远为 0", "context": "Bootstrap 阶段专注建工具链 + 内容节点，所有验证都在 notebook 内完成，测试系统感知不到", "takeaway": "每个内容节点必须配一个对应的 tests/test_XX.py，哪怕只有 3 个最基础的断言；notebook 内的 assert 不算 test_delta"}
