@@ -1,3 +1,3 @@
-- 启动节点20（DALL-E 2，2022），先写文档骨架（动机→架构→数字成绩），再写 notebook，最后写测试，不要并行开始所有文件
-- notebook 中 diffusion 去噪过程必须有可视化（多步去噪的图像序列），纯数字演示读者难以建立直觉
-- 文档中 CLIP → DALL-E 2 的故事衔接段落必须明确写出：CLIP 编码器作为 condition 信号如何传给扩散模型
+- 下次 session 启动节点21（InstructGPT / RLHF，2022），三件套顺序严格按照：文档骨架（含动机+架构+数字成绩）→ notebook → pytest 测试，不并行开始
+- notebook 中必须包含 RLHF 奖励模型训练的简化演示：偏好对数据（chosen/rejected）→ 奖励模型训练 → 打分差可视化
+- test count cache=0 是环境缺依赖的假警报，每次 session 结束前对比 session log 中的真实 test_delta 来判断是否回退，不依赖 cache 文件
