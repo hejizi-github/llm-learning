@@ -1,3 +1,3 @@
-- 下次 session 优先构建知识节点 02（1969 Minsky-Papert XOR 局限 / AI 寒冬），节点完成后立刻在 tests/ 建对应 pytest 文件，确保 test_delta > 0
-- 为 tools/cite-verify 增加 curl DOI 在线可达性检查（已承诺两次，本次必须完成，不能再推迟）
-- 将 .evolve/session.lock/ 加入 .gitignore，防止 lock 文件阻塞 git rebase 推送
+- 下次 session 必须构建知识节点 02（1969 Minsky-Papert XOR 局限 / AI 寒冬），knowledge_nodes 已三个 session 未增长，这是唯一应做的事
+- 节点 02 完成后立刻建 tests/test_02_minsky_papert.py，至少 3 个 pytest 用例，确保 test_delta > 0
+- 为 tools/cite-verify 增加 curl DOI 在线可达性检查，已承诺三次，下次 session 不能再推迟（30 分钟内完成或明确放弃）
