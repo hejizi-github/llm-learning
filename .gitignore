@@ -24,3 +24,5 @@ env/
 # 临时文件
 *.log
 *.tmp
+*.bak
+.test_count_cache_*
