@@ -43,21 +43,47 @@ if ! command -v jq &>/dev/null; then
   exit 1
 fi
 
-# ── 全局去重：对整个文件，按 session_id 分组，保留 test_count 最大的条 ──
-# 这会清理历史遗留的重复记录，不只是当前 session 的。
+# ── 全局去重：对整个文件，按 session_id 分组，合并同 session 的多条记录 ──
+# 合并规则（P0 修复）：
+#   1. 按"数据优先级"排序：review_score 非 null +10，self_score 非 null +5，test_count 加值
+#   2. 以最高优先级记录为基础，从低优先级记录中只填入 null 字段（非 null 不覆盖）
+#   3. test_count 和 commit_count 额外取 max
+# 这样确保真实外部评审数据（review_score）不会被空占位记录覆盖。
 global_dedup() {
   local tmpfile
   tmpfile=$(mktemp)
-  # jq: 以 session 为 key 分组，每组取 test_count 最大的条，再按原始顺序输出
-  # 用 unique 保留每个 session 的唯一记录
   jq -rcs '
     group_by(.session) |
-    map(sort_by(.test_count) | last) |
+    map(
+      map(
+        . + {_priority: (
+          (if .review_score != null then 10 else 0 end) +
+          (if .self_score != null then 5 else 0 end) +
+          (.test_count // 0)
+        )}
+      ) |
+      sort_by(._priority) | reverse |
+      reduce .[1:][] as $other (
+        .[0];
+        . as $acc |
+        reduce ($other | to_entries[]) as $entry (
+          $acc;
+          if $entry.key == "_priority" then .
+          elif $entry.key == "test_count" and ($entry.value // 0) > ($acc.test_count // 0) then
+            .test_count = $entry.value
+          elif $entry.key == "commit_count" and ($entry.value // 0) > ($acc.commit_count // 0) then
+            .commit_count = $entry.value
+          elif $entry.value != null and $acc[$entry.key] == null then
+            .[$entry.key] = $entry.value
+          else . end
+        )
+      ) |
+      del(._priority)
+    ) |
     sort_by(.session) |
     .[]
   ' "$METRICS_FILE" > "$tmpfile" 2>/dev/null || true
 
-  # jq 失败时保留原文件
   if [[ -s "$tmpfile" ]]; then
     mv "$tmpfile" "$METRICS_FILE"
     echo "全局去重完成"
@@ -167,21 +193,33 @@ else
   mv "$tmpfile" "$METRICS_FILE"
 fi
 
-# ── 验证写入结果 ──
+# ── 验证写入结果（同时校验 verdict 字符串和 score 数值） ──
 if [[ "$EXTERNAL" -eq 1 ]]; then
-  result=$(jq -rc --arg sid "$SESSION_ID" 'select(.session == $sid) | .review_verdict' \
+  result_verdict=$(jq -rc --arg sid "$SESSION_ID" 'select(.session == $sid) | .review_verdict' \
     "$METRICS_FILE" 2>/dev/null | tail -1 || echo "")
-  if [[ "$result" != "$VERDICT" ]]; then
-    echo "错误: 写入验证失败！期望 review_verdict=$VERDICT，实际读回 $result" >&2
+  result_score=$(jq -rc --arg sid "$SESSION_ID" 'select(.session == $sid) | .review_score' \
+    "$METRICS_FILE" 2>/dev/null | tail -1 || echo "")
+  if [[ "$result_verdict" != "$VERDICT" ]]; then
+    echo "错误: 写入验证失败！期望 review_verdict=$VERDICT，实际读回 $result_verdict" >&2
     exit 1
   fi
-  echo "验证通过: session $SESSION_ID review_verdict=$result"
+  if [[ "$result_score" != "$SCORE" ]]; then
+    echo "错误: 写入验证失败！期望 review_score=$SCORE，实际读回 $result_score" >&2
+    exit 1
+  fi
+  echo "验证通过: session $SESSION_ID review_verdict=$result_verdict review_score=$result_score"
 else
-  result=$(jq -rc --arg sid "$SESSION_ID" 'select(.session == $sid) | .self_verdict' \
+  result_verdict=$(jq -rc --arg sid "$SESSION_ID" 'select(.session == $sid) | .self_verdict' \
     "$METRICS_FILE" 2>/dev/null | tail -1 || echo "")
-  if [[ "$result" != "$VERDICT" ]]; then
-    echo "错误: 写入验证失败！期望 self_verdict=$VERDICT，实际读回 $result" >&2
+  result_score=$(jq -rc --arg sid "$SESSION_ID" 'select(.session == $sid) | .self_score' \
+    "$METRICS_FILE" 2>/dev/null | tail -1 || echo "")
+  if [[ "$result_verdict" != "$VERDICT" ]]; then
+    echo "错误: 写入验证失败！期望 self_verdict=$VERDICT，实际读回 $result_verdict" >&2
     exit 1
   fi
-  echo "验证通过: session $SESSION_ID self_verdict=$result"
+  if [[ "$result_score" != "$SCORE" ]]; then
+    echo "错误: 写入验证失败！期望 self_score=$SCORE，实际读回 $result_score" >&2
+    exit 1
+  fi
+  echo "验证通过: session $SESSION_ID self_verdict=$result_verdict self_score=$result_score"
 fi

@@ -4,6 +4,41 @@
 
 ---
 
+## Session 20260419-075205 — 修复 global_dedup P0（合并策略 + score 验证 + 恢复 072628 数据）
+
+本次 session 修复评审指出的 P0 问题：`global_dedup()` 的 tie-breaking 按文件位置而非数据完整性，导致 072628 的真实外部评审数据（review_score:8.5）被空占位记录覆盖。
+
+**核心改动**：
+
+1. **global_dedup 合并策略（P0）**：将 `sort_by(.test_count) | last`（简单丢弃）替换为字段合并逻辑：
+   - 按优先级排序（review_score 非 null +10，self_score 非 null +5，test_count 加值）
+   - 以最高优先级记录为基础，后续记录只填入 null 字段
+   - test_count 和 commit_count 额外取 max
+   - 测试验证：072628 正确保留 review_score:8.5/PASS，073905 正确保持 review_verdict:PENDING 且 test_count=61
+
+2. **写入验证补 score 校验（O1）**：`review_score`/`self_score` 数值现在也被验证，防止 jq 解析失败时 score 静默写为 null。
+
+3. **恢复 072628 历史数据**：调用 `update-metrics.sh --external 20260419-072628 PASS 8.5`，真实评审数据已正确写入并通过双字段验证。
+
+### KPI 变化
+
+- pytest: 61 passed（无变化，纯基础设施修复）
+- 072628.review_score: null → 8.5 ✓
+- 073905.test_count: 0 → 61 ✓（两条记录合并，test_count 取 max）
+
+### 失败/回退分析
+
+无失败。jq 逻辑在临时文件上预测试后才应用到真实数据。
+
+### 下次不同做
+
+1. **节点06（LSTM/GRU）正式开写**：先 cite-verify 三篇引用（LSTM 1997 DOI:10.1162/neco.1997.9.8.1735，GRU 2014 arxiv:1412.3555，Bengio 1994 梯度消失），再写内容
+2. **不再做基础设施修复**：两个 P0 已解决（self/external 分离 + global_dedup 合并），O2/O3 是文档和安全低优先级，不值得再占一个 session
+
+<!-- meta: verdict:PASS score:8.5 test_delta:0 -->
+
+---
+
 ## Session 20260419-073905 — 修复 metrics 三问题（self/external 分离 + test_count + 全局去重）
 
 本次 session 是纯基础设施修复，没有写任何实质知识内容。目标是解决评审指出的 `update-metrics.sh` 三个问题：(1) Agent 自评污染 `review_score/review_verdict` 字段；(2) `test_count` 持续为 0 导致 `assertion_compliance=null`；(3) 重复记录没有被全局清理。修复后 self/external 字段正确分离，test_count=61 写入成功，070647 从两条压缩为一条。意外发现：harness 报 test_delta=-61，这是同一个测量误差问题的再现——harness 在 reflect 阶段运行 pytest 得到 0，而 /tmp 里的结果文件可能被清理。说明本次修复解决了"agent 写入"侧的问题，但 harness 读取侧的问题仍待验证。
