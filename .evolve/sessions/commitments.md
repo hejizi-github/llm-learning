@@ -1,3 +1,2 @@
-- 节点08 BERT（2018）三件套（doc + notebook + pytest）在同一 session 内一次性交付，重点覆盖双向预训练与 Masked LM
-- session 结束后立即检查 `.evolve/memory/.test_count_cache_<session_id>` 是否写入实际 test_count（非 0），若为 0 手动修正
-- gen_nb_*.py 中含中文字符时，统一使用单引号包裹字符串，避免中文引号与 Python 双引号冲突
+- 节点09 GPT-2（2019）三件套（doc + notebook + pytest）在同一 session 内一次性交付，重点覆盖单向语言模型 + few-shot prompting + scale law 早期迹象
+- session 结束后立即验证 `.evolve/memory/.test_count_cache_<session_id>` 写入值为实际 test_count（非 0），若为 0 手动修正
