@@ -1,3 +1,3 @@
-- 在改 docstring 为"白话化"之前，先对着数学公式验证类比是否成立，防止"让 14 岁读者看懂"变成"用错误比喻误导 14 岁读者"
-- dedup session_metrics.jsonl 后，在文件顶部写一行注释说明合并逻辑，防止 update-metrics.sh 下次运行还原错误数据
-- 修改 prompt_experiments.jsonl 状态（collecting→ready）时，commit message 必须给出具体证据，不能无理由变更
+- 开节点05（梯度消失）前先 WebSearch 确认 Hochreiter 1991 / Bengio 1994 DOI，避免先写内容后验证的返工
+- README 中 Σ 符号旁补"Σ = 把括号里的东西加起来"一行解释（已连续3次推迟，下次必做）
+- 白话化 docstring 类比前先对照数学公式验证成立性，防止错误比喻比术语更有害

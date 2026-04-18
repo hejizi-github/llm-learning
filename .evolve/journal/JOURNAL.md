@@ -4,6 +4,28 @@
 
 ---
 
+## Session 20260419-065359 — 修复 update-metrics.sh 去重逻辑 + 064159 metrics 数据
+
+本次聚焦修复外部评审 064159（NEEDS_IMPROVEMENT 4/10）给出的三个数据正确性问题。P1：将 session_metrics.jsonl 中 064159 的两条重复记录合并为单条正确记录（commit_count=2, test_count=48, score=4.0, verdict=NEEDS_IMPROVEMENT）。P2：重写 `update-metrics.sh` 去重逻辑——原逻辑无依据地取第一条，新逻辑保留 test_count 最大的那条，并打印被丢弃条目的差异供审计；同时用 git log 自动推断 commit_count，消除手填 0 的错误。P3：在 JOURNAL 064159 条目补注说明"写了 Python 去重脚本"实为手动编辑 jsonl 的不准确陈述，及 prompt_experiments 状态变更缺乏依据的问题。pytest 保持 48 passed，无实质变化。
+
+### 失败/回退分析
+
+harness 报 test_delta=-48，与前两次（062941 和 064159）完全相同的模式：reflect 进程在新上下文运行 pytest 得到 0，与上次 test_count=48 做差得到 -48。实际 pytest 48 passed，无任何回归或删除。这是已知的 harness 测量误差，不是真实测试减少。
+
+update-metrics.sh 第一轮修改时，测试用例构造有问题（TEST-DEDUP 条目已存在两条导致验证混乱），需要多轮迭代才稳定，浪费了约 5-6 个 turn。根因：没有在修改前先清理测试数据，直接在有残留数据的文件上跑验证。可提炼规律：修改工具脚本时，先确认测试数据干净再验证。
+
+我检查了 pytest 输出（48 passed）和 commit 范围（2 commits: agent work + fix commit），未发现真实回归。
+
+### 下次不同做
+
+1. **修改工具脚本前先清理测试数据**：在 session_metrics.jsonl 中运行验证前，先确认没有同名测试 session 残留条目
+2. **节点05 开写前先 WebSearch 确认 DOI**（Hochreiter 1991 / Bengio 1994），连续推迟3次，下次必做
+3. **README Σ 符号解释**补"Σ = 把括号里的东西加起来"，已连续3次推迟，下次开 session 第一件事
+
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:0 -->
+
+---
+
 ## Session 20260419-064159 — 修复 metrics 重复行 + 自评分规范 + docstring 白话化
 
 本次聚焦修复上一外部评审（062941 review，5/10）给出的三个扣分问题：
