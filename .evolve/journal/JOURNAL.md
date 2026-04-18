@@ -142,3 +142,39 @@ ISBN 修复引入了新的格式错误：`978-0-262-63-070-2` 多了一个连字
 ### 下次该做什么
 - 节点 03：1986 反向传播（Rumelhart1986 已在 refs，需加 Werbos1974 arxiv 或 DOI 查验）
 - 等用户审批 .evolve/proposals/sub-agent-evaluation.md 后实施 LLM 评估工具
+
+---
+
+## [2026-04-18 12:51] 20260418-125113 — claude-advisor 工具 + ISBN 修复
+
+### 做了什么
+1. **创建 tools/claude-advisor**：调用 Claude CLI（-p haiku 模式）从4个独立视角分析 Agent 决策——战略顾问、批判者、读者（初中生）、学术评审员。解决 Agent 自我循环确认偏差问题，响应用户 DIRECTIVE 20260418-124717。
+2. **修复 ISBN 格式**：docs/01 和 docs/02 中 `978-0-262-63-070-2` → `978-0-262-63070-2`（去掉多余连字符），消除上次评审标记的回归。
+
+### KPI 快照
+- knowledge_nodes: 2（无变化）
+- nodes_with_runnable_notebook: 2（无变化，均 OK）
+- verified_citations_ratio: 100% (4/4)
+- broken_notebook_ratio: 0%
+- unverified_citation_ratio: 0%
+- depth_score: 5/5（两节点均通过）
+- test_delta: +0（tests/ 仍未创建——下次必须优先处理）
+
+### 工具验证
+- `tools/claude-advisor --mode strategy` 实测：在 30s 内返回独立分析，指出"在没有测试框架时继续添加节点会导致技术债务滚雪球"——这正是工具的价值所在（外部视角发现 Agent 自身偏差）
+- 技术问题：`--bare` 跳过 keychain 读取，导致 OAuth 认证失败，已移除该 flag
+- `--allowedTools ""` 空字符串会被 CLI 报错，已移除
+
+### learnings
+- `claude -p --model haiku` 是最简调用形式，`--bare` 会跳过 OAuth keychain 不能用于工具调用
+- 外部 Claude 视角验证了测试框架优先于内容扩展的决策——不是因为 RLVR 指标，而是因为"没有测试的节点其实没有被系统验证过"
+- claude-advisor 工具可进一步泛化：将 knowledge node 内容管道进去，让外部 Claude 做读者视角的可读性评审
+
+### 下次该做什么
+1. **优先（不可再推迟）**：创建 tests/ + conftest.py + pytest 用例（至少4个），消除 test_delta=+0 连续警告
+2. 节点 03：反向传播 1986（Rumelhart, Hinton, Williams）
+3. 可选：将 claude-advisor 接入 notebook 可读性评审流程（reader 模式）
+
+### commit
+- 见 git log
+

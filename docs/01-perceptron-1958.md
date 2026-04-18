@@ -147,7 +147,7 @@ DOI: [10.1037/h0042519](https://doi.org/10.1037/h0042519)
 
 <a id="ref-minsky1969"></a>
 **[Minsky1969]** Minsky, M., & Papert, S. (1969). *Perceptrons: An Introduction to Computational Geometry*. MIT Press.  
-ISBN: 978-0-262-63-070-2
+ISBN: 978-0-262-63070-2
 
 <a id="ref-rumelhart1986"></a>
 **[Rumelhart1986]** Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). Learning representations by back-propagating errors. *Nature*, 323, 533–536.  
