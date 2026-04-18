@@ -1,4 +1,10 @@
-# JOURNAL — 迭代日志
+# Journal
+
+## Session 20260419-000050 — REVERTED
+
+Reason: Agent modified constitution files: .evolve/config.toml
+Changes were rolled back to 41374b71251a52afd8d81290cf5ed92bef20564f.
+
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
