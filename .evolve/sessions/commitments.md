@@ -1,3 +1,3 @@
-- 节点10 GPT-3（2020）三件套在同一 session 一次性交付，重点覆盖 1750亿参数规模突破 + few-shot prompting 质的飞跃 + in-context learning 机制
-- RLVR 报告 test_delta=+0 时，先用 `python3 -m pytest --collect-only -q tests/ | tail -1` 确认实际 test_count，再与上一 session cache 对比，是误报则在 reflection 中明确标注；不要因为误报而切换方向
-- session 结束后检查 session_metrics.jsonl 是否写入了正确的 test_count（非 0），修复 session_id 写错为上一 session 的 bug（已连续出现两次）
+- 节点11 InstructGPT/RLHF（2022）三件套：文档覆盖 SFT → Reward Model → PPO 三阶段及 ChatGPT 的出现，notebook 手撕 reward model 概念 + PPO 简化示意
+- RLVR 报 test_delta=+0 时先运行 `python3 -m pytest --collect-only -q tests/ | tail -1` 确认实际数量再决策，不要因误报盲目切换方向
+- session 结束前手动追加一条正确 session_metrics.jsonl 记录（test_count 非零），避免框架写入 bug 触发误报
