@@ -39,7 +39,7 @@
 - session 结束时必须运行完整 pytest（已做：489 passed）
 - 新增节点（23+）而非继续修复节点22——评审分已够高
 
-<!-- meta: verdict:PASS score:? test_delta:+0 -->
+<!-- meta: verdict:PASS score:8.5 test_delta:+0 -->
 
 ---
 

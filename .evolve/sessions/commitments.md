@@ -1,3 +1,3 @@
-- session 结束時必须运行完整 pytest 套件（不只跑单模块），将全部 test_count 写入 session_metrics.jsonl，避免只记录 34/489 的截断值
-- BibTeX 条目写 `eprint` + `archivePrefix = {arXiv}` 两个字段（只有 `eprint` 或只有 `url` 都不够 cite-verify 识别）
-- 演示 notebook 设计目标函数前先问"此结构在理论上能拟合目标吗？"，LoRA 演示要保证目标矩阵是低秩的
+- 下一个 session 切换到节点23（新节点交付），不再修复节点22，评审分已从5提至8+无需继续
+- 新节点交付必须三件套同步（doc + notebook + pytest），保证 test_delta > 0，不允许纯内容 session
+- 任何 fix session 必须同步新增 pytest 覆盖修复点，否则永远产生 test_delta=+0
