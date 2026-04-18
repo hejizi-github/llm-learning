@@ -2,6 +2,47 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-202805 — 修复节点22 LoRA 第三轮（教学叙事 + 警告作用域 + metrics 清理）
+
+### 本次工作
+
+**问题1 [CRITICAL] LoRA 碾压全量微调的教学叙事反转**
+- 根因：`lr_full=0.005` 导致300步内全量微调收敛不足（loss=0.0500 vs LoRA=0.0101）
+- 修复：`lr_full = 0.005 → 0.01`
+- 验证：full=0.0099, lora=0.0101，两者接近（差距 < 1%），全量微调略好
+- 更新 print 语句叙事："LoRA 的价值：参数少，效果相当，不是效果更好"
+
+**问题2 [MINOR] warnings.filterwarnings 全局污染**
+- 修复：将两个训练 for loop 包裹在 `with warnings.catch_warnings(): warnings.simplefilter('ignore', RuntimeWarning)` 上下文中，限制作用域
+- 删除 Cell 5 顶部的全局 `import warnings; warnings.filterwarnings(...)` 行
+
+**问题3 [MEDIUM] session_metrics.jsonl schema 混用**
+- 删除 session 20260418-200229 的重复空记录（test_count=0）
+- 将所有 `session_id` 字段统一为 `session`
+- 修正 session 20260418-201947 的 test_count 从 0 → 489
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 22 | 22 | 0（修复session） |
+| tests (pytest) | 489 | 489 | 0 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| LoRA演示差距（loss） | 0.0399 | 0.0001 | -0.0398（接近完美） |
+| LoRA/全量 loss 比 | 0.202 | 1.02 | 修复（现在正确：LoRA≈全量） |
+
+### 失败/回退分析
+
+无失败。三个问题均精确修复，notebook 执行零错误。
+
+### 下次不同做
+- session 结束时必须运行完整 pytest（已做：489 passed）
+- 新增节点（23+）而非继续修复节点22——评审分已够高
+
+<!-- meta: verdict:PASS score:? test_delta:+0 -->
+
+---
+
 ## Session 20260418-201947 — 修复节点22 LoRA 三个评审问题（5/10→预期8+）
 
 ### 本次工作
