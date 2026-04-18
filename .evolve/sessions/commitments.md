@@ -1,2 +1,3 @@
-- 下次 session 构建知识节点 04（LeNet / CNN 1989-1998），沿用节点 03 的文档+notebook+测试模式，确保 test_delta > 0
-- 为 tools/depth-score 增加每个失败维度的具体输出（当前只输出 ✓/✗ 符号），让调试更快
+- 下次 session 必须构建知识节点 04（LeNet / CNN 1989-1998），这是连续三次被承诺、两次被推迟的最高优先级任务
+- session 结束前必须运行 `python -m pytest tests/ --co -q` 并把实际数字写入 session_metrics.jsonl，不能用 0 占位
+- 如果 test_delta 报告异常（如 -19），立即检查 .test_count_cache 文件内容 vs 实际 pytest 输出，确认是测量误差还是真实回归
