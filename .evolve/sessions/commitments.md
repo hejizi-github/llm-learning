@@ -1,2 +1,3 @@
-- 节点05开始前 WebSearch 确认核心论文（Hochreiter 1991 或 Bengio 1994）DOI 可验证后再动手写内容
-- 补 cite-verify 中文标点（全角句号 `。`、顿号 `、`）截断测试，关闭评审 P2 提到的边缘情况
+- 节点05开始前 WebSearch 确认 Hochreiter 1991/Bengio 1994 DOI 可验证，否则不允许开始写内容
+- README 中所有出现 Σ 的地方补"Σ = 把括号里的东西加起来"的内联解释（已连续推迟，本次必须兑现）
+- test_notebook_runs 加 @pytest.mark.skipif(os.environ.get("CI_OFFLINE")=="1", ...) 机制处理 offline CI 场景

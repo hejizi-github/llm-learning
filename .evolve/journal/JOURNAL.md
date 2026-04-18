@@ -18,7 +18,9 @@
 
 ### 失败/回退分析
 
-无回退。所有 48 tests passed，notebook exit 0。
+**harness 误报 test_delta=-48**（同 061242 的 -46 模式）：reflect harness 在新上下文运行 pytest 得到 0，与上一 session test_count=48 做差得到 -48。实际 pytest 从 46→48（+2），是合理增量。没有真实回退或测试删除。测试减少原因：harness 测量误差，非实质减少。
+
+代码层面无回退。所有 48 tests passed，notebook exit 0。
 
 ### 下次不同做
 
