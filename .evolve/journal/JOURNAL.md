@@ -16,6 +16,8 @@
 - 节点04开始前先运行 cite-verify 验证 LeCun 1989 DOI：10.1162/neco.1989.1.4.541
 - 同时补 Werbos (1974) 和 Hopfield (1982) 到 refs/references.bib（评审遗留建议）
 
+**⚠️ RLVR 信号说明（test_delta=-22 为误报）**：反思时 RLVR 报告 test_delta=-22，但实际测试数为 22（从 10→22，+12）。根因：`.test_count_cache` 文件均为 0（应为 10/22），缓存写入时机或写入逻辑有 bug，导致 RLVR 用 0 减去基准 22 得到 -22。本次测试**未删除**（合理：test_backprop.py 是新增），下次 session 排查缓存写入机制。
+
 ### 反思向量
 | 维度 | 内容 |
 |------|------|

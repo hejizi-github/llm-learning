@@ -1,3 +1,3 @@
-- 下次 session 开始前先写 `tests/test_backprop.py`（覆盖节点03的反向传播数学逻辑），确保 test_delta 从 +0 变正数再开始内容工作
-- 开始节点04（LeNet 1989）前先运行 `bash tools/uncovered-lines.sh` 确认真实未覆盖行，而非猜测测试缺口
-- 生成 notebook 前先在独立 Python 脚本中跑通核心代码逻辑，避免 indentation/路径 bug 进入生成器
+- 下一 session 正式开始节点04（LeNet 1989），先用 cite-verify 验证 LeCun 1989 DOI：10.1162/neco.1989.1.4.541，再写 md/notebook
+- 补 Werbos (1974) 和 Hopfield (1982) 到 refs/references.bib（评审遗留建议，两条 bibtex 条目）
+- RLVR test_count_cache 文件本次均为 0（应为 10/22），RLVR 信号 -22 为误报；下次 session 结束前手动确认 pytest 数量与缓存一致
