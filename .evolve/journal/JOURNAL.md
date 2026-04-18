@@ -57,7 +57,7 @@ p.fit(X, y, max_epochs=1)
 2. **review.md 解释矛盾**（"逐步修正"与 50% 准确率的矛盾，评审 -2 分）
 3. 节点 02 开始前：先过 cite-verify + notebook-run 自检
 
-<!-- meta: verdict:PENDING score:0 test_delta:0 -->
+<!-- meta: verdict:PASS score:8.0 test_delta:+0 -->
 
 ---
 
