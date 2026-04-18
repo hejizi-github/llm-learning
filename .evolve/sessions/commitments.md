@@ -1,3 +1,3 @@
-- 下次 session 必须构建知识节点 04（LeNet / CNN 1989-1998），这是连续三次被承诺、两次被推迟的最高优先级任务
-- session 结束前必须运行 `python -m pytest tests/ --co -q` 并把实际数字写入 session_metrics.jsonl，不能用 0 占位
-- 如果 test_delta 报告异常（如 -19），立即检查 .test_count_cache 文件内容 vs 实际 pytest 输出，确认是测量误差还是真实回归
+- 下一个 session 构建知识节点 05（AlexNet 2012）：这是 CNN 沉寂 14 年后的爆发，是知识库叙事的关键跳跃，不再推迟
+- 修复 test_count_cache 总是写 0 的 bug：每次 session 开始时缓存应写入上一次的实际 test_count，否则反射框架永远报 -19 假回归
+- notebook 中所有中文字符串禁止使用 ASCII 双引号 `"`，改用 `「」` 或 `[]`，已连续踩坑两次
