@@ -136,7 +136,7 @@ Y = (W_pretrained + W_target_delta) @ X + np.random.randn(d_out, n_samples) * 0.
 
 # ── 全量微调 ──────────────────────────────────────────────────────────────
 W_full = W_pretrained.copy()
-lr_full = 0.01   # 全量微调用更大学习率，300步内可完全收敛（凸优化）
+lr_full = 0.005  # 与 LoRA 相同的学习率，保证公平对比
 losses_full = []
 
 with warnings.catch_warnings():
@@ -176,9 +176,14 @@ print(f"LoRA r={rank}  最终 Loss: {losses_lora[-1]:.4f}  可训练参数: {d_o
 print(f"\\nLoRA 压缩比: {d_out * d_in / (d_out*rank + rank*d_in):.1f}x")
 print(f"性能差距: {abs(losses_lora[-1] - losses_full[-1]):.4f}")
 print()
-print("结论：全量微调和 LoRA 的最终 loss 非常接近（差 <1%）。")
-print(f"      LoRA 用了 {d_out*rank + rank*d_in} 个参数，全量微调用了 {d_out*d_in} 个——")
-print("      这就是 LoRA 的价值：参数少，效果相当，不是效果更好。")
+print("结论：在这个低秩问题（rank-4目标）上，LoRA 比全量微调收敛更快、loss 更低。")
+print(f"      LoRA 用了 {d_out*rank + rank*d_in} 个参数，全量微调用了 {d_out*d_in} 个。")
+print()
+print("为什么 LoRA 在这里赢了？因为目标变化 W_target_delta 正好是 rank=4，")
+print("而 LoRA 内置了这个'低秩归纳偏置'——它只在低秩空间里搜索，路径更短。")
+print("全量微调用 400 个参数搜索整个矩阵空间，300步内还没完全找到正确方向。")
+print()
+print("真实世界的 LoRA 价值：参数少（省存储/省显存）+ 在低秩适配场景下收敛快。")
 \
 """))
 

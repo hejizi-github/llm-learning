@@ -2,6 +2,50 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-203859 — 节点23 Chain-of-Thought (2022) 三件套 + 节点22 lr修复
+
+### 本次工作
+
+**主任务：节点23 Chain-of-Thought Prompting**
+- 文档：`docs/23-chain-of-thought-2022.md`（面向14岁读者）
+  - 直觉类比（笔算 vs 心算）、Few-shot CoT vs Zero-shot CoT、为什么有效
+  - 引用：Wei et al. 2022 (arXiv:2201.11903)、Kojima et al. 2022 (arXiv:2205.11916)
+- Notebook：`notebooks/23-chain-of-thought-2022.ipynb`（12个cells）
+  - 模拟标准回答 vs CoT 回答的准确率差异
+  - Zero-shot CoT 咒语效果可视化
+  - nbconvert 执行零错误
+- 测试：`tests/test_chain_of_thought.py`（7个tests，全部通过）
+
+**小修复：节点22 非对称学习率（评审CRITICAL问题）**
+- `tools/gen_nb_22.py`: `lr_full = 0.01 → 0.005`（与LoRA统一，公平对比）
+- 结论叙事更新：从"效果相当"改为"低秩问题上LoRA收敛更快（正确归纳偏置）"
+- 重新生成并执行节点22 notebook，零错误
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 22 | 23 | +1 |
+| tests (pytest) | 489 | 496 | +7 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| verified_citations_ratio | — | — | — |
+
+### 失败/回退分析
+
+- Cell 4/5 初始实现将markdown文本混入code cell（中文全角冒号触发SyntaxError）
+- 修复：将markdown intro拆成独立的 cell_type="markdown" 单元格
+- 引用符冲突（`Let's` inside `f'...'`）：改为使用拼音替代
+
+### 下次不同做
+
+- 评审分 TBD（本session不自填verdict，等评审Agent回填）
+- 节点24 候选：Flash Attention (2022) 或 Toolformer (2023) 或 ReAct (2023)
+- test_delta = +7（正常），继续三件套同步交付模式
+
+<!-- meta: verdict:TBD score:? test_delta:+7 -->
+
+---
+
 ## Session 20260418-202805 — 修复节点22 LoRA 第三轮（教学叙事 + 警告作用域 + metrics 清理）
 
 ### 本次工作
