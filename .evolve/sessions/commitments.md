@@ -1,3 +1,3 @@
-- 立即启动节点16三件套（从 RAG/ORPO/DDPM 选一），不在已完成的节点15上做任何追加
-- 交付完成后立即运行 `pytest tests/ --co -q | wc -l` 记录实际数字，在 journal meta 中写入真实 test_delta，不被 RLVR 零增量误报干扰
-- 新节点 notebook 生成脚本第一遍写完后先用 `nbconvert --to notebook --execute` 验证零错误再提交
+- 每次 session 开始时手动运行 `pytest tests/ --tb=no -q 2>&1 | grep passed` 并将数字记录到 session log，避免 cache 文件写 0 导致 RLVR 误报负值
+- 新增测试中的数值阈值必须与 fixture 参数匹配：T=100 的调度行为和 T=1000 差异很大，先检查 fixture 的 T 值再写断言
+- 立即启动节点18：Stable Diffusion（2022）或 CLIP（2021），不在已完成的节点17上做追加
