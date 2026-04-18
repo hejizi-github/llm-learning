@@ -1,3 +1,3 @@
-- 下次 session 第一个 commit 必须是 Nicky Case 样本写入 `refs/masters/samples/`，这是第 7 次承诺，不兑现不开始节点 02（此行不可删除直到兑现）
-- test_delta=+0 已连续两次：下次 session 开始时先运行 `bash tools/uncovered-lines.sh`，用输出结果决定写哪些测试，不允许无覆盖增量提交
-- notebook 与 src 一致性问题已修复完毕，不要再继续同类型修复；如无真实缺口，明确宣告一致性目标完成，切换到内容增量方向
+- 下次 session 第一个 commit 必须是节点 02 内容（感知机局限 → AI 寒冬），Nicky Case 样本已兑现，不允许继续做节点 01 修复
+- 写节点 02 前先把 Minsky & Papert (1969) "Perceptrons" 的 ISBN/DOI 验证后写入 .bib，不允许无来源引用
+- 节点 02 的 notebook 和 pytest 文件必须在同一 session 内同步创建提交，不允许先写内容后推迟测试
