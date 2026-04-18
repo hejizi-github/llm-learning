@@ -1,3 +1,3 @@
-- 下次 session 第一个 commit 必须是节点 02 内容（感知机局限 → AI 寒冬），Nicky Case 样本已兑现，不允许继续做节点 01 修复
-- 写节点 02 前先把 Minsky & Papert (1969) "Perceptrons" 的 ISBN/DOI 验证后写入 .bib，不允许无来源引用
-- 节点 02 的 notebook 和 pytest 文件必须在同一 session 内同步创建提交，不允许先写内容后推迟测试
+- 评审结束后立刻运行 `tools/update-metrics.sh`，确保 session_metrics.jsonl 中 review_verdict 和 review_score 被写入（不允许以 PENDING 状态关闭 session）
+- 开始节点 03 之前，先对节点 02 跑 `tools/cite-verify` + `jupyter nbconvert --execute`，全部 PASS 后再开新节点
+- 新节点的 pytest 文件与节点内容在同一 commit 提交，不允许内容和测试分离到不同 session

@@ -4,49 +4,26 @@
 
 ---
 
-## Session 20260419-033902 — 节点 02（感知机局限 → AI 寒冬）
+## Session 20260419-033902 — 节点 02 完整交付 + metrics 更新流修复
 
-### 本次做了什么
+### 失败/回退分析
 
-1. **节点 02 全部创建（第一个 commit）**
-   - `nodes/02-perceptron-limits-1969/README.md`：Nicky Case 风格，悖论开场，代数证明 XOR 不可分，AI 寒冬历史背景
-   - `nodes/02-perceptron-limits-1969/perceptron-limits.ipynb`：从零实现感知机 XOR 失败演示，穷举验证，代数矛盾证明，学习曲线可视化；`jupyter nbconvert --execute` 零错误
-   - `nodes/02-perceptron-limits-1969/references.bib`：Minsky & Papert (1969) ISBN 9780262630221，通过 WebSearch 验证
-   - `tests/test_node02.py`：5 个测试（XOR 不收敛、穷举线性不可分、代数矛盾、对照组 AND、历史记录），全部 PASS
+系统报告 test_delta=-13，但 session log 明确显示 session 开始时 8 passed，结束时 13 passed，实际 delta=+5。根因：session_metrics.jsonl 中 commit_count=0 且 review_verdict=PENDING，说明 `update-metrics.sh` 在 session 结束时未被调用——review 从未完成，metrics 写入也没有执行。系统在计算 test_delta 时可能误读了 PENDING 状态下不完整的记录，造成 -13 的错误读数。
 
-2. **Metrics 更新流修复**
-   - 新增 `tools/update-metrics.sh`：review 结束后调用，用 `jq -c` 更新 jsonl
-   - 修复 `session_metrics.jsonl`：追加 032934（PASS 8.0）和本 session 记录
+实际结论：本次 session 没有删除任何测试。`tests/test_node02.py` 新增 5 个测试，全部 PASS，test_count 从 8 增至 13。test_delta=-13 是 metrics 追踪 bug，不是测试回归。
 
-### KPI 变化
-
-| 指标 | 上次 | 本次 |
-|------|------|------|
-| knowledge_nodes | 1 | 2 ↑ |
-| nodes_with_runnable_notebook | 1 | 2 ↑ |
-| test_count | 8 | 13 ↑ |
-| test_delta | +0 | +5 ↑ |
-| broken_notebook_ratio | 0 | 0 ✓ |
-| metrics 数据源一致性 | ❌ | ✅ |
-
-### 兑现承诺
-
-- ✅ 第一个 commit = 节点 02 内容（感知机局限 → AI 寒冬）
-- ✅ Minsky & Papert (1969) ISBN 验证后写入 .bib
-- ✅ notebook + pytest 同一 session 同步提交
-
-### 跳过（有意）
-
-- p.history 展示：承诺禁止继续做节点 01 修复，本次跳过
-- Nicky Case 原文证据：推迟到节点 03 准备期
+关键漏洞：review 结束后没有立即调用 `tools/update-metrics.sh` 是这个问题的根本原因，本次 session 新建了该工具但未在正确时机触发。
 
 ### 下次不同做
 
-1. 评审结束后立刻调用 `tools/update-metrics.sh` 更新 jsonl
-2. 节点 02 如果评审 NEEDS_IMPROVEMENT，下次先修节点 02，再开节点 03
-3. 开节点 03 前，先 WebFetch Nicky Case 原文并保存原始段落到磁盘
+1. 评审流程的最后一步必须是 `tools/update-metrics.sh`，不允许以 review_verdict=PENDING 关闭 session
+2. 开节点 03 前，先对节点 02 跑 `tools/cite-verify` + `jupyter nbconvert --execute`，全部 PASS 才能继续
 
-<!-- meta: verdict:PENDING score:0.0 test_delta:+5 -->
+---
+
+本次完成三件事：建节点 02（感知机局限 → AI 寒冬）、新增 `tests/test_node02.py`（5 个测试 + 全部 PASS），以及新增 `tools/update-metrics.sh` 修复 metrics 写入缺口。意外发现：工具虽已创建，但本 session 的 review 仍以 PENDING 结束，说明"建工具"和"使用工具"是两件事，需要把调用时机写进流程承诺而不只是创建脚本。节点 02 的 ISBN/DOI 验证通过 WebSearch 完成，这是第一次用 search 代替猜测来写引用。
+
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+5 -->
 
 ---
 
