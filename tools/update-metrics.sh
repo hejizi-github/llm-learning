@@ -85,8 +85,9 @@ if [[ -z "$existing" ]]; then
   # 用 git log 自动计算 commit_count（而非硬编码 0）
   # grep -c 在无匹配时 exit 1，用 set +e 防止 pipefail 中断
   set +e
+  # "reflection" commits 不计入 commit_count（由 harness 自动生成，不代表 agent 工作量）
   auto_commit_count=$(git -C "$(dirname "$METRICS_FILE")/../.." log --oneline 2>/dev/null \
-    | grep -c "evolve(${SESSION_ID})")
+    | grep "evolve(${SESSION_ID})" | grep -v "reflection" | wc -l | tr -d '[:space:]')
   set -e
   # 确保是纯数字（去除换行等特殊字符）
   auto_commit_count=$(echo "${auto_commit_count:-0}" | tr -d '[:space:]')
