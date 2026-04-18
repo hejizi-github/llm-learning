@@ -220,7 +220,7 @@ PPO 优化时加了一个 KL 散度惩罚：
 
 我们用**双轨迹对比**展示 KL 约束的真实效果：
 - **轨迹A（β=0，无约束）**：步长固定，策略随意漂移
-- **轨迹B（β=0.3，有约束）**：步长被 total_reward 控制——KL 越大步长越小
+- **轨迹B（β=0.3，有约束）**：步长被 KL 散度直接控制——KL 越大步长越小
 
 两者用**相同的优化目标方向**，唯一区别是 KL 惩罚是否真正影响更新。\
 """, "markdown"))
@@ -253,7 +253,9 @@ def run_ppo_trajectory(beta, n_steps=40):
     - beta=0：步长恒定，策略自由漂移
     - beta>0：步长 = base_step × max(0.01, 1 - beta * KL)
               KL 越大 → 惩罚越重 → 步长越小 → 漂移减缓
-    这正是 KL 约束的作用：total_reward 通过步长直接控制策略更新幅度。
+    这正是 KL 约束的作用：KL 散度越大，步长越小，策略漂移越慢。
+    注意：total_reward = RM - β×KL 用于衡量优化目标值（在图中展示），
+    但步长公式直接用 KL，因为 KL 更直接反映"偏离基线的程度"。
     \"\"\"
     logits = original_logits.copy()
     kl_history, rm_history, obj_history = [], [], []
