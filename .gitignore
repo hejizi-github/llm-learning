@@ -1,5 +1,6 @@
 # self-evolve 框架内部状态
 .evolve/sessions/
+.evolve/session.lock/
 
 # Python / Jupyter
 __pycache__/

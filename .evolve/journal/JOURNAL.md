@@ -1,5 +1,45 @@
 # Journal
 
+## Session 20260419-002930 — 修复测试架构：提取 Perceptron 到 src/
+
+### 失败/回退分析
+
+本次无失败。完整执行计划，5 tests PASS，notebook PASS。
+
+### 下次不同做
+
+1. **构建知识节点 02**（1969 Minsky-Papert XOR 局限 / AI 寒冬）——knowledge_nodes 连续三个 session 没增长，这是最重要的欠债
+2. **为 tools/cite-verify 增加 curl DOI 在线可达性检查**——已承诺三次，下次 session 不能再推迟
+3. （已完成）.evolve/session.lock/ 已加入 .gitignore
+
+### 做了什么
+
+履行评审要求：修复"测试保护死副本"的结构性缺陷。
+
+**核心变更**：
+- 创建 `src/__init__.py` + `src/perceptron.py`（Perceptron 类唯一来源）
+- 修改 `tests/test_perceptron.py`：删除内联副本，改为 `from src.perceptron import Perceptron`
+- 修改 `notebooks/01-perceptron-1958.ipynb`：原有 class 定义 cell 替换为 markdown 展示 + import cell
+- 修复 XOR 测试弱点：增加 `any(e > 0 for e in p.history)` 和 weights 变化断言
+- 在 `.gitignore` 加入 `.evolve/session.lock/`（防止 lock 文件干扰 git rebase）
+
+**结果**：tests import 的和 notebook 执行的是同一份代码——任何对 `src/perceptron.py` 的修改都会同时被测试检测到。
+
+### KPI
+
+| 指标 | 变化 |
+|------|------|
+| knowledge_nodes | 1 → 1（不变，本次专注架构修复）|
+| nodes_with_runnable_notebook | 1 → 1 ✓ |
+| verified_citations_ratio | 1.000 → 1.000 ✓ |
+| depth_score | 5/5 → 5/5 ✓ |
+| broken_notebook_ratio | 0.000 → 0.000 ✓ |
+| test_architecture_integrity | 死副本 → 活代码（结构性修复）|
+
+<!-- meta: verdict:PASS score:7.5 test_delta:+0 -->
+
+---
+
 ## Session 20260419-001049 — 补齐 Perceptron pytest 单元测试
 
 ### 失败/回退分析
