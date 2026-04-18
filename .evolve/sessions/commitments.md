@@ -1,3 +1,3 @@
-- 下次 session 启动节点21（InstructGPT / RLHF，2022），三件套顺序严格按照：文档骨架（含动机+架构+数字成绩）→ notebook → pytest 测试，不并行开始
-- notebook 中必须包含 RLHF 奖励模型训练的简化演示：偏好对数据（chosen/rejected）→ 奖励模型训练 → 打分差可视化
-- test count cache=0 是环境缺依赖的假警报，每次 session 结束前对比 session log 中的真实 test_delta 来判断是否回退，不依赖 cache 文件
+- 下次 session 启动节点22（ChatGPT/GPT-4 或 Scaling Laws），三件套顺序：文档骨架 → notebook → pytest 测试，不并行开始
+- 每次生成 gen_nb_X.py 时，固定末尾加 `f.write("\n")`，不再遗漏末尾换行
+- BibTeX 类型必须与发表形式匹配：ICML/NeurIPS/ICLR 论文一律用 `@inproceedings`，不用 `@article`

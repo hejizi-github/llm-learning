@@ -60,6 +60,8 @@
 - 每次生成 gen_nb_X.py 时，固定末尾加 `f.write("\n")`，不再需要单独修复
 - BibTeX 类型要与会议/期刊匹配验证：ICML/NeurIPS/ICLR 均为 `@inproceedings`
 
+<!-- meta: verdict:PASS score:8.8 test_delta:+8 -->
+
 ---
 
 ## Session 20260418-191429 — 修复节点19评审问题 + 节点20 DALL-E 2 三件套交付
