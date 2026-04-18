@@ -1,2 +1,2 @@
-- 下次 session 必须构建知识节点 03（1986 反向传播），沿用节点 02 的测试模式，确保 test_delta > 0
-- 为 tools/cite-verify 增加 curl DOI 在线可达性检查，已承诺四次，下次 session 30 分钟内完成或明确宣告放弃并移除该目标
+- 下次 session 构建知识节点 04（LeNet / CNN 1989-1998），沿用节点 03 的文档+notebook+测试模式，确保 test_delta > 0
+- 为 tools/depth-score 增加每个失败维度的具体输出（当前只输出 ✓/✗ 符号），让调试更快
