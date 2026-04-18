@@ -1,3 +1,3 @@
 - 下次 session 必须开节点 03（反向传播 1986），content + pytest + notebook 同一 session 交付，禁止继续在节点 01/02 做任何维护性修复
-- 节点 03 开始前先运行 `tools/cite-verify` 验证节点 02 所有引用，全通过才继续；引用验证失败则就地修复，不新开 session
-- session 结束前必须调用 `tools/update-metrics.sh`，不允许以 PENDING 状态关闭
+- session 结束前必须调用 `tools/update-metrics.sh` 写入本 session 的 metrics 条目，不允许以 PENDING 状态关闭（043111 已连续出现两次 PENDING）
+- 向前追改他人 session 的 metrics 数据时，必须在 commit message 和 journal 同时记录来源文件名+行号，否则审查方无法验证

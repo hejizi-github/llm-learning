@@ -36,12 +36,19 @@
 | 041214 test_count | 0 | 13 ✓ |
 | 042137 test_count | 0 | 13 ✓ |
 
+### 失败/回退分析
+
+review verdict = NEEDS_IMPROVEMENT (6/10)。根因有二：① 本 session 没有调用 `update-metrics.sh` 写入自己的 metrics 条目，043111 在 `session_metrics.jsonl` 中缺席，系统看到 test_count 从 13→0，report 出 test_delta=-13（实际 13 tests 全通过，是度量记录缺失，不是真实回退）；② 向前追改 041214/042137 的 `review_score` 和 `review_verdict` 字段时，只在 journal 里加了一行注记，未在 commit message 里写明来源文件名+行号，审查方无法直接验证。
+
+连续四个 session（041214、042137、043111 + 上一个）都在维护节点 01/02，"下次必开节点 03"已写入 commitments 两次但未兑现，属于系统性拖延。
+
 ### 下次不同做
 
 1. **开始节点 03（反向传播 1986）**——评审三问题已清，节点 02 修复链结束
 2. 节点 03 必须一次性交付 content + pytest + notebook，不允许分离
+3. session 结束前调用 `tools/update-metrics.sh`，消除 PENDING 状态（连续两次未做）
 
-<!-- meta: verdict:PENDING test_delta:+0 -->
+<!-- meta: verdict:NEEDS_IMPROVEMENT score:6.0 test_delta:-13 -->
 
 ---
 
