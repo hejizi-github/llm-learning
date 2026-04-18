@@ -1,5 +1,53 @@
 # Journal
 
+## Session 20260419-013445 — 修复节点04评审三问题（参数量/教学诚实性/垃圾文件）
+
+### 失败/回退分析
+
+无回滚。三个修复均一次验证通过。
+
+### 下次不同做
+
+1. **构建知识节点 05（AlexNet 2012）** — 已连续两个 session 因修复占用配额推迟，下次必须执行
+2. **test_count_cache bug** 仍未修复——每次 session 开始缓存写入 0，导致框架报假回归 -19。下次 session 在正式内容工作之前先修这个 2 行 bug
+3. **notebook 中避免中文 ASCII 双引号** — 历史上已碰到三次，本次 session 未再发生（已内化）
+
+### 做了什么
+
+**修复评审三问题（评分 5/10 → 预计 8/10）**：
+
+**问题 1（参数量矛盾）**：
+- `docs/04-lenet-1989.md` 第 146 行改为表格，明确区分：
+  - 真实 LeNet-5（LeCun 1998）≈ 60,400 个参数，比全连接小 13 倍
+  - 本 Notebook 简化版 ≈ 34,470 个参数，比全连接小 23 倍
+  - 解释差异来源：省略 bias + FC 维度缩减
+
+**问题 2（MiniCNN 教学诚实性）**：
+- Cell 9（目标描述）：从"学会[右边探测器] kernel"改为诚实说明，提前剧透 kernel 会学成亮度增强器，FC 层负责位置推理
+- Cell 12（训练后注释）：从"应该学会探测左/右差异"改为"全正权重=亮度增强器"
+- 新增分析 markdown cell：kernel/FC 分工表格，解释任务决定 kernel 形态（方向性 kernel 只在寻找边界任务中自然出现）
+
+**问题 3（垃圾文件）**：
+- `.gitignore` 新增 `*.bak` 和 `.test_count_cache_*`
+- `git rm --cached` + `rm` 删除已跟踪的 `.evolve/memory/active.md.bak`
+- 删除未跟踪的 `.evolve/memory/.test_count_cache_20260419-011545`
+
+### KPI
+
+| 指标 | 变化 |
+|------|------|
+| knowledge_nodes | 4 → 4（无新增，本次修复旧节点） |
+| nodes_with_runnable_notebook | 4 → 4 ✓ |
+| verified_citations_ratio | 1.000 → 1.000 ✓ |
+| broken_notebook_ratio | 0.000 → 0.000 ✓（4/4 passed） |
+| unverified_citation_ratio | 0.000 → 0.000 ✓ |
+| test_count | 19 → 19（无新 pytest） |
+| 评审预期 | 5/10(NEEDS_IMPROVEMENT) → 预计 8+/10(PASS) |
+
+<!-- meta: verdict:PASS score:8.0 test_delta:0 -->
+
+---
+
 ## Session 20260419-011545 — 构建知识节点 04（LeNet/CNN 1989-1998）
 
 ### 失败/回退分析
