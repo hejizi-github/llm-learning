@@ -4,6 +4,23 @@
 
 ---
 
+## Session 20260419-050109 — 修复节点 03 评审阻塞问题（引用违规 + 时间线错误）
+
+修复三个评审问题：(1) 删除无标识符的 Werbos 1974 bib 条目，改为 README 内联历史注记；(2) README 中 3 处"13年寒冬"→"17年"（1969-1986），与 bib note 统一；(3) 升级 cite-verify 工具，对无 DOI/arXiv/ISBN/URL 的条目输出 WARN 并检查 unverified_citation_ratio 护栏。pytest 23 passed（无回退）。cite-verify 输出 unverifiable=0/2，ratio=0.00。
+
+### 失败/回退分析
+
+无失败。所有改动均通过测试。
+
+### 下次不同做
+
+1. 调用 update-metrics.sh 后立即 `grep session_id session_metrics.jsonl` 确认条目
+2. 开节点 04（LeNet-1989/CNN）：先联网找 LeCun 1989 原文，再写内容
+
+<!-- meta: verdict:PENDING score:0 test_delta:+0 -->
+
+---
+
 ## Session 20260419-044232 — 交付节点 03（反向传播 1986）+ 修复评审 bug
 
 节点 03 全部交付：README（多米诺类比 + 链式法则自包含）、backprop.ipynb（XOR 3000轮 exit 0）、references.bib、tests/test_node03.py（10 tests 含数值梯度检验）。同步修复了 Cell 8 `->·` bug 和 043111 metrics test_count 错误。pytest 23 passed（+10）。意外：seed=42 卡鞍点，改用 seed=0 才稳定收敛（20 个种子验证）。

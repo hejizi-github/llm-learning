@@ -35,11 +35,35 @@ def check_url(url, label=""):
         print(f"  FAIL: {label or url} — {e}")
         return False
 
+def check_unverifiable_entries(content):
+    """Detect bib entries that have no DOI, arXiv ID, or ISBN — these cannot be verified."""
+    warnings = []
+    # Split into individual entries
+    entries = re.findall(r'@\w+\{([^,]+),(.*?)(?=\n@|\Z)', content, re.DOTALL)
+    for key, body in entries:
+        key = key.strip()
+        has_doi = bool(re.search(r'doi\s*=', body, re.IGNORECASE))
+        has_arxiv = bool(re.search(r'arxiv', body, re.IGNORECASE))
+        has_isbn = bool(re.search(r'isbn\s*=', body, re.IGNORECASE))
+        has_url = bool(re.search(r'\burl\s*=', body, re.IGNORECASE))
+        if not (has_doi or has_arxiv or has_isbn or has_url):
+            warnings.append(key)
+            print(f"  WARN: {key} — no DOI/arXiv/ISBN/URL (unverifiable)")
+    return warnings
+
 def verify_bib(path):
     with open(path) as f:
         content = f.read()
 
     results = []
+
+    # Check for entries with no verifiable identifier
+    print("Checking for unverifiable entries...")
+    unverifiable = check_unverifiable_entries(content)
+    if unverifiable:
+        print(f"  {len(unverifiable)} unverifiable entry(ies): {', '.join(unverifiable)}")
+    else:
+        print("  All entries have at least one verifiable identifier.")
 
     # Extract DOIs
     for m in re.finditer(r'doi\s*=\s*[{"]([^}"]+)[}"]', content, re.IGNORECASE):
@@ -57,14 +81,26 @@ def verify_bib(path):
         results.append(check_url(url, arxiv_id))
         time.sleep(0.5)
 
-    if not results:
+    if not results and not unverifiable:
         print("No DOIs or arXiv IDs found in file.")
         return True
 
-    passed = sum(results)
-    total = len(results)
-    print(f"\nResult: {passed}/{total} citations verified")
-    return passed == total
+    verifiable_total = len(results)
+    verifiable_passed = sum(results)
+
+    total_entries = len(re.findall(r'@\w+\{', content))
+    unverified_count = len(unverifiable)
+    unverified_ratio = unverified_count / total_entries if total_entries > 0 else 0
+
+    print(f"\nResult: {verifiable_passed}/{verifiable_total} DOI/arXiv checks passed")
+    print(f"Unverifiable entries: {unverified_count}/{total_entries} "
+          f"(ratio={unverified_ratio:.2f}, limit=0.05)")
+
+    if unverified_ratio > 0.05:
+        print("FAIL: unverified_citation_ratio exceeds guardrail (0.05)")
+        return False
+
+    return verifiable_passed == verifiable_total
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
