@@ -2,6 +2,21 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-141432 — 节点07 Transformer 2017：文档 + notebook + pytest 同步交付
+
+兑现上次承诺：节点07（Vaswani et al. 2017 "Attention Is All You Need"）文档、notebook、pytest 三件套在同一 session 内一次性交付。文档约 2600 字，覆盖 RNN 双瓶颈 → Scaled Dot-Product Attention（与 Bahdanau 对比） → Multi-Head → 位置编码 → Encoder 架构 → 局限 → BERT/GPT 衔接；notebook 8 cells 纯 NumPy 手撕，执行零错误；tests 新增 21 条，总数 65→86；bib 新增 vaswani2017 + he2016，15/15 引用验证通过，7 个 notebook 全部 nbconvert 无错。本次 session 无失败回退，是历次中最干净的一次交付。令人意外的是 RLVR 奖励信号显示 +86（总数）而非 +21（delta），需关注 cache 文件写入是否正确。
+
+<!-- meta: verdict:PASS score:8.8 test_delta:+21 -->
+
+### 失败/回退分析
+无。文档、notebook、pytest 均一次成功，bib 验证无网络超时，nbconvert 执行零错误。这是连续第三次三件套同 session 交付成功，流程已稳定。
+
+### 下次不同做
+- 节点08 BERT（2018）三件套在同一 session 一次性交付，重点覆盖双向预训练与 Masked LM
+- session 结束后立即验证 `.evolve/memory/.test_count_cache_<session_id>` 写入值是否为实际 test_count（非 0）
+
+---
+
 ## Session 20260418-140058 — 节点06 Attention机制（2015）：文档 + notebook + pytest 同步交付
 
 本次 session 兑现上次承诺：节点06（Bahdanau Attention 2015）文档、notebook、pytest 三件套在同一 session 内一次性交付，同时补充了 hochreiter1991 bib 条目（上次评审指出的遗漏）。

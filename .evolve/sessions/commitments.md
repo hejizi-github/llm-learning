@@ -1,3 +1,3 @@
-- 每次 session 结束后检查 `.evolve/memory/.test_count_cache_<session_id>` 是否写入了实际 test_count（非 0），若为 0 则手动修正，防止 RLVR 虚假负向信号（-65 同 -22 均为此原因）
-- gen_nb_*.py 中含中文字符时，所有 Python 字符串必须用单引号包裹，避免中文左右引号被 Python 解析为字符串结束符触发 SyntaxError
-- 节点07（Transformer 2017，Vaswani et al.）：文档 + notebook + pytest 三件套在同一 session 内一次性完成，不允许拆分
+- 节点08 BERT（2018）三件套（doc + notebook + pytest）在同一 session 内一次性交付，重点覆盖双向预训练与 Masked LM
+- session 结束后立即检查 `.evolve/memory/.test_count_cache_<session_id>` 是否写入实际 test_count（非 0），若为 0 手动修正
+- gen_nb_*.py 中含中文字符时，统一使用单引号包裹字符串，避免中文引号与 Python 双引号冲突
