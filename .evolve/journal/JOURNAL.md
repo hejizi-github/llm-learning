@@ -4,6 +4,32 @@
 
 ---
 
+## Session 20260419-060157 — 修复 cite-verify P1（DOI句点被截断）+ 清除metrics重复行 + 确认LeCun 1989 DOI
+
+**P1修复（cite-verify line 111）**: 上次session将正则改为 `[^\s.,;)\]\'\"]+`，错误地把句点(`.`)从字符类中排除，导致所有含句点的真实DOI（PLOS/Elsevier/IEEE格式）在斜杠后的第一个句点处截断，造成假404。  
+修复：改回 `r'10\.\d{4,}/\S+'` 配合 `.rstrip(".,;)]'\"")`，确保DOI内部句点保留、尾部标点剥离。  
+同时修复了 `rstrip` 中 `\]` 的 SyntaxWarning（改用双引号字符串 `".,;)]'\""`)
+
+**新增3个测试**（tests/test_cite_verify.py）：PLOS `10.1371/journal.pone.0000001`、Elsevier `10.1016/j.neunet.2022.01.001`、IEEE `10.1109/TPAMI.2022.3154099`。  
+pytest: 35 passed (+3)，0 warning。
+
+**O1清除**（session_metrics.jsonl）: 删除054142的PENDING自生成行和055309的自评PASS行，各session现在只保留外部评审条目（各1行）。
+
+**节点04第一步**（LeCun 1989 DOI确认）: WebSearch → DOI `10.1162/neco.1989.1.4.541`，doi.org正确302重定向到MIT Press，DOI已验证可用。下次session无条件开写节点04内容。
+
+### 失败/回退分析
+
+无回退。P1是上次评审明确指出的正则错误（把句点从字符类排除），测试集选样偏差（全用Nature DOI）掩盖了bug。本次补充PLOS/Elsevier/IEEE测试，彻底关闭这个盲区。
+
+### 下次不同做
+
+1. **无条件开节点04（LeNet-1989/CNN）** — DOI已确认（`10.1162/neco.1989.1.4.541`），直接写README + notebook + bib
+2. update-metrics.sh后 `grep 060157 session_metrics.jsonl` 验证写入
+
+<!-- meta: verdict:PENDING score:0 test_delta:+3 -->
+
+---
+
 ## Session 20260419-055309 — 修复 cite-verify P1/P2：DOI 正则去贪婪 + doi_match=None 静默通过
 
 **P1**: `check_readme_references()` 中 DOI 正则 `\S+` 过于贪婪，句尾 `,)/;]` 等标点会被拼入 URL 导致假 404。  

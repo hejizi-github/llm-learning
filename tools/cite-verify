@@ -107,10 +107,11 @@ def check_readme_references(readme_path):
             url_results.append(check_url(url, label))
             time.sleep(0.3)
         elif has_doi:
-            # P1: exclude trailing punctuation that commonly follows DOIs in prose
-            doi_match = re.search(r'10\.\d{4,}/[^\s.,;)\]\'\"]+', line)
+            # \S+ captures full DOI including internal dots; rstrip removes trailing punctuation
+            doi_match = re.search(r'10\.\d{4,}/\S+', line)
             if doi_match:
-                url = f"https://doi.org/{doi_match.group(0)}"
+                doi_str = doi_match.group(0).rstrip(".,;)]'\"")
+                url = f"https://doi.org/{doi_str}"
                 label = f"README DOI: {line[:50]}"
                 print(f"Checking README DOI: {url}")
                 url_results.append(check_url(url, label))

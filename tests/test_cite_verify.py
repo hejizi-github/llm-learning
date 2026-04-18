@@ -185,3 +185,46 @@ def test_no_identifier_is_unverifiable():
     assert total == 1
     assert len(unverifiable) == 1
     assert len(url_results) == 0
+
+
+# ── Period-in-DOI regression tests (P1 fix validation) ───────────────────────
+
+def _capture_urls_for_line(line: str) -> list:
+    """Helper: run check_readme_references on a single line, return captured URLs."""
+    captured = []
+    def fake_check_url(url, label=""):
+        captured.append(url)
+        return True
+
+    import tempfile
+    content = "## 参考文献\n" + line + "\n"
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False, encoding='utf-8') as f:
+        f.write(content)
+        path = f.name
+    try:
+        with mock.patch.object(cite_verify, 'check_url', side_effect=fake_check_url):
+            cite_verify.check_readme_references(path)
+    finally:
+        os.unlink(path)
+    return captured
+
+
+def test_plos_doi_with_periods():
+    """PLOS DOI 10.1371/journal.pone.0000001 — internal dots must survive."""
+    urls = _capture_urls_for_line("- PLOS paper DOI: 10.1371/journal.pone.0000001")
+    assert len(urls) == 1, f"Expected 1 URL, got {urls}"
+    assert urls[0] == "https://doi.org/10.1371/journal.pone.0000001", f"Wrong URL: {urls[0]}"
+
+
+def test_elsevier_doi_with_periods():
+    """Elsevier DOI 10.1016/j.neunet.2022.01.001 — internal dots must survive."""
+    urls = _capture_urls_for_line("- Elsevier paper DOI: 10.1016/j.neunet.2022.01.001,")
+    assert len(urls) == 1, f"Expected 1 URL, got {urls}"
+    assert urls[0] == "https://doi.org/10.1016/j.neunet.2022.01.001", f"Trailing comma leaked or dots truncated: {urls[0]}"
+
+
+def test_ieee_doi_with_periods():
+    """IEEE DOI 10.1109/TPAMI.2022.3154099 — uppercase + dots must survive."""
+    urls = _capture_urls_for_line("- IEEE paper (DOI: 10.1109/TPAMI.2022.3154099)")
+    assert len(urls) == 1, f"Expected 1 URL, got {urls}"
+    assert urls[0] == "https://doi.org/10.1109/TPAMI.2022.3154099", f"Trailing paren leaked or dots truncated: {urls[0]}"
