@@ -4,6 +4,27 @@
 
 ---
 
+## Session 20260419-054142 — 修复 P1/P2：metrics 紧凑 JSON + cite-verify DOI: 裸记法 HTTP 验证
+
+**P1**: session_metrics.jsonl 中 052305 两条宽松 JSON 重复条目 → 合并为一条紧凑 JSON（review_score:7.0, NEEDS_IMPROVEMENT）。  
+**P2**: cite-verify `check_readme_references()` 新增 `elif has_doi` / `elif has_arxiv` 分支，`DOI: 10.x.x/xxx` 裸记法现在构造 `https://doi.org/` URL 并真实 HTTP 验证，不再静默通过。  
+验证：pytest 23 passed（无回归）；节点03 cite-verify PASS；`/tmp/test_node_doi/` 端到端验证 DOI 裸记法触发 HTTP check 并 PASS。
+
+### KPI 变化
+
+- test_count: 23（稳定）
+- broken_notebook_ratio: 0.0（稳定）
+- 工具可靠性提升：cite-verify 覆盖 DOI:/arXiv: 裸记法
+
+### 下次不同做
+
+1. **立刻开节点04（LeNet-1989/CNN）** — 已连续拖延4个session，P1/P2均已修复，没有理由再推迟
+2. 先 WebSearch 找 LeCun 1989 原文 DOI 确认可验证，再写内容
+
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+0 -->
+
+---
+
 ## Session 20260419-052305 — 修复 P1/P2/P3：cite-verify 真实 HTTP 验证 + metrics 去污 + 注释修正
 
 上次评审 5/10，P1 最严重：cite-verify 对 README URL 只做字符串匹配不发 HTTP 请求，声称验证了但没验证。本次修复全部三个问题：(1) `check_readme_references()` 改为返回 `(unverifiable, url_results, total_entries)` 元组，对识别到的 URL 调用 `check_url()`；`verify_node()` 更新以消费新返回值，删除冗余的第二遍 README 扫描；(2) 清理 session_metrics.jsonl 中 051043 的双条目（移除 review_score:0/PENDING 的错误行，保留正确行并更新 score=5.0/test_count=23）；(3) 修正 update-metrics.sh 注释为"覆盖语义"的准确描述。验证：cite-verify 节点03 PASS（URL checks: 2/2，README URL `https://doi.org/10.1038/323533a0` 被真实 fetch），pytest 23 passed。

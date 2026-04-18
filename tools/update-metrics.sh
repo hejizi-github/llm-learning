@@ -33,7 +33,9 @@ if ! command -v jq &>/dev/null; then
 fi
 
 # 统计当前该 session_id 的条目数（防止重复污染）
+set +o pipefail
 count=$(grep "\"session\":\"${SESSION_ID}\"" "$METRICS_FILE" 2>/dev/null | wc -l | tr -d ' ')
+set -o pipefail
 
 if [[ "$count" -gt 1 ]]; then
   # 存在重复条目：去重——保留第一条（通常是较完整的那条），删除后续同 session_id 的行
@@ -56,7 +58,7 @@ if [[ "$count" -gt 1 ]]; then
 fi
 
 # 检查 session_id 是否存在
-existing=$(grep "\"session\":\"${SESSION_ID}\"" "$METRICS_FILE" 2>/dev/null || true)
+existing=$(grep "\"session\":\"${SESSION_ID}\"" "$METRICS_FILE" 2>/dev/null || echo "")
 
 if [[ -z "$existing" ]]; then
   # 不存在该 session：追加一条新记录
@@ -89,7 +91,7 @@ else
 fi
 
 # 立即验证写入结果
-result=$(grep "\"session\":\"${SESSION_ID}\"" "$METRICS_FILE" | jq -r '.review_verdict' 2>/dev/null || true)
+result=$(grep "\"session\":\"${SESSION_ID}\"" "$METRICS_FILE" 2>/dev/null | jq -r '.review_verdict' 2>/dev/null || echo "")
 if [[ "$result" != "$VERDICT" ]]; then
   echo "错误: 写入验证失败！期望 $VERDICT，实际读回 $result" >&2
   exit 1
