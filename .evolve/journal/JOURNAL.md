@@ -4,6 +4,35 @@
 
 ---
 
+## Session 20260419-051043 — 修复节点03四个评审问题（cite-verify覆盖 + README清理 + metrics去重 + 幂等写入）
+
+### 做了什么
+
+1. **README 清理**：删除行127冗余 Werbos 段落（已有 blockquote 历史注记在行18-20，无需重复）；删除行165 References 区无验证标识符的 Werbos 条目。grep -c 验证：README 中 Werbos 出现 1 次（仅 blockquote）。
+
+2. **cite-verify 扩展覆盖**：新增 `check_readme_references()` 函数，扫描 README `## 参考文献` 区每一行，检查是否有 DOI/arXiv/ISBN/URL 标识符。工具现在支持目录参数（同时扫 bib + README）。同时修复了之前 `total_entries` 计数会把 `@string/@comment` 也计入的潜在 bug。
+
+3. **session_metrics.jsonl 去重**：删除 session 044232 重复的错误条目（NEEDS_IMPROVEMENT/test_count=0），删除 session 050109 的 PENDING 条目和 test_count=0 的错误条目，保留并更新为正确的 score=5.0 记录。
+
+4. **update-metrics.sh 幂等保护**：新增重复条目检测和去重逻辑；新增 session_id 不存在时的追加（upsert）逻辑；新增写入后的 grep 验证，若写入失败则 exit 1。
+
+### 验证结果
+
+- `grep -c "Werbos" README.md` → 1（仅 blockquote）
+- `python tools/cite-verify nodes/03-backpropagation-1986` → unverifiable=0/4, ratio=0.00, PASS
+- `grep "044232" session_metrics.jsonl | wc -l` → 1
+- `grep "050109" session_metrics.jsonl | wc -l` → 1
+- `pytest tests/ -q` → 23 passed
+- `update-metrics.sh 050109 NEEDS_IMPROVEMENT 5.0` → "验证通过"
+
+### 下次不同做
+
+下次可以开节点04（LeNet/CNN 1989），届时先联网找 LeCun 1989 原文。
+
+<!-- meta: verdict:PENDING score:null test_delta:0 -->
+
+---
+
 ## Session 20260419-050109 — 修复节点 03 评审阻塞问题（引用违规 + 时间线错误）
 
 把 Werbos 1974 从 bib 移到 README 内联注记，修复"13年寒冬"→"17年"，升级 cite-verify 扫描 bib 并加 unverified_ratio 护栏。表面看 cite-verify unverifiable=0，pytest 23 passed，任务完成。但评审发现 cite-verify 只扫 bib 文件，Werbos 移进 README References 后同样无 DOI/arXiv/ISBN，护栏的通过是测量了错误的对象。此外 session_metrics.jsonl 中 044232 存在两条互相矛盾的记录（一条 PASS/test_count=23，一条 NEEDS_IMPROVEMENT/test_count=0），数据已污染。

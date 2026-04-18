@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-"""Verify DOI and arXiv citations are reachable. Reads a .bib file or plain text list."""
+"""Verify DOI and arXiv citations are reachable.
+Usage:
+  tools/cite-verify <references.bib>        — scan a single bib file
+  tools/cite-verify <node_directory>         — scan bib + README.md in the node dir
+"""
 import sys
+import os
 import re
 import urllib.request
 import urllib.error
@@ -38,8 +43,8 @@ def check_url(url, label=""):
 def check_unverifiable_entries(content):
     """Detect bib entries that have no DOI, arXiv ID, or ISBN — these cannot be verified."""
     warnings = []
-    # Split into individual entries
-    entries = re.findall(r'@\w+\{([^,]+),(.*?)(?=\n@|\Z)', content, re.DOTALL)
+    # Split into individual entries (skip @string, @preamble, @comment)
+    entries = re.findall(r'@(?!string|preamble|comment)\w+\{([^,]+),(.*?)(?=\n@|\Z)', content, re.DOTALL | re.IGNORECASE)
     for key, body in entries:
         key = key.strip()
         has_doi = bool(re.search(r'doi\s*=', body, re.IGNORECASE))
@@ -51,6 +56,40 @@ def check_unverifiable_entries(content):
             print(f"  WARN: {key} — no DOI/arXiv/ISBN/URL (unverifiable)")
     return warnings
 
+def check_readme_references(readme_path):
+    """Scan README.md's 参考文献 section for plain-text citations lacking identifiers."""
+    if not os.path.exists(readme_path):
+        return []
+
+    with open(readme_path, encoding='utf-8') as f:
+        content = f.read()
+
+    # Extract content between ## 参考文献 and the next ## heading (or end of file)
+    ref_section_match = re.search(
+        r'##\s*参考文献\s*\n(.*?)(?=\n##\s|\Z)',
+        content, re.DOTALL
+    )
+    if not ref_section_match:
+        return []
+
+    ref_section = ref_section_match.group(1)
+    unverifiable = []
+
+    # Each non-empty line in the ref section is a potential citation
+    for line in ref_section.splitlines():
+        line = line.strip()
+        if not line or not (line.startswith('-') or line.startswith('*') or re.match(r'^\d+\.', line)):
+            continue
+        has_doi = bool(re.search(r'doi\.org|DOI:', line, re.IGNORECASE))
+        has_arxiv = bool(re.search(r'arxiv\.org|arXiv:', line, re.IGNORECASE))
+        has_isbn = bool(re.search(r'ISBN', line, re.IGNORECASE))
+        has_url = bool(re.search(r'https?://', line))
+        if not (has_doi or has_arxiv or has_isbn or has_url):
+            print(f"  WARN (README): {line[:80]} — no DOI/arXiv/ISBN/URL")
+            unverifiable.append(line[:80])
+
+    return unverifiable
+
 def verify_bib(path):
     with open(path) as f:
         content = f.read()
@@ -58,12 +97,12 @@ def verify_bib(path):
     results = []
 
     # Check for entries with no verifiable identifier
-    print("Checking for unverifiable entries...")
+    print("Checking for unverifiable bib entries...")
     unverifiable = check_unverifiable_entries(content)
     if unverifiable:
         print(f"  {len(unverifiable)} unverifiable entry(ies): {', '.join(unverifiable)}")
     else:
-        print("  All entries have at least one verifiable identifier.")
+        print("  All bib entries have at least one verifiable identifier.")
 
     # Extract DOIs
     for m in re.finditer(r'doi\s*=\s*[{"]([^}"]+)[}"]', content, re.IGNORECASE):
@@ -82,17 +121,62 @@ def verify_bib(path):
         time.sleep(0.5)
 
     if not results and not unverifiable:
-        print("No DOIs or arXiv IDs found in file.")
-        return True
+        print("No DOIs or arXiv IDs found in bib file.")
 
-    verifiable_total = len(results)
-    verifiable_passed = sum(results)
+    # Count only actual @article/@book/etc entries, not @string/@comment
+    total_entries = len(re.findall(r'@(?!string|preamble|comment)\w+\{', content, re.IGNORECASE))
+    return results, unverifiable, total_entries
 
-    total_entries = len(re.findall(r'@\w+\{', content))
-    unverified_count = len(unverifiable)
+def verify_node(node_dir):
+    """Verify citations in a node directory (bib + README combined)."""
+    bib_path = os.path.join(node_dir, "references.bib")
+    readme_path = os.path.join(node_dir, "README.md")
+
+    all_results = []
+    all_unverifiable = []
+    total_entries = 0
+
+    if os.path.exists(bib_path):
+        print(f"\n=== BIB: {bib_path} ===")
+        results, unverifiable, t_entries = verify_bib(bib_path)
+        all_results.extend(results)
+        all_unverifiable.extend(unverifiable)
+        total_entries += t_entries
+    else:
+        print(f"No references.bib found in {node_dir}")
+
+    print(f"\n=== README 参考文献 section: {readme_path} ===")
+    readme_unverifiable = check_readme_references(readme_path)
+    all_unverifiable.extend(readme_unverifiable)
+    total_entries += len(readme_unverifiable)  # each unverifiable README entry counts as one
+
+    # Count verifiable README entries (entries WITH identifiers)
+    if os.path.exists(readme_path):
+        with open(readme_path, encoding='utf-8') as f:
+            content = f.read()
+        ref_match = re.search(r'##\s*参考文献\s*\n(.*?)(?=\n##\s|\Z)', content, re.DOTALL)
+        if ref_match:
+            ref_section = ref_match.group(1)
+            for line in ref_section.splitlines():
+                line = line.strip()
+                if not line or not (line.startswith('-') or line.startswith('*') or re.match(r'^\d+\.', line)):
+                    continue
+                has_id = bool(re.search(r'doi\.org|DOI:|arxiv\.org|arXiv:|ISBN|https?://', line, re.IGNORECASE))
+                if has_id:
+                    total_entries += 1  # this entry is verifiable, count it
+    if readme_unverifiable:
+        print(f"  {len(readme_unverifiable)} unverifiable README reference(s) found")
+    else:
+        print("  All README references have at least one verifiable identifier (or section is empty).")
+
+    # Summary
+    verifiable_passed = sum(all_results)
+    verifiable_total = len(all_results)
+    unverified_count = len(all_unverifiable)
     unverified_ratio = unverified_count / total_entries if total_entries > 0 else 0
 
-    print(f"\nResult: {verifiable_passed}/{verifiable_total} DOI/arXiv checks passed")
+    print(f"\n=== Summary ===")
+    print(f"URL checks: {verifiable_passed}/{verifiable_total} passed")
     print(f"Unverifiable entries: {unverified_count}/{total_entries} "
           f"(ratio={unverified_ratio:.2f}, limit=0.05)")
 
@@ -104,7 +188,29 @@ def verify_bib(path):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: tools/cite-verify <references.bib>")
+        print("Usage:")
+        print("  tools/cite-verify <references.bib>")
+        print("  tools/cite-verify <node_directory>")
         sys.exit(1)
-    ok = verify_bib(sys.argv[1])
+
+    target = sys.argv[1]
+
+    if os.path.isdir(target):
+        ok = verify_node(target)
+    else:
+        # Legacy: single bib file
+        results, unverifiable, total_entries = verify_bib(target)
+        verifiable_passed = sum(results)
+        verifiable_total = len(results)
+        unverified_count = len(unverifiable)
+        unverified_ratio = unverified_count / total_entries if total_entries > 0 else 0
+        print(f"\nResult: {verifiable_passed}/{verifiable_total} DOI/arXiv checks passed")
+        print(f"Unverifiable entries: {unverified_count}/{total_entries} "
+              f"(ratio={unverified_ratio:.2f}, limit=0.05)")
+        if unverified_ratio > 0.05:
+            print("FAIL: unverified_citation_ratio exceeds guardrail (0.05)")
+            ok = False
+        else:
+            ok = verifiable_passed == verifiable_total
+
     sys.exit(0 if ok else 1)

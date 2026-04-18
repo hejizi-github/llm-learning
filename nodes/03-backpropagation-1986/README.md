@@ -124,8 +124,6 @@ $$\sigma'(z) = \sigma(z) \times (1 - \sigma(z))$$
 
 ## 6. 为什么是 1986？
 
-Paul Werbos 在 1974 年的博士论文里就推导过反向传播，但没有引起注意。
-
 1986 年，Rumelhart、Hinton、Williams 在《Nature》上发表了清晰的推导和实验结果：
 - 用两层网络解决了感知机无法解决的问题
 - 展示了网络能「学到」有意义的内部表示
@@ -162,4 +160,3 @@ XOR 准确率：100%（4/4 全对）
 
 - Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). Learning representations by back-propagating errors. *Nature*, 323(6088), 533–536. DOI: [10.1038/323533a0](https://doi.org/10.1038/323533a0)
 - Minsky, M. & Papert, S. (1969). *Perceptrons*. MIT Press. ISBN: 9780262630221
-- Werbos, P. J. (1974). *Beyond Regression: New Tools for Prediction and Analysis in the Behavioral Sciences*. PhD thesis, Harvard University.
