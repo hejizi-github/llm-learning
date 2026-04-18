@@ -107,13 +107,18 @@ def check_readme_references(readme_path):
             url_results.append(check_url(url, label))
             time.sleep(0.3)
         elif has_doi:
-            doi_match = re.search(r'10\.\d{4,}/\S+', line)
+            # P1: exclude trailing punctuation that commonly follows DOIs in prose
+            doi_match = re.search(r'10\.\d{4,}/[^\s.,;)\]\'\"]+', line)
             if doi_match:
-                url = f"https://doi.org/{doi_match.group(0).rstrip('.')}"
+                url = f"https://doi.org/{doi_match.group(0)}"
                 label = f"README DOI: {line[:50]}"
                 print(f"Checking README DOI: {url}")
                 url_results.append(check_url(url, label))
                 time.sleep(0.3)
+            else:
+                # P2: DOI: keyword present but no extractable 10.xxxx/... — mark unverifiable
+                unverifiable.append(line[:80])
+                print(f"  WARN (README): {line[:80]} — DOI: present but not extractable")
         elif has_arxiv:
             arxiv_match = re.search(r'arXiv:(\d{4}\.\d{4,5})', line, re.IGNORECASE)
             if arxiv_match:
@@ -122,6 +127,10 @@ def check_readme_references(readme_path):
                 print(f"Checking README arXiv: {url}")
                 url_results.append(check_url(url, label))
                 time.sleep(0.3)
+            else:
+                # P2 (arXiv variant): arXiv: keyword present but no extractable ID
+                unverifiable.append(line[:80])
+                print(f"  WARN (README): {line[:80]} — arXiv: present but no valid ID")
         # else: has ISBN — counts as verifiable but no URL to check
 
     return unverifiable, url_results, total_count

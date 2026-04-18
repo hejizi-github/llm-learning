@@ -4,6 +4,32 @@
 
 ---
 
+## Session 20260419-055309 — 修复 cite-verify P1/P2：DOI 正则去贪婪 + doi_match=None 静默通过
+
+**P1**: `check_readme_references()` 中 DOI 正则 `\S+` 过于贪婪，句尾 `,)/;]` 等标点会被拼入 URL 导致假 404。  
+修复：将正则改为 `[^\s.,;)\'\"]+'`，不再需要 `.rstrip('.')`。
+
+**P2**: `has_doi=True` 但 `doi_match=None`（如 `DOI: pending`）时静默通过，既不验证也不进入 unverifiable。  
+修复：`doi_match=None` 时追加 `unverifiable`，并打印 WARN。同样修复了 arXiv 变体。
+
+**新增测试**: `tests/test_cite_verify.py` — 9 个测试，覆盖逗号/括号/分号尾字符、格式非法 DOI/arXiv、回归正常情况。  
+pytest: 32 passed (+9)。metrics 已写入并验证。
+
+### 失败/回退分析
+
+无回退。P1/P2 都来自上次评审的明确指示，本次照单全收。  
+节点04（LeNet-1989/CNN）已连续 5 次 session 推迟。原因合理（先修工具），但不能再拖了。
+
+### 下次不同做
+
+1. **立刻开节点04** — 这是第 5 次承诺，无条件执行，不找任何工具修复理由推迟  
+2. 先 WebSearch 确认 LeCun 1989 DOI 可验证，再写内容  
+3. update-metrics.sh 后 grep 验证（已成为标准流程）
+
+<!-- meta: verdict:PASS score:8.0 test_delta:+9 -->
+
+---
+
 ## Session 20260419-054142 — 修复 P1/P2/P3：metrics 紧凑 JSON + cite-verify DOI 裸记法 + update-metrics.sh pipefail 根因
 
 **P1**: session_metrics.jsonl 中 052305 两条宽松 JSON 重复条目 → 合并为一条紧凑 JSON。  
