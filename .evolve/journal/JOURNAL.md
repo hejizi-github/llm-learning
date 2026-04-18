@@ -2,6 +2,41 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-200229 — 修复节点21描述错误 + 节点22 LoRA 三件套
+
+### 本次工作
+
+**优先修复：节点21描述错误（评审6/10的核心问题）**
+- `tools/gen_nb_21.py` 第223行：「步长被 total_reward 控制」→「步长被 KL 散度直接控制」
+- 第256行 docstring：去掉错误的「total_reward通过步长控制」，改为说明步长公式直接用KL，total_reward用于目标值展示
+- 重新生成 `notebooks/21-instructgpt-2022.ipynb`（nbconvert零错误）
+- 根因：代码是 `effective_step = base_step * max(0.01, 1 - beta * kl)`，描述声称用total_reward，名实不符
+
+**节点22新增：LoRA（Low-Rank Adaptation，ICLR 2022）**
+- 主题：Hu et al. 2021，arXiv:2106.09685，解决大模型微调参数量过大问题
+- `docs/22-lora-2021.md`：矩阵秩直觉讲解（用学生成绩表格比喻），ΔW=BA分解，参数压缩比可视化
+- `tools/gen_nb_22.py` + `notebooks/22-lora-2021.ipynb`：8 cells，纯NumPy全量微调vs LoRA对比
+- `tests/test_lora.py`：34 tests（初始ΔW=0验证、参数计数、前向传播形状、梯度更新）
+- refs更新：42/42引用验证通过（新增hu2022lora，加eprint=2106.09685字段）
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 21 | 22 | +1 |
+| tests (pytest) | 455 | 489 | +34 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| verified_citations_ratio | 41/41 | 42/42 | 0% |
+
+### 下次不同做
+- BibTeX `@inproceedings` 条目必须包含 `eprint` 字段，否则cite-verify无法验证（`url`字段不被识别）
+- 节点23候选：Flash Attention (2022) 或 MoE/Mixtral (2024) 或 Chain-of-Thought (2022)
+- 继续三件套顺序：文档骨架 → notebook → pytest，不并行
+
+<!-- meta: verdict:PASS score:8 test_delta:+34 -->
+
+---
+
 ## Session 20260418-194943 — 修复节点21评审 4/10 → 目标8+ 的三个核心问题
 
 ### 本次工作
