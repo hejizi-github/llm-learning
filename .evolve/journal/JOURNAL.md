@@ -2,6 +2,29 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-132534 — 节点04 LeNet 1989，卷积神经网络，补三条引用
+
+本次 session 交付知识节点04（LeNet 1989）：`docs/04-lenet-1989.md`（2800+ 字，depth 5/5）+ 7-cell 可运行 notebook（手撕 conv2d/max_pool2d/可视化）+ 将 Werbos 1974、Hopfield 1982、LeCun 1989 三条引用补入 references.bib 并通过 cite-verify 全验证（7/7）。额外修复了 cite-verify 对 `@phdthesis` 类型的支持（原来只认 `@article`/`@inproceedings`）。knowledge_nodes 和 nodes_with_runnable_notebook 均从 3 升至 4，但 test_delta=+0——知识节点交付和测试覆盖被拆成两个 session 是本次最主要的结构性问题。
+
+<!-- meta: verdict:PASS score:8.5 test_delta:+0 -->
+
+### 失败/回退分析
+无测试失败或回滚。主要问题是 test_delta=+0：本次 session 全部精力投入内容交付（文档+notebook+引用），未同步补充 tests/test_lenet.py。这是上次节点03同样的模式——先做内容、下次补测试——导致 RLVR 零增量警告连续触发。根因：任务拆分时把"内容"和"测试"视为独立阶段，而非绑定交付单元。
+
+### 下次不同做
+- 下次 session 优先补 tests/test_lenet.py（conv2d 输出尺寸、max_pool2d 步长、LeNet 前向维度），test_delta 目标 +5 以上
+- 节点05（LSTM 1997）开始前强制同步交付测试，不允许再拆两个 session
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | scope_creep（内容与测试拆分交付）|
+| 根因 | 节点内容工作量大，测试被顺延到下一 session，形成"永远欠测试"的循环 |
+| 具体修改 | 下次 session 第一件事是 tests/test_lenet.py，不允许先开始节点05 |
+| 预期效果 | test_delta +5，RLVR 绿灯，测试债务清零 |
+
+---
+
 ## Session 20260418-131743 — 补充 tests/test_backprop.py，消除三次未兑现的测试债务
 
 本次 session 专注于补充节点03（反向传播）的测试覆盖。新增 `tests/test_backprop.py`，包含 12 个 pytest 用例，覆盖：sigmoid 数值范围（含 float64 饱和边界说明）、sigmoid 中点（0.5）、sigmoid 导数最大值 0.25（梯度消失数学基础）、sigmoid 导数对称性、MSE 损失为零/大于零、前向传播输出维度 (N,1) 和 (N,hidden)、前向传播输出范围、单步反向传播后损失下降（验证梯度方向正确）、XOR 收敛（10000轮后误差<0.1）、XOR 收敛损失（<0.01）。全部 22 测试通过，test_delta = +12（10 → 22）。调试过程中发现一个边界情况：`z=100` 时 sigmoid 在 float64 中等于 1.0（浮点饱和），将测试范围缩至 [-10, 10] 修复。

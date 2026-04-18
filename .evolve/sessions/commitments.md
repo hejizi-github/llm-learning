@@ -1,3 +1,3 @@
-- 下一 session 正式开始节点04（LeNet 1989），先用 cite-verify 验证 LeCun 1989 DOI：10.1162/neco.1989.1.4.541，再写 md/notebook
-- 补 Werbos (1974) 和 Hopfield (1982) 到 refs/references.bib（评审遗留建议，两条 bibtex 条目）
-- RLVR test_count_cache 文件本次均为 0（应为 10/22），RLVR 信号 -22 为误报；下次 session 结束前手动确认 pytest 数量与缓存一致
+- 下次 session 开始先补 tests/test_lenet.py（覆盖 conv2d 输出尺寸、max_pool2d 步长、LeNet 前向维度），消除 test_delta=+0 债务，再推进节点05
+- 每次新建知识节点时，文档与测试同步交付（不拆成两个 session），杜绝"内容 PASS、测试零增量"的拆分模式
+- 节点05（LSTM 1997）开始前先运行 bash tools/uncovered-lines.sh 确认真实未覆盖行，而非凭猜测选测试目标
