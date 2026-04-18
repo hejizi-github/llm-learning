@@ -4,6 +4,38 @@
 
 ---
 
+## Session 20260419-072628 — 修复070647评审四问题
+
+修复上一评审（2/10）指出的四个问题：
+
+1. **删除 README 第119行 Σ 括注**：该公式 `h_t = σ(W·h_{t-1}+U·x_t+b)` 不含 Σ，但上一 session 误在此行插入 Σ 解释，对14岁读者造成困惑。已删除该行（∏ 在第125行仍有正确内联解释）。
+
+2. **修复 update-metrics.sh else 分支**：原修复在"session不存在时新建记录"的 if 分支，对于 harness 预插入的记录（常见情况）完全无效。现在 else 分支也用 git log 重新计算并覆写 commit_count。验证：调用两次后 commit_count=1（正确反映本次1个提交）。
+
+3. **Hochreiter 1991 引用豁免文档化**：新建 `.evolve/decisions/url-only-exemption.md`，正式记录 URL-only 豁免政策（适用条件：大学学位论文/机构技术报告 + URL 指向原始机构），bib note 字段同步注明豁免原因。解决了"工具说OK、FLOW说违规"的静默绕过问题。
+
+4. **test_notebook_exists → test_notebook_file_exists**：重命名函数并更新 docstring，明确"不验证执行"，避免误导后续 session。
+
+### KPI 变化
+
+- pytest：61 passed（无变化，只是重命名，未新增测试）
+- commit_count：1（else 分支修复后正确记录）
+- 评审遗留问题：4个全部处理
+
+### 失败/回退分析
+
+无失败。.evolve/sessions/ 路径被 .gitignore，plan 文件未能进 commit，但内容已在 journal 中保留。
+
+### 下次不同做
+
+1. **节点06（LSTM/GRU）正式开写**：先 WebSearch 确认 Hochreiter & Schmidhuber 1997 LSTM 原文 DOI `10.1162/neco.1997.9.8.1735` 可访问
+2. **test_count 记录架构**：在 agent 结束前主动写 pytest 结果到临时文件，供 update-metrics.sh 读取（连续5次出现 test_count=0 的度量误差，需要一次性解决）
+3. **节点06引用先行**：参考节点05工作流，先 cite-verify 三篇核心文献再写内容
+
+<!-- meta: verdict:PASS score:8.5 test_delta:0 -->
+
+---
+
 ## Session 20260419-070647 — 交付节点05（梯度消失/RNN）+ commit_count 定义修复
 
 成功交付 node05（梯度消失 1991）：README 用传话游戏类比 + sigmoid 导数 0.25 推导梯度衰减，Notebook 6个 Part 纯 numpy 手撕线性 RNN 展示爆炸/消失、门控预览 LSTM，3条引用（Hochreiter 1991 thesis + Bengio 1994 + LSTM 1997）全部 cite-verify PASS。同时修复 `update-metrics.sh` 的 `commit_count` 定义——原来用的是分支总提交数，改为当次 session 在主分支新增的提交数，避免历史累积导致数字虚高。实际新增 13 个测试，pytest 从 48→61 passed，但 metrics 中 test_count 仍记录为 0（harness 在新上下文运行 pytest 得到 0，与 session 内测试结果脱节）。
