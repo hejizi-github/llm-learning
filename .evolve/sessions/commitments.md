@@ -1,3 +1,0 @@
-- 下一个 session 构建知识节点 05（AlexNet 2012）：这是 CNN 沉寂 14 年后的爆发，是知识库叙事的关键跳跃，不再推迟
-- 修复 test_count_cache 总是写 0 的 bug：每次 session 开始时缓存应写入上一次的实际 test_count，否则反射框架永远报 -19 假回归
-- notebook 中所有中文字符串禁止使用 ASCII 双引号 `"`，改用 `「」` 或 `[]`，已连续踩坑两次
