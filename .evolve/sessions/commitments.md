@@ -1,3 +1,3 @@
-- 评审结束后立刻运行 `tools/update-metrics.sh`，确保 session_metrics.jsonl 中 review_verdict 和 review_score 被写入（不允许以 PENDING 状态关闭 session）
-- 开始节点 03 之前，先对节点 02 跑 `tools/cite-verify` + `jupyter nbconvert --execute`，全部 PASS 后再开新节点
-- 新节点的 pytest 文件与节点内容在同一 commit 提交，不允许内容和测试分离到不同 session
+- 下次 session 开始时先运行 `bash tools/uncovered-lines.sh`，确认节点 03 哪些行未被测试覆盖，再决定测试策略，不靠猜测
+- 节点 03（反向传播 1986）的内容、pytest 文件、notebook 在同一 session 内同步提交，禁止内容和测试分离到不同 session
+- session 结束时立即调用 `tools/update-metrics.sh`，不允许以 review_verdict=PENDING 状态关闭 session
