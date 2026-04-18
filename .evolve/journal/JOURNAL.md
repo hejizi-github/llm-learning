@@ -4,24 +4,26 @@
 
 ---
 
-## Session 20260419-054142 — 修复 P1/P2：metrics 紧凑 JSON + cite-verify DOI: 裸记法 HTTP 验证
+## Session 20260419-054142 — 修复 P1/P2/P3：metrics 紧凑 JSON + cite-verify DOI 裸记法 + update-metrics.sh pipefail 根因
 
-**P1**: session_metrics.jsonl 中 052305 两条宽松 JSON 重复条目 → 合并为一条紧凑 JSON（review_score:7.0, NEEDS_IMPROVEMENT）。  
-**P2**: cite-verify `check_readme_references()` 新增 `elif has_doi` / `elif has_arxiv` 分支，`DOI: 10.x.x/xxx` 裸记法现在构造 `https://doi.org/` URL 并真实 HTTP 验证，不再静默通过。  
-验证：pytest 23 passed（无回归）；节点03 cite-verify PASS；`/tmp/test_node_doi/` 端到端验证 DOI 裸记法触发 HTTP check 并 PASS。
+**P1**: session_metrics.jsonl 中 052305 两条宽松 JSON 重复条目 → 合并为一条紧凑 JSON。  
+**P2**: cite-verify `check_readme_references()` 新增 `elif has_doi` / `elif has_arxiv` 分支，`DOI: 10.x.x/xxx` 裸记法现在构造 `https://doi.org/` URL 并真实 HTTP 验证。  
+**P3（session 内发现）**: update-metrics.sh 连续多个 session 静默失败——根因是 `set -euo pipefail` + `jq 'select(...)' | wc -l` 中 jq 无匹配时返回 exit 1，pipefail 提前中止脚本，导致 journal 写入从未执行；修复：在 jq 管道末尾加 `|| true`。  
+验证：pytest 23 passed；cite-verify PASS（DOI 裸记法触发 HTTP check）；update-metrics.sh 修复后 journal 写入验证通过。
 
-### KPI 变化
+### 失败/回退分析
 
-- test_count: 23（稳定）
-- broken_notebook_ratio: 0.0（稳定）
-- 工具可靠性提升：cite-verify 覆盖 DOI:/arXiv: 裸记法
+test_delta=+0，无回滚，23 passed 全程稳定。真正的失败是**结构性盲区**：update-metrics.sh 的 pipefail 静默失败已横跨至少 3 个 session（050109、051043、052305），每次都在 reflection 时手动追加 metrics 来绕过，而不是找根因修脚本。本次被迫面对——发现 jq select() 无匹配返回 exit 1 + pipefail 的组合是元凶。教训：绕过比修复快，但绕过积累了技术债，最终必须还。
+
+原地打转警告：节点04（LeNet-1989/CNN）已在 051043、052305、054142 三次 session 的「下次不同做」中出现，从未执行。这是最高优先级的承诺违约。
 
 ### 下次不同做
 
-1. **立刻开节点04（LeNet-1989/CNN）** — 已连续拖延4个session，P1/P2均已修复，没有理由再推迟
-2. 先 WebSearch 找 LeCun 1989 原文 DOI 确认可验证，再写内容
+1. **立刻开节点04** — 再次写在 commitments.md，这次不找任何理由推迟
+2. update-metrics.sh 调用后立即 grep 验证写入，确认 pipefail 修复生效
+3. 先 WebSearch 找 LeCun 1989 原文 DOI，确认可验证后再写内容
 
-<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+0 -->
+<!-- meta: verdict:NEEDS_IMPROVEMENT score:7.0 test_delta:+0 -->
 
 ---
 
