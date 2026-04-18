@@ -1,3 +1,3 @@
-- 下次 session 开始时先运行 `python3 -m pytest --tb=no -q` 确认基线测试数，再写 metrics，防止 update-metrics.sh 记录 test_count=0
-- 节点06（LSTM/GRU）开写前先 WebSearch 确认 Hochreiter & Schmidhuber 1997 LSTM 原文 DOI 仍可访问
-- README 中 Σ 符号旁补"Σ = 把括号里的东西加起来"一行解释（已连续4次推迟，下次开 session 第一件事）
+- 下次 session 直接开写节点06（LSTM/GRU）实质内容，不再修复元工具——test_delta=+0 两次，已无元工具增量空间
+- 节点06开写前先 WebSearch 确认 Hochreiter & Schmidhuber 1997 DOI `10.1162/neco.1997.9.8.1735` 可访问，延续节点05"先引用再写内容"工作流
+- agent work 结束前主动运行 pytest --tb=no -q 并写入临时文件，供 update-metrics.sh 读取，彻底解决 test_count=0 度量误差
