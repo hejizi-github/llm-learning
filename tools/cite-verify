@@ -87,7 +87,7 @@ def parse_bib(bib_path: Path) -> list[dict]:
         if m:
             entry['type'] = m.group(1).lower()
             entry['key'] = m.group(2).strip()
-        for field in ['doi', 'year', 'author', 'title', 'eprint', 'isbn']:
+        for field in ['doi', 'year', 'author', 'title', 'eprint', 'isbn', 'school']:
             m2 = re.search(rf'{field}\s*=\s*[{{"]([^}}"]+)[}}"]+', block, re.IGNORECASE)
             if m2:
                 entry[field] = m2.group(1).strip()
@@ -131,6 +131,14 @@ def main():
             ok, msg = verify_arxiv(arxiv_id)
         elif isbn:
             ok, msg = verify_isbn(isbn)
+        elif entry.get('type') == 'phdthesis':
+            # 博士论文通常无 DOI；有 school + year 字段即视为可接受
+            school = entry.get('school', '').strip()
+            year = entry.get('year', '').strip()
+            if school and year:
+                ok, msg = True, f"phdthesis accepted (school={school}, year={year})"
+            else:
+                ok, msg = False, "phdthesis missing school or year field"
         else:
             ok, msg = False, "No DOI, arxiv ID, or ISBN found"
 

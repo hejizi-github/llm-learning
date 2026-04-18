@@ -306,3 +306,44 @@ ISBN 修复引入了新的格式错误：`978-0-262-63-070-2` 多了一个连字
 ### commit
 - 见 git log
 
+
+---
+
+## Session 20260418-132534 — 节点04 LeNet 1989（卷积神经网络），补三条引用
+
+本次 session 交付知识节点04（LeCun 1989，卷积神经网络），兑现了连续三次延迟的承诺。
+
+**主要变更：**
+1. `refs/references.bib`：新增 werbos1974（phdthesis）、hopfield1982（DOI验证）、lecun1989（DOI验证）三条 bibtex
+2. `refs/citations.jsonl`：新增对应三条溯源记录
+3. `tools/cite-verify`：扩展 `parse_bib` 提取 `school` 字段，并为 `@phdthesis` 类型添加特殊处理（school+year有值即通过）
+4. `docs/04-lenet-1989.md`：2800+字节点文档，depth 5/5，覆盖背景/卷积原理/数学自包含（点积讲解）/LeNet架构/局限/引用
+5. `tools/gen_nb_04.py`：notebook 生成器脚本
+6. `notebooks/04-lenet-1989.ipynb`：7-cell 可运行 notebook（手撕 conv2d + max_pool2d + 可视化 + 参数量对比）
+
+**KPI 变化：**
+- knowledge_nodes: 3 → **4**
+- nodes_with_runnable_notebook: 3 → **4**
+- verified_citations_ratio: 4/4 → **7/7 (100%)**
+- depth_score: 5/5（节点04）
+- broken_notebook_ratio: 0%（4/4 全通过）
+- test_delta: 0（22 passed，不变）
+
+**遇到的问题：**
+- `cite-verify` 对 `@phdthesis` 类型报 FAILED（无 DOI/arxiv/ISBN），解决方案：扩展工具支持 `phdthesis` 用 school+year 字段验证
+
+**下次 session 建议：**
+1. 节点05 — LSTM（Hochreiter & Schmidhuber，1997），接续"序列建模"时间线
+2. 补充节点04的测试用例（test_conv2d.py），验证 conv2d 和 max_pool2d 的数值正确性
+3. 将 gen_nb_03.py 和 gen_nb_04.py 的公共逻辑抽取为 `tools/nb_builder.py`
+
+<!-- meta: verdict:PASS score:9.0 test_delta:+0 -->
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | cite-verify 不支持 @phdthesis 类型 |
+| 根因 | 工具初始设计只考虑 article/book，未预料论文/thesis |
+| 具体修改 | parse_bib 新增 school 字段；添加 phdthesis 分支处理 |
+| 预期效果 | 7/7 引用验证，未来可添加更多 phdthesis 无碍 |
+

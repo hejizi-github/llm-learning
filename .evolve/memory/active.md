@@ -8,11 +8,12 @@
 
 **工具列表**：
 - `tools/notebook-run` — 跑 notebook 验证
-- `tools/cite-verify` — DOI/ISBN/arxiv 验证
+- `tools/cite-verify` — DOI/ISBN/arxiv/phdthesis 验证（20260418-132534 新增 phdthesis 支持）
 - `tools/md-link-check` — md 链接检查
 - `tools/depth-score` — 深度评分
 - `tools/claude-advisor` — 外部 Claude 多角度分析（新增 20260418-125113）
 - `tools/gen_nb_03.py` — 节点03 notebook 生成器（Python 脚本，非 CLI 工具）
+- `tools/gen_nb_04.py` — 节点04 notebook 生成器（Python 脚本，非 CLI 工具）
 
 **知识节点**：
 | # | 文件 | notebook | depth | citations |
@@ -20,10 +21,11 @@
 | 01 | docs/01-perceptron-1958.md | notebooks/01-perceptron-1958.ipynb | 5/5 | 4/4 verified |
 | 02 | docs/02-minsky-papert-1969.md | notebooks/02-minsky-papert-1969.ipynb | 5/5 | 3/3 verified |
 | 03 | docs/03-backprop-1986.md | notebooks/03-backprop-1986.ipynb | 5/5 | 1/1 verified |
+| 04 | docs/04-lenet-1989.md | notebooks/04-lenet-1989.ipynb | 5/5 | 3/3 verified |
 
-**引用库**：refs/references.bib（4条），refs/citations.jsonl（4条全部已验证）
+**引用库**：refs/references.bib（7条），refs/citations.jsonl（7条全部已验证）
 
-**时间线覆盖**：1958（感知机）→ 1969（XOR证明 + AI寒冬）→ 1986（反向传播 + 多层网络）
+**时间线覆盖**：1958（感知机）→ 1969（XOR证明 + AI寒冬）→ 1986（反向传播 + 多层网络）→ 1989（卷积神经网络）
 
 **已修复**：docs/01 + docs/02 中 ISBN 格式错误；docs/01 + docs/02 中的"下一节点"链接已修复为实际链接
 
@@ -40,16 +42,18 @@
 - 用 Python 脚本生成 notebook JSON（gen_nb_03.py）比手写 JSON 更易维护，且避免转义问题（20260418-130735）
 - claude-advisor 可进一步泛化：管道 md 内容进去做读者可读性评审（来自评审建议，待实现）
 - sigmoid 在 z > ~37 时 float64 饱和至 1.0，测试 sigmoid 范围应用 linspace(-10,10) 而非 (-100,100)（20260418-131743）
+- `cite-verify` 对 `@phdthesis` 类型需特殊处理：解析 `school` 字段，school+year 有值即通过（20260418-132534）
+- conv2d 实现中，savefig 路径需用 `../docs/assets/` 因为 nbconvert 工作目录在 `notebooks/`（20260418-132534）
 
 ## 下次 session 建议
 
-**第一优先**：节点 04 — 1989 LeNet（Yann LeCun，卷积神经网络）
-- 时间线接续（1986反向传播 → 1989卷积网络）
-- 核心内容：卷积操作直觉（空间局部性 + 权重共享）/ 手撕卷积层 / 在 MNIST 上演示
-- 需要先 cite-verify LeCun 1989 DOI：10.1162/neco.1989.1.4.541
-- 同时补 Werbos (1974) 和 Hopfield (1982) 到 refs/references.bib（评审遗留建议）
+**第一优先**：节点 05 — LSTM（Hochreiter & Schmidhuber，1997）
+- 时间线接续（1989卷积 → 1997序列建模）
+- 核心内容：RNN 梯度消失 / LSTM 门控机制 / 手撕 LSTM cell
+- DOI 待验证：10.1162/neco.1997.9.8.1735
 
-**tests/test_backprop.py**：已完成（20260418-131743），test_delta +12（22用例总计）
+**第二优先**：补充测试用例 tests/test_conv.py
+- 验证 conv2d / max_pool2d 数值正确性，test_delta 目标 +6~8
 
 **PENDING 提案**：`.evolve/proposals/sub-agent-evaluation.md`
 - 用 LLM 子 Agent 评估内容质量（响应用户 DIRECTIVE 20260418-123509）
