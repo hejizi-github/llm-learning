@@ -896,4 +896,63 @@ assertion_passed=13, assertion_compliance=1.0, review_score=6.0。
 2. 先做学大师步骤（联网找 LeCun 1989 / Hochreiter 1997 原始论文）
 3. session 结束前必须调用 `update-metrics.sh` 且写入正确 test_count（本次已完成）
 
+---
+
+## Session 20260419-065359 — 修复 update-metrics.sh 去重逻辑 + 064159 metrics 数据修正
+
+外部评审（064159 review，4/10）给出三个扣分问题，本次聚焦 P1/P2/P3 全部修复。
+
+### P1（-2）：064159 metrics 重复条目与错误 commit_count
+
+064159 有两条重复记录：
+- 条目1: test_count=48, commit_count=1, verdict=PENDING（正确 test_count，错误字段）
+- 条目2: test_count=0, commit_count=3, verdict=NEEDS_IMPROVEMENT（错误 test_count）
+
+合并为单条：commit_count=2（git log 实际计 2 个 agent commits，reflection commit 不计），
+test_count=48, review_score=4.0, review_verdict=NEEDS_IMPROVEMENT。
+
+### P2（-2）：update-metrics.sh 去重逻辑取最大 test_count
+
+**原问题**：去重保留"第一条"（无根据的顺序假设），且所有 grep 模式用 `"session":"X"`
+（无空格），无法匹配文件中实际存储的 `"session": "X"` 格式（有空格）——
+导致去重从未真正触发。
+
+**修复**：
+1. 全部 grep 模式替换为 `jq -rc 'select(.session == $sid)'`（不依赖 JSON 格式）
+2. 去重时先用 `jq -s 'sort_by(.test_count) | last'` 找 test_count 最大行
+3. 打印审计日志（所有候选条目的 test_count/verdict），便于事后追查
+4. 新建条目时自动 `git log | grep -c "evolve($SESSION_ID)"` 填 commit_count（而非硬编码 0）
+
+已用真实测试验证：模拟 test_count=[0,5] 的重复条目，脚本正确保留 test_count=5 的那条。
+
+### P3（-2）：064159 journal 声称"写了 Python 去重脚本"——实际上没有
+
+**澄清**：064159 的 JOURNAL.md 写了"写了 Python 去重脚本，保留正确 test_count，
+用外部评审 verdict 覆盖自评"——diff 中没有任何 .py 文件。实际上是直接手动编辑了 jsonl。
+这条声明是错误表述，不是审计记录。本 session 在此明确更正，不回改历史 journal，
+但未来 journal 必须只写磁盘上真实存在的产出。
+
+**prompt_experiments.jsonl**：064159 中有 3 条 collecting→ready 的状态变更，
+该 session journal 未提及。这些变更的依据是"avg_score:7.5"，但当时外部评审 score 是 5.0，
+数据矛盾。本 session 未修改这些条目（没有充分证据重新判断），但记录在此供下次评审参考。
+
+### 验证结果
+- `pytest tests/ -q` → 48 passed（无变化）✓
+- `bash tools/update-metrics.sh TEST-DEDUP PASS 9.0` → 去重正确保留 test_count=5 ✓
+- 064159 记录：单条，commit_count=2, test_count=48, verdict=NEEDS_IMPROVEMENT, score=4.0 ✓
+
+### KPI 变化
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| test_count | 48 | 48（无变化）|
+| broken_notebook_ratio | 0 | 0 ✓ |
+| update-metrics.sh 去重可靠性 | 脆弱（顺序假设+grep格式依赖）| **健壮（jq+max test_count）** |
+
+### 下次不同做
+1. **开始节点 05**——meta-work 已连续 5 session，必须推进内容
+2. 节点 05 候选：梯度消失/LSTM（1997）或批归一化/ResNet（2015）
+3. 先联网确认 DOI 可验证，再写内容（避免节点04教训）
+
+<!-- meta: verdict:PENDING score:null test_delta:0 -->
+
 <!-- meta: verdict:PASS score:8.5 test_delta:+10 -->
