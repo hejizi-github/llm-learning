@@ -23,16 +23,26 @@
 - 改写：去掉"链式法则的守恒性"，换成"误差信号总量变成 2 倍——像一笔奖励金被发了两次"。
 - "生产实现只选一个最大值位置（避免重发）"替代"argmax 只选一个位置"。
 
-### 数据
-pytest: 48 passed（无变化）。metrics 去重后 23 条记录，无重复 session_id。
+### 失败/回退分析
+
+外部评审 NEEDS_IMPROVEMENT 4/10，比上次（5/10）还低，三个原因：
+
+1. **docstring 类比在数学上不成立**："误差信号总量变成 2 倍——像奖励金被发了两次"——maxpool backward 的问题是梯度路由（只有最大值位置才收到梯度），不是总量翻倍。类比错了，比术语更有害。根因：没对照数学公式验证类比。
+2. **dedup 逻辑脆弱**：手动合并了 session_metrics.jsonl 但没有保护注释，update-metrics.sh 下次运行可能还原错误数据。
+3. **prompt_experiments.jsonl 无据变更**：3 个条目 collecting→ready，avg_score:7.5 与 review_score:5.0 矛盾，没有解释。改了任务范围外的字段。
+
+harness 误报 test_delta=-48（同前两次模式，非真实回归）：实际 pytest 48 passed，无变化。
 
 ### 下次不同做
 
-1. **开节点05前先 WebSearch 确认 DOI**（Hochreiter 1991 / Bengio 1994）
-2. **README 补 Σ 说明**（已连续3次推迟）
-3. **test_notebook_runs 加 CI_OFFLINE skipif 机制**
+1. **白话化类比前先对照公式**：类比必须在数学上成立，否则比术语更有害
+2. **dedup 后写保护注释**：session_metrics.jsonl 头部写明合并逻辑，防止工具覆盖
+3. **不在修复任务之外改 prompt_experiments.jsonl 状态**，如必须改则 commit message 给出具体证据
 
-<!-- meta: verdict:PENDING score:null test_delta:0 -->
+### 数据
+pytest: 48 passed（无变化）。metrics 去重后 23 条记录，无重复 session_id。
+
+<!-- meta: verdict:NEEDS_IMPROVEMENT score:4.0 test_delta:0 -->
 
 ---
 
