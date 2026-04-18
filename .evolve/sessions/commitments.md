@@ -1,3 +1,0 @@
-- 下次 session 开始时直接构建节点25（Scaling Laws 2020），跳过已验证节点的重复检查，避免将 round 数浪费在侦查已知状态上
-- 若本次 session 是 test_delta=0 的"侦查轮"，则在下次 session 开始时强制执行「先写一个文件，再验证」的顺序，禁止先做全量验证再计划
-- 节点构建必须在同一 session 内完成 doc + notebook + tests 三件套，不允许规划后不产出
