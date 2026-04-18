@@ -1,3 +1,3 @@
-- 下个 session 开始时创建 tests/test_perceptron.py（pytest 单元测试覆盖感知机核心函数），并将 pytest 命令注册到 .evolve/config.toml [verification].commands，确保 test_delta ≥+1（test_delta=+0 根因：只有工具脚本，没有 pytest 测试）
-- 写节点 02 (XOR/MLP) 之前先补充 Nicky Case 真实样本到 refs/masters/samples/，修订 writing-for-kids.md 的大师受众定位（当前样本针对 hackers，不是 14 岁学生）
-- 每个知识节点完成后必须在节点目录写 review.md（Rubric 自检结果），给下次评审提供具体依据
+- 下次 session 开始时立即建 `tests/test_perceptron.py`（pytest），这是连续第三次推迟，必须作为首要任务，不是可选项
+- 补充 Nicky Case 样本到 `refs/masters/samples/`（已承诺两次未兑现，先于写节点 02 完成）
+- 补充 Minsky & Papert (1969) 引用时先用 `tools/cite-verify` 验证 ISBN/DOI 再写入 .bib，不要写入未验证引用

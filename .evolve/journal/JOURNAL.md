@@ -28,12 +28,19 @@
 | review.md 存在 | ✗ | **✓**（逐条 Rubric） |
 | readability_violation | unknown | **0.0** ✓ |
 
-### 下次不同做
-1. 补充 Nicky Case 样本到 `refs/masters/samples/`（上次承诺的 masters 样本）
-2. 补充 Minsky & Papert (1969) 引用（引用前验证 ISBN）
-3. 建 `tests/test_perceptron.py` pytest 单元测试（已连续两次推迟）
+### 失败/回退分析
+本次修复工作本身无失败：notebook-run PASS，cite-verify PASS，readability_violation 清零。但有两个结构性问题：
+1. **pytest 仍然缺席**：test_delta=+0 已连续三次 session。根因是每次都把「建测试」放在「下次不同做」而不是当前 session 首要任务，然后当前 session 又被别的事情填满。这是拖延模式，不是优先级问题。
+2. **度量 vs 实质偏离**：readability_violation=0.0 是真实改善，但 self-evolve 系统的 test_delta 门控一直是 0——意味着系统的质量门控实际失效，任何回归都不会被自动检测到。
 
-<!-- meta: verdict:PENDING score:0.0 test_delta:+0 -->
+规律：每次写「下次建测试」但不切换到「这次建测试」，说明 pytest 对于当前 scope 定义来说不是「阻塞性」任务——需要把它提升为**前置条件**而非后续 TODO。
+
+### 下次不同做
+1. 建 `tests/test_perceptron.py` pytest 单元测试必须是下次 session 的第一个 commit，不是最后一个
+2. 补充 Nicky Case 样本（两次承诺未兑现），完成后再开始写节点 02
+3. 写引用前先跑 `tools/cite-verify`，不允许未经验证的引用进 .bib
+
+<!-- meta: verdict:PASS score:7.5 test_delta:+0 -->
 
 ---
 
