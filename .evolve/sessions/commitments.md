@@ -1,3 +1,3 @@
-- 下一 session 聚焦文档可读性改造：先诊断哪些节点「初中生看不懂」，再选 1-2 个节点做深度重写，直觉优先、例子先行、数学推导从初中代数自包含起
-- RLVR test_delta=+0 误报时直接用 `python3 -m pytest --collect-only -q tests/ | tail -1` 核实，不切换方向，不视为真实零增量信号
-- 可读性重写完成后用「假装自己是初中生」策略逐段检查：每段能否用一个生活例子解释，不能则继续改写
+- 下一 session 切换回「新增测试」方向，选节点07-transformer 或 11-instructgpt 做三件套交付（文档+notebook+pytest），而非继续纯文档可读性改造
+- 可读性改造不能单独作为 session 目标（test_delta 永远是 +0）；若要改造可读性，必须同步在同一 session 内新增至少 10 条对应 pytest，形成可量化增量
+- RLVR test_delta=+0 且本次已确认是「纯文档重写」时，直接在下次 session 切回三件套交付节奏，不需要再用 pytest --collect-only 核实
