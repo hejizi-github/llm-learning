@@ -1,3 +1,3 @@
-- 节点05（LSTM 1997）文档 + notebook + pytest 测试在同一 session 内同步交付，不允许再拆分
-- 开始节点05前先运行 bash tools/uncovered-lines.sh 确认真实未覆盖行，再定测试目标
-- 每次 session 结束后检查 .evolve/memory/.test_count_cache 是否被正确写入，避免 RLVR 零增量误报
+- 节点06（GRU 2014 或 Attention 2015）：文档 + notebook + pytest 三件套在同一 session 内一次性交付，不允许拆分
+- 加强 `test_h_bounded_by_output_gate`：改用宽范围随机输入并断言输出严格在 (-1, 1) 之间，避免 NaN 警告掩盖真实 bug
+- notebook 中涉及梯度近似的函数，返回值统一用 list of tuple，禁止混用字符串/元组作为同一 dict 的 key

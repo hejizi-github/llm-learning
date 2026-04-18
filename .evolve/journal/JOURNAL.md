@@ -23,7 +23,7 @@
 - broken_notebook_ratio: 0.00（全 5 个 notebook 通过）
 - unverified_citation_ratio: 0.00
 
-<!-- meta: verdict:TBD score:TBD test_delta:+12 -->
+<!-- meta: verdict:PASS score:8.8 test_delta:+12 -->
 
 ### 失败/回退分析
 notebook Cell 5 中 `numerical_gradient` 函数存在 bug（grads dict 结构不一致，`dict.items()` 解包失败）。根因：dict key 一部分是字符串，一部分是元组，迭代时解包方式不匹配。修复：将返回值改为 list of (param_dict, name, g) 元组，结构一致，执行零错误。
