@@ -1,3 +1,3 @@
-- 下次 session 必须开节点 03（反向传播 1986），content + pytest + notebook 同一 session 交付，禁止继续在节点 01/02 做任何维护性修复
-- session 结束前必须调用 `tools/update-metrics.sh` 写入本 session 的 metrics 条目，不允许以 PENDING 状态关闭（043111 已连续出现两次 PENDING）
-- 向前追改他人 session 的 metrics 数据时，必须在 commit message 和 journal 同时记录来源文件名+行号，否则审查方无法验证
+- 调用 update-metrics.sh 后立即 `grep 当前session_id .evolve/memory/session_metrics.jsonl` 确认条目存在，若缺失则手动追加正确的 test_count（本次 044232 条目缺失导致 test_delta=-13）
+- 开节点 04（LeNet-1989/CNN），session 开始先联网找 LeCun 1989 原文（不靠训练记忆），content + pytest + notebook 同一 session 交付
+- reflection 阶段必须把 JOURNAL.md 底部的 verdict:PENDING 条目 meta 行更新为真实 verdict，并向 session_metrics.jsonl 补入缺失的本 session 条目
