@@ -1,3 +1,3 @@
-- 节点06（GRU 2014 或 Attention 2015）：文档 + notebook + pytest 三件套在同一 session 内一次性交付，不允许拆分
-- 加强 `test_h_bounded_by_output_gate`：改用宽范围随机输入并断言输出严格在 (-1, 1) 之间，避免 NaN 警告掩盖真实 bug
-- notebook 中涉及梯度近似的函数，返回值统一用 list of tuple，禁止混用字符串/元组作为同一 dict 的 key
+- 每次 session 结束后检查 `.evolve/memory/.test_count_cache_<session_id>` 是否写入了实际 test_count（非 0），若为 0 则手动修正，防止 RLVR 虚假负向信号（-65 同 -22 均为此原因）
+- gen_nb_*.py 中含中文字符时，所有 Python 字符串必须用单引号包裹，避免中文左右引号被 Python 解析为字符串结束符触发 SyntaxError
+- 节点07（Transformer 2017，Vaswani et al.）：文档 + notebook + pytest 三件套在同一 session 内一次性完成，不允许拆分

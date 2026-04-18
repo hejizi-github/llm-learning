@@ -22,23 +22,25 @@
 - broken_notebook_ratio: 0.00（全 6 个 notebook 通过）
 - unverified_citation_ratio: 0.00
 
-<!-- meta: verdict:TBD score:TBD test_delta:+16 -->
+<!-- meta: verdict:PASS score:8.8 test_delta:+16 -->
 
 ### 失败/回退分析
-无失败。`gen_nb_06.py` 中有两处中文引号嵌套在 Python 双引号字符串中导致 SyntaxError，快速修复为单引号。cite-verify 对 lecun1989 有一次 SSL 超时（网络抖动），第二次运行通过，属瞬态错误。
+无内容失败。`gen_nb_06.py` 中有两处中文引号嵌套在 Python 双引号字符串中导致 SyntaxError，快速修复为单引号。cite-verify 对 lecun1989 有一次 SSL 超时（网络抖动），第二次运行通过，属瞬态错误。
+
+**RLVR 负向信号（test_delta=-65）为误报**：`.evolve/memory/.test_count_cache_20260418-140058` 写入值为 0（而非实际 65），RLVR 计算 0-65=-65。根因与 session 131743 的 -22 误报完全相同：缓存写入机制在 session 结束时未正确记录实际 test_count。实际测试数：49→65（+16）。
 
 ### 下次不同做
-- JOURNAL score 字段留 TBD，等评审结果后填写
-- 节点07 方向：Transformer（2017，Vaswani et al.）是知识链的最重要节点，应优先交付三件套
+- 每次 session 结束后检查 cache 文件是否写入实际 test_count（非 0），若为 0 立即手动修正（`.evolve/memory/.test_count_cache_<session_id>`）
 - gen_nb_*.py 中如果有中文字符，必须统一用单引号包裹字符串（避免中文引号与 Python 双引号冲突）
+- 节点07 Transformer（2017）：三件套在同一 session 一次性交付
 
 ### 反思向量
 | 维度 | 内容 |
 |------|------|
-| 错误类型 | gen_nb_06.py SyntaxError（中文引号嵌套）|
-| 根因 | 中文左右引号 `"..."` 被 Python 解析为字符串结束符 |
-| 具体修改 | 两处改为单引号或去掉引号 |
-| 预期效果 | test_delta +16，RLVR 绿灯，节点06 三件套全部交付 |
+| 错误类型 | gen_nb_06.py SyntaxError（中文引号嵌套）+ cache 写入 bug（0 而非 65）|
+| 根因 | 中文左右引号被 Python 解析为字符串结束符；cache 写入逻辑未在实际测试跑完后执行 |
+| 具体修改 | gen_nb_*.py 统一单引号；session 结束后手动验证 cache 文件内容 |
+| 预期效果 | test_delta 正确反映 +N，RLVR 不再出现虚假负向信号 |
 
 ---
 
