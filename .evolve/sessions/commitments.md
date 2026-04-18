@@ -1,3 +1,3 @@
-- 新建节点时，BibTeX `@inproceedings` 条目必须包含 `eprint` 字段（不是 `url`），否则 cite-verify 无法通过验证
-- 节点23开始时先确定主题（Flash Attention / CoT / MoE），再按三件套顺序：文档骨架 → gen_nb → pytest，不并行启动
-- 修复描述错误前先用 grep 确认代码实际行为，做到「代码-描述-测试」三者一致
+- session 结束時必须运行完整 pytest 套件（不只跑单模块），将全部 test_count 写入 session_metrics.jsonl，避免只记录 34/489 的截断值
+- BibTeX 条目写 `eprint` + `archivePrefix = {arXiv}` 两个字段（只有 `eprint` 或只有 `url` 都不够 cite-verify 识别）
+- 演示 notebook 设计目标函数前先问"此结构在理论上能拟合目标吗？"，LoRA 演示要保证目标矩阵是低秩的

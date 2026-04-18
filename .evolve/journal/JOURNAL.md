@@ -30,14 +30,14 @@
 
 ### 失败/回退分析
 
-无失败。三个问题均精确修复，nbconvert 零错误，34 tests pass。
+三个修复本身无失败，但出现了一个 metrics 记录错误：session 结束时只运行了 `test_lora.py`（34 tests）并将 test_count=34 写入 session_metrics.jsonl，而非完整 pytest 套件（489 tests）。这导致 test_delta=-489 的假警报——实际测试并未删除，是计数截断问题。根因：fix session 只关注了修改的文件对应的测试，遗漏了统一汇报全局 test_count 的步骤。
 
 ### 下次不同做
+- session 结束时必须运行完整 pytest 套件，将全部 test_count 写入 session_metrics，不能只跑单模块
 - BibTeX 条目写 `eprint` + `archivePrefix = {arXiv}` 两个字段（只有 `eprint` 不够规范）
-- 节点23候选：Flash Attention (2022) / Chain-of-Thought (2022)
 - 演示 notebook 的目标函数设计要先问"LoRA 结构上能拟合吗？"
 
-<!-- meta: verdict:PENDING score:? test_delta:+0 -->
+<!-- meta: verdict:PASS score:8.5 test_delta:-489 -->
 
 ---
 
