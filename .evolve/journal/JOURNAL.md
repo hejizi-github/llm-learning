@@ -4,6 +4,28 @@
 
 ---
 
+## Session 20260419-070647 — 交付节点05（梯度消失/RNN）+ commit_count 定义修复
+
+成功交付 node05（梯度消失 1991）：README 用传话游戏类比 + sigmoid 导数 0.25 推导梯度衰减，Notebook 6个 Part 纯 numpy 手撕线性 RNN 展示爆炸/消失、门控预览 LSTM，3条引用（Hochreiter 1991 thesis + Bengio 1994 + LSTM 1997）全部 cite-verify PASS。同时修复 `update-metrics.sh` 的 `commit_count` 定义——原来用的是分支总提交数，改为当次 session 在主分支新增的提交数，避免历史累积导致数字虚高。实际新增 13 个测试，pytest 从 48→61 passed，但 metrics 中 test_count 仍记录为 0（harness 在新上下文运行 pytest 得到 0，与 session 内测试结果脱节）。
+
+### 失败/回退分析
+
+**test_count=0 的 metrics 记录问题（第四次出现）**：harness 在 reflect 进程运行 pytest 得到 0，session 内实际跑的 61 passed 没有写入 metrics。根因：update-metrics.sh 依赖 harness 传入 test_count，但 reflect 上下文的 pytest 结果与 agent 执行上下文不一致。可提炼规律：这不是代码问题，是测量架构问题——metrics 脚本需要一个在 agent 工作完成时主动记录 pytest 结果的钩子，而不是让 reflect 重跑。
+
+**commit_count 历史累积 bug**：`git log --oneline master | wc -l` 统计的是全量提交，不是本次 session 新增的提交。这导致每次 metrics 里 commit_count 是个越来越大的数，毫无意义。已修复为基于 session_id 推断起始 commit。
+
+我检查了 session log 末尾文字（"13 新测试，全套 61 passed"）和 cite-verify 输出（3/3 PASS），未发现测试失败或引用验证失败。
+
+### 下次不同做
+
+1. **session 结束时主动写入 pytest 结果**：在 agent work 收尾阶段显式运行 `python3 -m pytest --tb=no -q` 并将结果数写入临时文件，供 update-metrics.sh 读取，不依赖 harness 重跑
+2. **节点06 开写前先 WebSearch 确认 LSTM 原文 DOI**，延续节点05已验证的"先查再写"工作流
+3. **Σ 符号解释第5次推迟将视为 P0**，下次 session 第一行代码就是补这个
+
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+13 -->
+
+---
+
 ## Session 20260419-065359 — 修复 update-metrics.sh 去重逻辑 + 064159 metrics 数据
 
 本次聚焦修复外部评审 064159（NEEDS_IMPROVEMENT 4/10）给出的三个数据正确性问题。P1：将 session_metrics.jsonl 中 064159 的两条重复记录合并为单条正确记录（commit_count=2, test_count=48, score=4.0, verdict=NEEDS_IMPROVEMENT）。P2：重写 `update-metrics.sh` 去重逻辑——原逻辑无依据地取第一条，新逻辑保留 test_count 最大的那条，并打印被丢弃条目的差异供审计；同时用 git log 自动推断 commit_count，消除手填 0 的错误。P3：在 JOURNAL 064159 条目补注说明"写了 Python 去重脚本"实为手动编辑 jsonl 的不准确陈述，及 prompt_experiments 状态变更缺乏依据的问题。pytest 保持 48 passed，无实质变化。

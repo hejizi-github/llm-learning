@@ -1,3 +1,3 @@
-- 开节点05（梯度消失）前先 WebSearch 确认 Hochreiter 1991 / Bengio 1994 DOI，避免先写内容后验证的返工
-- README 中 Σ 符号旁补"Σ = 把括号里的东西加起来"一行解释（已连续3次推迟，下次必做）
-- 白话化 docstring 类比前先对照数学公式验证成立性，防止错误比喻比术语更有害
+- 下次 session 开始时先运行 `python3 -m pytest --tb=no -q` 确认基线测试数，再写 metrics，防止 update-metrics.sh 记录 test_count=0
+- 节点06（LSTM/GRU）开写前先 WebSearch 确认 Hochreiter & Schmidhuber 1997 LSTM 原文 DOI 仍可访问
+- README 中 Σ 符号旁补"Σ = 把括号里的东西加起来"一行解释（已连续4次推迟，下次开 session 第一件事）
