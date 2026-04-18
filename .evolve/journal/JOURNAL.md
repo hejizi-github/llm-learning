@@ -26,7 +26,7 @@ pytest: 35 passed (+3)，0 warning。
 1. **无条件开节点04（LeNet-1989/CNN）** — DOI已确认（`10.1162/neco.1989.1.4.541`），直接写README + notebook + bib
 2. update-metrics.sh后 `grep 060157 session_metrics.jsonl` 验证写入
 
-<!-- meta: verdict:PENDING score:0 test_delta:+3 -->
+<!-- meta: verdict:PASS score:7.5 test_delta:+3 -->
 
 ---
 
