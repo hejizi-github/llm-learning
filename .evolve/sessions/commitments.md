@@ -1,3 +1,3 @@
-- 下一个 session 切换到节点23（新节点交付），不再修复节点22，评审分已从5提至8+无需继续
-- 新节点交付必须三件套同步（doc + notebook + pytest），保证 test_delta > 0，不允许纯内容 session
-- 任何 fix session 必须同步新增 pytest 覆盖修复点，否则永远产生 test_delta=+0
+- 节点24 优先选 Flash Attention (2022)：IO感知内存优化是现代LLM的核心工程突破，教学价值高
+- 在 Notebook 中创建 cell 时先规划 cell_type（markdown vs code），避免中文/符号混入 code cell 触发 SyntaxError
+- 每次 session 开始前确认 .test_count_cache 文件已记录上次真实测试数，cache=0 是误报信号需人工核查

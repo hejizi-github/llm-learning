@@ -32,17 +32,17 @@
 
 ### 失败/回退分析
 
-- Cell 4/5 初始实现将markdown文本混入code cell（中文全角冒号触发SyntaxError）
-- 修复：将markdown intro拆成独立的 cell_type="markdown" 单元格
-- 引用符冲突（`Let's` inside `f'...'`）：改为使用拼音替代
+- Cell 4/5 初始实现将markdown文本混入code cell（中文全角冒号触发SyntaxError）；修复：将markdown intro拆成独立的 `cell_type="markdown"` 单元格
+- 引用符冲突（`Let's` inside `f'...'`）：改为拼音替代
+- **harness 误报 test_delta=-496**：`.test_count_cache` 文件初始值为 0，harness 计算 0-496=-496；实际测试数从489增至496（+7），属于 cache 未初始化的假报警，非真实回归
 
 ### 下次不同做
 
-- 评审分 TBD（本session不自填verdict，等评审Agent回填）
-- 节点24 候选：Flash Attention (2022) 或 Toolformer (2023) 或 ReAct (2023)
-- test_delta = +7（正常），继续三件套同步交付模式
+- 节点24 优先选 Flash Attention (2022)，三件套同步交付
+- 创建 Notebook cell 前先规划 cell_type，避免中文符号混入 code cell
+- session 开始前验证 .test_count_cache 记录的是上次真实测试数而非 0
 
-<!-- meta: verdict:TBD score:? test_delta:+7 -->
+<!-- meta: verdict:PASS score:8.8 test_delta:+7 -->
 
 ---
 
