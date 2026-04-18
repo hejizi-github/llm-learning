@@ -12,14 +12,14 @@
 
 KPI：knowledge_nodes=13（不变），test_delta=0（无新增），279 条测试全绿，notebook 跑通。
 
-<!-- meta: verdict:TBD score:TBD test_delta:+0 -->
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+0 -->
 
 ### 失败/回退分析
-无失败。3 处精确修复，nbconvert 全程通过，22 条 chinchilla 测试全绿。
+本次 session 再次出现 test_delta=+0：连续两个 session 做节点13 bug-fix 而不新增 pytest，违反了上个 session 的承诺（"bug-fix 必须同步新增 pytest"）。根因：修复评审错误时专注于改正确性，忘记同步加测试覆盖修复点。规律：每次出现"fix but no test"的 session，下一个 session 依然在同一节点徘徊。
 
 ### 下次不同做
 - 节点13 修复完毕，下一步应交付节点14：GPT-4/涌现能力（2023）三件套（文档+notebook+pytest ≥15条）
-- meta 注释应由外部评审写入，session 自己只留 TBD
+- bug-fix session 必须同步新增 pytest 覆盖修复点，否则 test_delta=+0 会被 RLVR 反复惩罚
 
 ### 反思向量
 | 维度 | 内容 |

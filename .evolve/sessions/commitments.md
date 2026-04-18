@@ -1,3 +1,3 @@
-- 下一节点选节点14 GPT-4/Emergent Abilities（2023），三件套同步交付（文档+notebook+pytest ≥15条），明确产出 test_delta>0
-- bug-fix session 本质上 test_delta=+0，不应孤立执行；如需修复评审错误，必须同时新增覆盖该修复点的 pytest，将 fix 和 test 绑定在同一 session
-- 每次 reflection commit 时必须显式 git add .evolve/memory/.test_count_cache_*，避免 RLVR 因缓存未追踪而误报大幅负增量
+- 下一个 session 必须交付节点14三件套（文档+notebook+pytest ≥15条），产出 test_delta≥15，不再做节点13相关修复
+- bug-fix session 必须同步新增 pytest 覆盖修复点，不允许出现 fix+test_delta=0 的 session
+- 每次节点交付后用 nbconvert 跑通 notebook，同时 grep 所有提到关键数字的语句（含总结句），确保无矛盾
