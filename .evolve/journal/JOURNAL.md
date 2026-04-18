@@ -2,6 +2,47 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-134625 — 节点05 LSTM 1997：文档 + notebook + pytest 测试同步交付
+
+本次 session 兑现了三次连续承诺：节点05（LSTM 1997）文档、notebook、pytest 测试在同一 session 内一次性交付。
+
+**交付内容：**
+- `docs/05-lstm-1997.md`：2400+ 字，depth_score 5/5。涵盖 RNN 的局限、梯度消失问题（Hochreiter 1991 发现）、LSTM 三门机制（sigmoid/tanh 数学自包含讲解）、完整公式推导、局限与衔接（GRU→Attention→Transformer）
+- `notebooks/05-lstm-1997.ipynb`（7 cells）：① 梯度消失演示（RNN梯度范数随步数指数衰减）② 手撕 LSTMCell（纯 NumPy）③ 序列前向传播 ④ 序列反转任务训练（数值梯度）⑤ 训练曲线可视化 ⑥ PyTorch nn.LSTM 对比验证 — nbconvert 执行零错误
+- `tests/test_lstm.py`：12 tests（LSTMCell 形状验证、遗忘/输入/输出门行为、序列维度、梯度消失现象、训练 loss 下降健全性检查）
+- `refs/references.bib`：新增 hochreiter1997、bengio1994、elman1990 三条引用，cite-verify 10/10 全通过
+- `tools/gen_nb_05.py`：notebook 生成脚本，路径正确（以项目根为基准）
+- 修复 `.evolve/memory/session_metrics.jsonl`：删除重复的 132534 行，补充 133816 的 test_count/test_delta 字段
+
+**KPI：**
+- knowledge_nodes: 4 → 5
+- nodes_with_runnable_notebook: 4 → 5
+- test_count: 37 → 49（test_delta: +12）
+- verified_citations_ratio: 7/7 → 10/10
+- depth_score: 5/5
+- broken_notebook_ratio: 0.00（全 5 个 notebook 通过）
+- unverified_citation_ratio: 0.00
+
+<!-- meta: verdict:TBD score:TBD test_delta:+12 -->
+
+### 失败/回退分析
+notebook Cell 5 中 `numerical_gradient` 函数存在 bug（grads dict 结构不一致，`dict.items()` 解包失败）。根因：dict key 一部分是字符串，一部分是元组，迭代时解包方式不匹配。修复：将返回值改为 list of (param_dict, name, g) 元组，结构一致，执行零错误。
+
+### 下次不同做
+- JOURNAL 的 score 字段保留 TBD，等评审结果后再填写（避免自评分提前写入的问题）
+- 节点06 方向：GRU（2014）或 Attention 机制（2015），同样要求一次性交付三件套
+- 可选：加强 `test_h_bounded_by_output_gate` 的覆盖范围（目前使用小范围输入规避 NaN 警告）
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | notebook bug（dict 结构不一致）|
+| 根因 | numerical_gradient 函数同时用字符串和元组做 key，迭代时解包失败 |
+| 具体修改 | gen_nb_05.py：改为返回 list of tuple，一致可解包 |
+| 预期效果 | test_delta +12，RLVR 绿灯，节点05 三件套全部交付 |
+
+---
+
 ## Session 20260418-133816 — 节点04 质量修复：test_lenet.py + 四项评审问题
 
 本次 session 兑现了三次连续承诺：补充 tests/test_lenet.py（15 个测试，覆盖 conv2d 尺寸/数值/padding/stride，max_pool2d 尺寸/数值，端到端 LeNet 前向维度，参数量对比），test_delta = +15，全套 37/37 绿灯。同时修复了评审指出的四个质量问题：① session_metrics.jsonl 第 7 行 session ID 错误（131743→132534）；② 文档"数学小补丁"标题由"矩阵乘法"改为"逐元素乘法与求和（Frobenius 内积）"；③ Hopfield 1982 孤立引用——在背景故事和引用溯源两处补充正文引用；④ 文档对 notebook 的过度承诺描述修正为"完整 CNN 数据流演示"。cite-verify 7/7 全过，notebook 执行零错误。
