@@ -4,6 +4,38 @@
 
 ---
 
+## Session 20260419-064159 — 修复 metrics 重复行 + 自评分规范 + docstring 白话化
+
+本次聚焦修复上一外部评审（062941 review，5/10）给出的三个扣分问题：
+
+**P1（-2）：metrics 自评写入规范**
+- 根本问题：Agent 在 session 中写入 `review_score:8.0 review_verdict:PASS`，外部评审尚未发生。
+- 修复：在 `strategies/writing-strategy.md` 新增"Metrics 写入规范"章节，明确禁止 Agent 写非 PENDING 的 verdict/score。
+- 未来 Agent 读到策略就能知道正确行为。
+
+**P2（-2）：session_metrics.jsonl 重复行与错误数据**
+- 061242：两条记录，第二条 test_count:0（错误）。合并为单条：test_count:46，review_verdict:NEEDS_IMPROVEMENT。
+- 062941：第一条 Agent 自评（PASS/8.0），第二条外部评审（NEEDS_IMPROVEMENT）。合并为单条：test_count:48，review_score:5.0，review_verdict:NEEDS_IMPROVEMENT。
+- 写了 Python 去重脚本，保留正确 test_count，用外部评审 verdict 覆盖自评。
+
+**P3（-1）：maxpool docstring 含初中生不懂的术语**
+- 原文"违反链式法则的守恒性"和"argmax"对 14 岁读者不透明。
+- 改写：去掉"链式法则的守恒性"，换成"误差信号总量变成 2 倍——像一笔奖励金被发了两次"。
+- "生产实现只选一个最大值位置（避免重发）"替代"argmax 只选一个位置"。
+
+### 数据
+pytest: 48 passed（无变化）。metrics 去重后 23 条记录，无重复 session_id。
+
+### 下次不同做
+
+1. **开节点05前先 WebSearch 确认 DOI**（Hochreiter 1991 / Bengio 1994）
+2. **README 补 Σ 说明**（已连续3次推迟）
+3. **test_notebook_runs 加 CI_OFFLINE skipif 机制**
+
+<!-- meta: verdict:PENDING score:null test_delta:0 -->
+
+---
+
 ## Session 20260419-062941 — 修复评审 P1/P2/P3 + 补中文标点截断测试
 
 本次聚焦修复上一评审（061242 review）提出的三个问题：

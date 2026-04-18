@@ -37,6 +37,16 @@
 他需要先有什么前置知识才能听懂？」
 如果前置知识超出了初中代数+基础 Python，就重写。
 
+## Metrics 写入规范（必须遵守）
+
+**Agent 在 session 中只能写 PENDING，不得写自评分数。**
+
+- Agent 调用 `update-metrics.sh` 时：verdict 必须为 `PENDING`，score 必须为 `null` 或 `0`
+- 真实的 `review_score` 和 `review_verdict` 只能由外部评审脚本写入
+- 违反后果：外部评审会发现 Agent 自评分 ≠ 实际分，浪费两次 session 修补
+
+根源教训（session 062941）：Agent 自评 8.0/PASS → 外部评审 5.0/NEEDS_IMPROVEMENT → P1 被扣 2 分，且两次均犯同一错误。
+
 ## 历史教训
 
 - session 20260419-014925：读了 AlexNet PDF，但写出来是"大学教程风格"——
