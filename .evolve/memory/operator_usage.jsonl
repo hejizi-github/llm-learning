@@ -4,3 +4,4 @@
 {"session": "20260419-061242", "date": "2026-04-19", "goal_type": "node_delivery", "operators": ["Write", "Bash", "Read", "Grep", "notebook-run", "cite-verify"]}
 {"session": "20260419-065359", "date": "2026-04-19", "goal_type": "tooling-fix", "operators": ["update-metrics.sh", "session_metrics.jsonl", "grep", "git-log-commit-count"]}
 {"session": "20260419-070647", "date": "2026-04-19", "goal_type": "content_delivery", "operators": ["cite-verify", "update-metrics.sh", "pytest", "git log"]}
+{"session": "20260419-073905", "date": "2026-04-19", "goal_type": "infra-fix", "operators": ["update-metrics.sh", "pytest", "git log", "session_metrics.jsonl", "jq"]}

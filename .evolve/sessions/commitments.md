@@ -1,3 +1,3 @@
-- 下次 session 直接开写节点06（LSTM/GRU）实质内容，不再修复元工具——test_delta=+0 两次，已无元工具增量空间
-- 节点06开写前先 WebSearch 确认 Hochreiter & Schmidhuber 1997 DOI `10.1162/neco.1997.9.8.1735` 可访问，延续节点05"先引用再写内容"工作流
-- agent work 结束前主动运行 pytest --tb=no -q 并写入临时文件，供 update-metrics.sh 读取，彻底解决 test_count=0 度量误差
+- 节点06（LSTM/GRU）正式开写：session 第一步先用 WebSearch 确认 Hochreiter & Schmidhuber 1997 LSTM 原文 DOI `10.1162/neco.1997.9.8.1735` 可访问，再写内容
+- 验证 update-metrics.sh 的 test_count 修复是否在 harness reflect 阶段生效：检查 /tmp/pytest_result_<session>.txt 是否被 harness 清理，如被清理则改为写入 .evolve/tmp/ 目录（项目内持久）
+- 节点06 引用先行：先 cite-verify LSTM 1997、GRU 2014、Bengio 1994 三篇，再写内容，不走捷径

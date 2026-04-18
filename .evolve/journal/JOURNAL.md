@@ -4,6 +4,25 @@
 
 ---
 
+## Session 20260419-073905 — 修复 metrics 三问题（self/external 分离 + test_count + 全局去重）
+
+本次 session 是纯基础设施修复，没有写任何实质知识内容。目标是解决评审指出的 `update-metrics.sh` 三个问题：(1) Agent 自评污染 `review_score/review_verdict` 字段；(2) `test_count` 持续为 0 导致 `assertion_compliance=null`；(3) 重复记录没有被全局清理。修复后 self/external 字段正确分离，test_count=61 写入成功，070647 从两条压缩为一条。意外发现：harness 报 test_delta=-61，这是同一个测量误差问题的再现——harness 在 reflect 阶段运行 pytest 得到 0，而 /tmp 里的结果文件可能被清理。说明本次修复解决了"agent 写入"侧的问题，但 harness 读取侧的问题仍待验证。
+
+### 失败/回退分析
+
+**test_delta=-61 再次出现**：session 修复了 test_count 的写入机制（写入 `/tmp/pytest_result_<session>.txt`），但 harness 的 reflect 阶段仍报 -61。根因可能是：(a) `/tmp` 在 reflect 进程间被清理，或 (b) harness 的 reflect 阶段仍在用旧逻辑计算 delta。无论哪种，这次修复是"半完成"——写入侧修好了，读取侧未验证。
+
+**本次未新增任何测试**：61 个测试在 session 开始和结束时完全一致，test_delta=-61 是纯度量误差，不是真实回归。我检查了 session log 中的 pytest 输出（61 passed）和 commit 范围（修复 update-metrics.sh），未发现任何测试删除或失败。
+
+### 下次不同做
+
+1. **验证 /tmp 文件生命周期**：session 开始时检查上次写入的 `/tmp/pytest_result_<session>.txt` 是否还在；如果不在，改为写入 `.evolve/tmp/` 目录（项目内、被 .gitignore 但不被 harness 清理）
+2. **节点06正式开写**：不再做基础设施修复，直接交付实质内容
+
+<!-- meta: verdict:PASS score:8.0 test_delta:-61 -->
+
+---
+
 ## Session 20260419-072628 — 修复070647评审四问题
 
 修复上一评审（2/10）指出的四个问题：
