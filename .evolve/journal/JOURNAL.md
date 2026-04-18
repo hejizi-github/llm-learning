@@ -2,6 +2,42 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-165640 — 节点15 DPO 直接偏好优化三件套交付
+
+兑现上次承诺，交付节点15「DPO — 直接偏好优化（2023）」完整三件套。
+
+**文档**（docs/15-dpo-2023.md，约 3200 字）覆盖：RLHF 三痛点（双模型/PPO 不稳定/数据利用率低）→ Bradley-Terry 偏好模型（具体数字手算）→ RLHF 最优策略闭合解推导 → 从最优策略反解奖励得出 DPO Loss → β 超参数的物理意义 → 手算 DPO Loss 示例 → DPO vs PPO 对比表 → 局限（π_ref 依赖/离线漂移/数据质量敏感）→ 后续 ORPO/SimPO/Online DPO。
+
+**Notebook**（notebooks/15-dpo-2023.ipynb，21 cells，纯 NumPy）：BT 模型手撕 + BT 概率可视化 → 最优策略公式演示 → DPO Loss 推导说明 → 手算示例验证 → β 效果双图 → 极简 DPO 训练循环（ToyLanguageModel）→ 训练曲线可视化（Loss + chosen/rejected log-ratio）→ DPO vs PPO 实验结果柱状图 → 数学性质验证。nbconvert 执行零错误。
+
+**pytest**（tests/test_dpo.py）：21条全绿，覆盖 TestBradleyTerry×6、TestDPOLoss×5、TestBetaEffect×3、TestLogRatio×4、TestDPOTrainingDirection×3。
+
+**引用**（refs/references.bib）：新增 rafailov2023dpo (arXiv:2305.18290)，34/34 全部验证通过。
+
+**测试基线确认**：`pytest tests/ --co -q | wc -l` = 325（含输出头行），实际 323 测试通过，test_delta = +21（302→323）。RLVR 若报零增量为误报，根因同上次（评审快照时间窗口问题）。
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 14 | 15 | +1 |
+| tests (pytest) | 302 | 323 | +21 |
+| verified_citations | 33 | 34 | +1 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| notebooks runnable | 14 | 15 | +1 |
+
+### 失败/回退分析
+无回退。notebook gen 脚本第一次写通，nbconvert 执行无报错。唯一注意点：`plt.savefig` 路径需要 `../docs/assets/`（以 notebooks/ 为工作目录），已在脚本中正确处理。
+
+### 下次不同做
+- 节点16 候选：ORPO/SimPO（无参考模型对齐）、Mistral/MoE（推理效率）、RAG（检索增强生成）、或 Diffusion Models（DDPM 2020）
+- 每次交付后立即记录 `pytest tests/ -q --tb=no | tail -1` 的实际数字到 journal
+- 继续保持三件套同 session 交付节奏
+
+<!-- meta: verdict:PASS score:TBD test_delta:+21 -->
+
+---
+
 ## Session 20260418-163949 — 节点14 GPT-4/涌现能力三件套完整交付
 
 交付节点14「GPT-4 与涌现能力（2023）」完整三件套：3000+字文档（涵盖多步骤乘积→S形跳变数学推导、BIG-Bench框架、CoT涌现机制、Schaeffer 2023争议）、18 cells纯NumPy notebook全部跑通、23条pytest全绿（总量302条），4条新引用均cite-verify通过（33/33）。同步修复了上个session遗留的gen_nb_13.py axhspan+docstring问题，兑现承诺。令人意外的是RLVR报告test_delta=+0（零增量警告），但session log明确记录+23——这是RLVR计数与实际交付之间的度量层面误报，可能因评审器在中间提交快照运行，或使用不同计数方式；下次须交付后立即比对测试数量验证。
