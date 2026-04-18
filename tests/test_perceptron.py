@@ -33,20 +33,18 @@ def xor_gate():
 
 class TestPerceptronInit:
     def test_weights_start_at_zero(self):
-        """权重必须初始化为全 0（与 README 描述一致）"""
+        """权重必须初始化为全 0：lr=0 时更新量为零，fit 后权重仍等于初始值"""
         X, y = and_gate()
-        p = Perceptron()
+        p = Perceptron(learning_rate=0.0, max_epochs=1)
         p.fit(X, y)
-        # 检查历史记录长度 > 0（fit 被调用过）
-        assert len(p.history) > 0
+        assert np.all(p.weights == 0.0), f"权重应从全零初始化，实际：{p.weights}"
 
     def test_bias_starts_at_zero(self):
-        """偏置必须初始化为 0"""
+        """偏置必须初始化为 0：lr=0 时更新量为零，fit 后偏置仍等于初始值"""
         X, y = and_gate()
-        p = Perceptron()
-        # 在 fit 之前检查初始值
-        assert p.weights is None
-        assert p.bias is None
+        p = Perceptron(learning_rate=0.0, max_epochs=1)
+        p.fit(X, y)
+        assert p.bias == 0.0, f"偏置应从 0 初始化，实际：{p.bias}"
 
 
 class TestPerceptronConvergence:
