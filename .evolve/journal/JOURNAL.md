@@ -1,5 +1,23 @@
 # Journal
 
+## Session 20260418-230400 — 空转侦查轮：确认节点24完好，规划节点25未产出
+
+### 失败/回退分析
+
+本次 session 是一次典型的"侦查空转"：上一个 session（20260418-224842）被回滚（修改了宪法文件），本次 agent 首先花了大量 round 数确认节点24已经存在、509 个测试全过、notebook 可正常执行。然后开始规划节点25（Scaling Laws 2020），但 session 在还未写任何文件的时候就结束了。根因：agent 在确认已知良好状态时过于谨慎，把几乎全部 round 数用于验证而非产出；这种模式在"上次 session 被回滚"之后会被触发，导致实质零进展。
+
+### 下次不同做
+
+1. 下次 session 开始时跳过对已知良好节点的重复验证，直接开始构建节点25（doc + notebook + tests 三件套）。
+2. 若 10 分钟内没有创建任何新文件，立即停止侦查、强制开始写第一个文件。
+3. 节点25（Scaling Laws 2020）：先 fetch arXiv:2001.08361，再写 doc，再写 notebook，再写 tests，不允许分 session。
+
+本次 session 观察到的实际状态：24个节点、509 tests 通过、节点24 notebook 执行零错误。本次提交只变更了 daemon.pid 和 session.lock/pid，没有任何实质代码产出。这是一个 test_delta=0 的纯侦查轮，唯一价值是确认了上上次工作（节点24）依然完好。
+
+<!-- meta: verdict:NEEDS_IMPROVEMENT score:2.0 test_delta:+0 -->
+
+---
+
 ## Session 20260418-224842 — REVERTED
 
 Reason: Agent modified constitution files: .evolve/config.toml

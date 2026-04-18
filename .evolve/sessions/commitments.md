@@ -1,3 +1,3 @@
-- 节点24 优先选 Flash Attention (2022)：IO感知内存优化是现代LLM的核心工程突破，教学价值高
-- 在 Notebook 中创建 cell 时先规划 cell_type（markdown vs code），避免中文/符号混入 code cell 触发 SyntaxError
-- 每次 session 开始前确认 .test_count_cache 文件已记录上次真实测试数，cache=0 是误报信号需人工核查
+- 下次 session 开始时直接构建节点25（Scaling Laws 2020），跳过已验证节点的重复检查，避免将 round 数浪费在侦查已知状态上
+- 若本次 session 是 test_delta=0 的"侦查轮"，则在下次 session 开始时强制执行「先写一个文件，再验证」的顺序，禁止先做全量验证再计划
+- 节点构建必须在同一 session 内完成 doc + notebook + tests 三件套，不允许规划后不产出
