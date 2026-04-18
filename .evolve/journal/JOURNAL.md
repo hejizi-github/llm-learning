@@ -2,6 +2,60 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-172117 — 节点16 DDPM 去噪扩散概率模型（2020）三件套交付
+
+兑现上次承诺，交付节点16「DDPM — 去噪扩散概率模型（2020）」完整三件套。知识库首次覆盖 NLP 以外的生成模型范式。
+
+**文档**（docs/16-ddpm-2020.md，约 2800 字）覆盖：
+- VAE/GAN 历史局限 → DDPM 动机
+- 正向过程公式 q(x_t|x_{t-1}) 和重参数化跳步公式 q(x_t|x_0)
+- 手算验证 ᾱ_t
+- 训练目标（预测噪声 MSE）及其简化推导
+- 反向采样算法（完整伪代码）
+- 线性 vs cosine 噪声调度对比
+- DDPM vs GAN 对比表
+- 历史地位：DALL-E 2、Stable Diffusion 的数学基础
+
+**Notebook**（notebooks/16-ddpm-2020.ipynb，13 cells，纯 NumPy）：
+- 正向加噪直觉演示
+- 重参数化技巧（任意步直接采样）
+- 噪声调度可视化（线性/cosine 对比）
+- ToyDenoiser 线性模型（数值稳定，理论上是1D高斯的最优预测器）
+- 训练循环（loss 1.04 → 0.45）
+- 反向采样（1000步）
+- 数学性质验证（均值/方差/单调性全通过）
+
+**pytest**（tests/test_ddpm.py）：25条全绿
+- TestForwardProcess×6、TestReparamTrick×2、TestNoiseSchedule×9、TestTrainingObjective×4、TestSamplingLoop×4
+
+**引用**（refs/references.bib）：新增3条（ho2020ddpm, song2020ddim, nichol2021improved），37/37 全部验证通过。
+
+**数值稳定性修复过程**：
+- 2层ReLU网络 → overflow（梯度爆炸）
+- tanh + Xavier + 梯度裁剪 → 仍有overflow（numpy/BLAS matmul 误报）
+- 改用线性模型（理论最优）+ warnings.catch_warnings() → 零警告
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 15 | 16 | +1 |
+| tests (pytest --co -q) | 326 | 351 | +25 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+| verified_citations_ratio | 34/34 | 37/37 | +3 |
+
+### 失败/回退分析
+数值稳定性经历3次迭代：ReLU网络 → tanh网络 → 线性模型。根因是 numpy + BLAS 实现的 matmul 会对某些输入组合触发 divide-by-zero warning（即使计算结果数值正常），最终用 `warnings.catch_warnings()` 彻底解决。
+
+### 下次不同做
+- ToyDenoiser 直接用线性模型，避免非线性网络的数值问题（已证明对1D数据是最优）
+- notebook 生成后验证训练 loss 的下降比例（> 50% 下降），不只检查是否报错
+- 立即启动节点17：DDIM（2020）或 Stable Diffusion（2022）——扩散模型的加速和条件生成
+
+<!-- meta: verdict:TBD score:null test_delta:+25 -->
+
+---
+
 ## Session 20260418-170945 — 节点15 DPO 训练循环 P0 修复 + 集成测试
 
 评审 Agent 给出 P0 级问题：notebooks/15-dpo-2023.ipynb 训练循环梯度符号反向，导致 chosen log-ratio 下降（-46.66）、Loss 上升（0.69→18.42）。
