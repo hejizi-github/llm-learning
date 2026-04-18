@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Run a Jupyter notebook and report pass/fail. Exits 0 on success, 1 on failure."""
+import sys
+import subprocess
+import os
+
+def run_notebook(path):
+    if not os.path.exists(path):
+        print(f"FAIL: file not found: {path}")
+        return False
+    result = subprocess.run(
+        [
+            "jupyter", "nbconvert", "--to", "notebook",
+            "--execute",
+            "--ExecutePreprocessor.timeout=120",
+            "--output", "/tmp/_nb_run_output.ipynb",
+            path,
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode == 0:
+        print(f"PASS: {path}")
+        return True
+    else:
+        print(f"FAIL: {path}")
+        if result.stderr:
+            print(result.stderr[-2000:])
+        return False
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: tools/notebook-run <notebook.ipynb> [<notebook2.ipynb> ...]")
+        sys.exit(1)
+    results = [run_notebook(p) for p in sys.argv[1:]]
+    sys.exit(0 if all(results) else 1)

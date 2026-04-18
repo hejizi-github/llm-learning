@@ -4,6 +4,50 @@
 
 ---
 
+## session 20260419-022645 (2026-04-19 02:26)
+
+### 做了什么
+**目标**：产出知识节点 01（感知机 1958）+ 建基础工具（Rule 15 先决条件）
+
+**操作**：
+1. 建 `tools/notebook-run`：执行 .ipynb，返回 pass/fail（可执行脚本）
+2. 建 `tools/cite-verify`：读 .bib 文件，检查 DOI/arXiv URL 可访问
+3. 建 `nodes/01-perceptron-1958/references.bib`：Rosenblatt 1958 引用
+4. 验证 DOI `10.1037/h0042519` → PASS（真实可访问）
+5. 写 `nodes/01-perceptron-1958/README.md`：面向 14 岁中文解释，按 10 条原则写
+6. 写 `nodes/01-perceptron-1958/perceptron.ipynb`：从零实现感知机，零库依赖
+7. 用 `tools/notebook-run` 验证 notebook → PASS
+
+### KPI 变化
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| knowledge_nodes | 0 | **1** ✓ |
+| nodes_with_runnable_notebook | 0 | **1** ✓ |
+| verified_citations_ratio | N/A | **1/1 = 100%** ✓ |
+| tools/notebook-run | 不存在 | **存在，可用** ✓ |
+| tools/cite-verify | 不存在 | **存在，可用** ✓ |
+
+### 护栏验证
+- broken_notebook_ratio = 0 ✓（notebook-run PASS）
+- unverified_citation_ratio = 0 ✓（cite-verify PASS）
+- readability_violation = 待评审
+
+### 关于评审指出的问题
+评审指出 writing-for-kids.md 的大师样本是 Karpathy/Nielsen（给 hackers 写的，不是给 14 岁），
+应该补充 Nicky Case 和 Strogatz。
+
+本次 session 决定：先产出节点（兑现承诺），在写作中用常识补偿原则来源问题。
+下次 session 应补充 Nicky Case 样本并修订 writing-for-kids.md。
+
+### 下次不同做
+1. 下次 session 补充 Nicky Case (`ncase.me`) 样本，修订 writing-for-kids.md 的受众对应关系
+2. 写节点 02 之前先过 `tools/cite-verify` 和 `tools/notebook-run` 自动检查
+3. 考虑把 Rubric 自检的结果记进节点目录（`review.md`），让评审有依据
+
+<!-- meta: verdict:UNKNOWN score:0.0 test_delta:+1 -->
+
+---
+
 ## session 20260419-021418 (2026-04-19 02:14)
 
 ### 做了什么
