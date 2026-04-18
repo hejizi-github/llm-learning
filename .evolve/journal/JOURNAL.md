@@ -34,7 +34,7 @@
 - 每次交付后立即记录 `pytest tests/ -q --tb=no | tail -1` 的实际数字到 journal
 - 继续保持三件套同 session 交付节奏
 
-<!-- meta: verdict:PASS score:TBD test_delta:+21 -->
+<!-- meta: verdict:PASS score:8.8 test_delta:+21 -->
 
 ---
 

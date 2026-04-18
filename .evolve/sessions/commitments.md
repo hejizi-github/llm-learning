@@ -1,3 +1,3 @@
-- 下一个 session 立即交付节点15三件套（doc+notebook+pytest≥15），不做任何 fix-only session
-- 每次交付完成后立即运行 `python -m pytest tests/ --co -q | wc -l` 确认测试数量，与 session log 中的 test_delta 对齐，发现 RLVR 误报时在 journal 中标注根因
-- 新节点 notebook 所有图例、轴标签、打印输出统一用中文，不用英文动态字符串作为可读标签
+- 立即启动节点16三件套（从 RAG/ORPO/DDPM 选一），不在已完成的节点15上做任何追加
+- 交付完成后立即运行 `pytest tests/ --co -q | wc -l` 记录实际数字，在 journal meta 中写入真实 test_delta，不被 RLVR 零增量误报干扰
+- 新节点 notebook 生成脚本第一遍写完后先用 `nbconvert --to notebook --execute` 验证零错误再提交
