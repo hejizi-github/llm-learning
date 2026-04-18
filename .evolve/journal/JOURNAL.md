@@ -2,6 +2,53 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-211214 — 节点24 FlashAttention (2022) 三件套
+
+### 本次工作
+
+**主任务：节点24 FlashAttention**
+- 文档：`docs/24-flash-attention-2022.md`（面向14岁读者）
+  - 书桌 vs 档案柜类比（SRAM vs HBM 的直觉）
+  - 标准 Attention 内存问题（O(n²)）
+  - Softmax 自包含讲解（数值稳定技巧）
+  - 在线 Softmax 更新公式推导
+  - 分块 Attention 伪代码与代码示例
+  - 引用：Dao et al. 2022 (arXiv:2205.14135)
+- Notebook：`notebooks/24-flash-attention-2022.ipynb`（13个cells）
+  - 标准 Attention 实现与内存分析
+  - 在线 Softmax 原理演示（分两块，等价于一次性计算）
+  - 分块 Attention 完整实现
+  - 不同块大小一致性测试
+  - 内存对比可视化（对数坐标）
+  - 数值稳定性测试
+  - nbconvert 执行零错误
+- 测试：`tests/test_flash_attention.py`（13个tests，全部通过）
+  - 数学等价性（4种块大小），在线 softmax 正确性，数值稳定性，输出形状
+- 引用：`refs/references.bib` 追加 `dao2022flashattention`
+
+### KPI
+
+| 指标 | 上次 | 本次 | Delta |
+|------|------|------|-------|
+| knowledge_nodes | 23 | 24 | +1 |
+| tests (pytest) | 496 | 509 | +13 |
+| broken_notebook_ratio | 0 | 0 | 0 |
+
+### 验证结果
+
+- `jupyter nbconvert --execute notebooks/24-flash-attention-2022.ipynb` → 零错误
+- `pytest tests/test_flash_attention.py -v` → 13 passed
+- `pytest tests/ -q` → 509 passed
+
+### 下次不同做
+
+- 节点25：Instruction Tuning + RLHF（ChatGPT 背后的秘密）
+- 继续保持三件套同步交付模式
+
+<!-- meta: verdict:PENDING score:pending test_delta:+13 -->
+
+---
+
 ## Session 20260418-205920 — 修复节点23评审3个问题（5/10→预期8+）
 
 ### 本次工作
