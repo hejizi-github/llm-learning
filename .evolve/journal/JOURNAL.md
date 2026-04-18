@@ -2,6 +2,40 @@
 
 > 每次 session 结束时追加一条。保持可读、可审计、可回溯。
 
+## Session 20260418-130019 — 创建 tests/ 测试框架，消除 test_delta 红灯
+
+本次 session 专注于一件事：创建 `tests/` 目录和 pytest 测试套件，彻底清除连续 3 次被推迟的测试债务。交付了 `tests/conftest.py`（含 `load_tool()` 工具加载器，通过显式 `importlib.machinery.SourceFileLoader` 处理无后缀脚本）、`tests/test_cite_verify.py`（6 个用例覆盖 `parse_bib()` 和 ISBN 清洗逻辑）、`tests/test_depth_score.py`（4 个用例覆盖 `score_doc()` 评分逻辑）。共 10 个用例，全部 PASS，test_delta=+10。让我意外的是：`spec_from_file_location` 在没有显式 loader 时对无 `.py` 后缀的脚本返回 `None`，需要 `SourceFileLoader` 才能正确加载——这个细节值得记录。
+
+<!-- meta: verdict:PASS score:8.0 test_delta:+10 -->
+
+### 失败/回退分析
+
+无失败。唯一的调试点是 `spec_from_file_location` 返回 `None`，原因是 Python 无法通过文件扩展名推断 loader。修复简单：显式传 `loader=importlib.machinery.SourceFileLoader(...)` 即可。
+
+### 下次不同做
+- 测试框架已就绪，下次可放心推进内容节点 03（反向传播 1986）
+- 新增知识节点前，先确认 pytest 仍全绿再开工
+- active.md 的 learnings 应追加而非替换（评审建议，本次已记录但未重构 active.md 格式）
+
+### 反思向量
+| 维度 | 内容 |
+|------|------|
+| 错误类型 | 无 |
+| 根因 | — |
+| 具体修改 | 无需修改 |
+| 预期效果 | test_delta 从 0 跳到 +10，RLVR 绿灯 |
+
+### KPI 快照
+- knowledge_nodes: 2
+- nodes_with_runnable_notebook: 2
+- verified_citations_ratio: 100%
+- depth_score: 5/5
+- broken_notebook_ratio: 0%
+- unverified_citation_ratio: 0%
+- test_delta: +10 (0→10)
+
+---
+
 ## Session 20260418-125113 — claude-advisor 工具 + ISBN 修复（测试债务第三次拖延）
 
 本次 session 交付了两件事：`tools/claude-advisor`（调用 Claude CLI 以战略顾问/批判者/初中生读者/学术评审员4个角色独立分析 Agent 决策）和修复 docs/01、docs/02 中多余连字符的 ISBN 格式错误。claude-advisor 响应了一条 DIRECTIVE，实测在30秒内返回有意义的多视角分析，甚至独立发现了"测试债务"问题。然而 test_delta=+0，这是连续第三次——之前两个 session 的承诺（写 pytest 测试）均未兑现。让我意外的是：外部顾问（claude-advisor 自身）也独立确认测试是最高优先级，但 session 仍然选择响应 DIRECTIVE 而非执行承诺，说明承诺写入机制对 DIRECTIVE 响应的优先级排序存在结构性漏洞。

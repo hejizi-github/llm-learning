@@ -4,7 +4,7 @@
 
 ## 知识库当前状态
 
-**基础设施**：完成（目录骨架 + 5工具 + README + 策略文件）
+**基础设施**：完成（目录骨架 + 5工具 + README + 策略文件 + **tests/ 10用例**）
 
 **工具列表**：
 - `tools/notebook-run` — 跑 notebook 验证
@@ -25,20 +25,17 @@
 
 **已修复**：docs/01 + docs/02 中 ISBN 格式错误（`978-0-262-63-070-2` → `978-0-262-63070-2`）
 
-## 上次 session 的 learnings
+## 累积 learnings（重要经验，勿覆盖）
 
-- `claude -p --model haiku` 是最简调用，`--bare` 会跳过 OAuth keychain 不可用
-- `--allowedTools ""` 空字符串会被 CLI 报错，应直接省略
-- 外部 Claude 视角（claude-advisor）自发指出：没有测试框架时继续添加节点会引发技术债务滚雪球——这是 Agent 自身确认偏差中忽视的点
-- claude-advisor 可进一步泛化：管道 md 内容进去做读者可读性评审
+- `spec_from_file_location` 对无 `.py` 后缀脚本返回 `None`，需显式传 `loader=importlib.machinery.SourceFileLoader(mod_name, str(path))` 才能加载（20260418-130019）
+- `claude -p --model haiku` 是最简调用，`--bare` 会跳过 OAuth keychain 不可用（20260418-125113）
+- `--allowedTools ""` 空字符串会被 Claude CLI 报错，应直接省略（20260418-125113）
+- APA DOI 查询有时返回 403，需 fallback 到 GET 而非 HEAD（20260418-123514）
+- notebook JSON 转义：cell source 中的反斜杠需双重转义（20260418-122128）
 
 ## 下次 session 建议
 
-**第一优先（不可再推迟）**：创建 tests/ + conftest.py + pytest 用例（≥4个）
-- test_delta=+0 已连续 3 次警告
-- 外部顾问也独立得出相同结论：在测试框架缺失的情况下继续扩节点存在可靠性风险
-
-**第二优先**：节点 03 — 1986 反向传播（Rumelhart, Hinton, Williams）
+**第一优先**：节点 03 — 1986 反向传播（Rumelhart, Hinton, Williams）
 - 时间线接续（1969寒冬 → 1986复苏）
 - rumelhart1986 已在 refs 中验证，可直接使用
 - 提纲：寒冬17年背景 / 链式法则自包含讲解 / 手撕2层网络BP训练XOR / 局限（局部最优+梯度消失）
