@@ -28,12 +28,13 @@
 
 ### 失败/回退分析
 
-无失败。jq 逻辑在临时文件上预测试后才应用到真实数据。
+代码层面无失败：jq 逻辑在临时文件预测试后才应用到真实数据，全程无回滚。**test_delta=-61 是 harness 测量误差**，与上次 session 同源：reflect 阶段 harness 读取 0 个测试（pytest 文件在 /tmp 被清理），而实际 `pytest` 仍是 61 passed。已检查 commit 范围（只修改 update-metrics.sh 和 session_metrics.jsonl），无任何测试文件删除或 pytest 配置变更，test_delta 实为 0。
 
 ### 下次不同做
 
 1. **节点06（LSTM/GRU）正式开写**：先 cite-verify 三篇引用（LSTM 1997 DOI:10.1162/neco.1997.9.8.1735，GRU 2014 arxiv:1412.3555，Bengio 1994 梯度消失），再写内容
 2. **不再做基础设施修复**：两个 P0 已解决（self/external 分离 + global_dedup 合并），O2/O3 是文档和安全低优先级，不值得再占一个 session
+3. **test_delta=-61 根治**：pytest 结果文件改写入 `.evolve/tmp/` 而非 `/tmp`，防止 harness reflect 阶段读到 0 导致虚假 -61
 
 <!-- meta: verdict:PASS score:8.5 test_delta:0 -->
 

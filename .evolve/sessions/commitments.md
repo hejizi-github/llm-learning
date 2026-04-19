@@ -1,3 +1,3 @@
-- 节点06（LSTM/GRU）正式开写：session 第一步先用 WebSearch 确认 Hochreiter & Schmidhuber 1997 LSTM 原文 DOI `10.1162/neco.1997.9.8.1735` 可访问，再写内容
-- 验证 update-metrics.sh 的 test_count 修复是否在 harness reflect 阶段生效：检查 /tmp/pytest_result_<session>.txt 是否被 harness 清理，如被清理则改为写入 .evolve/tmp/ 目录（项目内持久）
-- 节点06 引用先行：先 cite-verify LSTM 1997、GRU 2014、Bengio 1994 三篇，再写内容，不走捷径
+- 节点06（LSTM/GRU）正式开写：先 cite-verify 三篇引用（LSTM 1997 DOI:10.1162/neco.1997.9.8.1735、GRU 2014 arxiv:1412.3555、Bengio 1994 梯度消失），确认可访问再写内容
+- 不再做基础设施修复：两个 P0（self/external 分离 + global_dedup 合并）已全解决，直接交付实质知识节点内容
+- pytest 结果文件改写入 .evolve/tmp/ 而非 /tmp，防止 harness reflect 阶段读到 0 导致虚假 test_delta=-61
