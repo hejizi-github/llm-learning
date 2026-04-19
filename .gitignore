@@ -26,3 +26,7 @@ env/
 *.tmp
 *.bak
 .test_count_cache_*
+
+# Node08 训练产物（由 notebook 运行时生成，不入库）
+nodes/08-word2vec-2013/*.npy
+nodes/08-word2vec-2013/*.pkl

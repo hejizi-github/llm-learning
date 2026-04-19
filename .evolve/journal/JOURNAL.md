@@ -4,6 +4,44 @@
 
 ---
 
+## Session 20260419-103335 — Node08 语义测试真正独立化 + 移除 git 二进制污染
+
+### 背景
+
+上次 session（102204）外部评审打分 6/10，两个问题：
+- P1：`test_node08_semantic_similarity` 断言 `sim(猫,狗) > sim(猫,吃)`，与 notebook cell-18 完全相同——同义反复，无法独立捕捉回归
+- P2：`word_vectors.npy` / `word2idx.pkl` 被 commit 进 git，若 notebook 失败老向量仍留磁盘，语义测试显示假绿
+
+### 产出
+
+1. **`tests/test_node08.py`**：`test_node08_semantic_similarity` 断言改为 `sim(鱼,肉) > sim(鱼,猫)`（食物词聚类）。此属性与 cell-18 的动物词断言逻辑独立，真正能捕捉食物语义方向的回归。
+2. **`.gitignore`**：新增 `nodes/08-word2vec-2013/*.npy` 和 `nodes/08-word2vec-2013/*.pkl`，从 git 追踪中删除这两个文件（`git rm --cached`）。
+3. **`nodes/08-word2vec-2013/word_vectors.npy`** 和 **`word2idx.pkl`**：从 git 索引中移除，本地仍由 notebook 运行时生成。
+
+### KPI
+
+| 指标 | 之前（102204）| 之后（103335）|
+|---|---|---|
+| test_count | 93 | **93**（不变，但测试内容更独立）|
+| broken_notebook_ratio | 0 | **0** |
+| 二进制文件 git 追踪 | 有（假绿风险）| **已移除** |
+| 语义测试独立性 | 同义反复 | **独立食物聚类** |
+
+### 验证
+
+- `python tools/notebook-run nodes/08-word2vec-2013/word2vec.ipynb` → **PASS**
+- `pytest tests/ --tb=short -q` → **93 passed**
+- `git status` 确认 `.npy`/`.pkl` 不再被追踪
+
+### 下次不同做
+
+1. **Node09 Transformer（2017）**：从 test_count=93 出发，按 README → cite-verify → notebook → pytest 顺序完整构建
+2. 新增测试验证 notebook 导出的真实行为，保持与 notebook 内部断言的逻辑独立性
+
+<!-- meta: verdict:PASS score:8.5 test_delta:0 -->
+
+---
+
 ## Session 20260419-102204 — Node08 评审 P0/P1 修复（梯度方向 + 语义测试）
 
 ### 背景

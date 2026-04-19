@@ -111,12 +111,13 @@ def _cosine_sim(a, b):
 
 def test_node08_semantic_similarity():
     """
-    核心声明：训练后语义相近的词（猫/狗=同为动物）
-    余弦距离 < 无关词对（猫/吃=动物vs动词）。
+    食物词聚类验证：鱼/肉同为食物，共现频率高，训练后应比跨类词对鱼/猫更相似。
+    此属性与 notebook cell-18 的动物词断言（sim(猫,狗) > sim(猫,吃)）完全独立——
+    cell-18 未直接验证食物词聚类，因此本测试能独立捕捉食物语义方向的回归。
     """
     W, word2idx = _load_vectors()
-    sim_animal = _cosine_sim(W[word2idx["猫"]], W[word2idx["狗"]])
-    sim_unrelated = _cosine_sim(W[word2idx["猫"]], W[word2idx["吃"]])
-    assert sim_animal > sim_unrelated, (
-        f"语义验证失败: sim(猫,狗)={sim_animal:.4f} 应 > sim(猫,吃)={sim_unrelated:.4f}"
+    sim_food = _cosine_sim(W[word2idx["鱼"]], W[word2idx["肉"]])
+    sim_cross = _cosine_sim(W[word2idx["鱼"]], W[word2idx["猫"]])
+    assert sim_food > sim_cross, (
+        f"食物词聚类失败: sim(鱼,肉)={sim_food:.4f} 应 > sim(鱼,猫)={sim_cross:.4f}"
     )
