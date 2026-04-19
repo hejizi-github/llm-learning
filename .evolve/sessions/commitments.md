@@ -1,3 +1,3 @@
-- 下次 session 从节点07（Attention 机制 2015）开始，严格按 README → cite-verify → notebook → pytest_test 顺序执行，不跳步骤
-- 每个新节点必须同步创建至少一个 pytest 测试函数（如 test_node07_notebook_exists），确保 test_delta > 0
-- 调用 update-metrics.sh 时始终使用 verdict=PENDING score=null，JOURNAL meta 行不写具体评分，彻底杜绝 self_score 违规
+- 节点06 GRU 梯度验证 P2 仍未解决：下次 session 首先处理——要么在 tests/test_node06.py 中加真正的梯度验证（数值差分 vs 解析梯度），要么把 goal #2 的措辞改成准确描述实际做到的事，不允许绕过
+- 下一个内容节点是节点08（Word2Vec 2013），严格按 README → cite-verify → notebook → pytest 顺序，不跳步骤
+- session_metrics.jsonl 修改策略：只允许追加新条目（含 session 字段），不允许原地修改已有条目；历史修正必须用 amended_for 字段标注来源 session
