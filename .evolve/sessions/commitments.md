@@ -1,3 +1,3 @@
-- 节点06（LSTM/GRU）正式开写：先 cite-verify 三篇引用（LSTM 1997 DOI:10.1162/neco.1997.9.8.1735、GRU 2014 arxiv:1412.3555、Bengio 1994 梯度消失），确认可访问再写内容
-- 不再做基础设施修复：两个 P0（self/external 分离 + global_dedup 合并）已全解决，直接交付实质知识节点内容
-- pytest 结果文件改写入 .evolve/tmp/ 而非 /tmp，防止 harness reflect 阶段读到 0 导致虚假 test_delta=-61
+- 下次 session 从节点06（LSTM/GRU）实质内容开始：先 cite-verify 三篇引用（LSTM 1997 DOI:10.1162/neco.1997.9.8.1735，GRU 2014 arxiv:1412.3555，Bengio 1994 梯度消失），确认可访问再动笔
+- 不再碰基础设施：P1/P2/P3 已全部关闭，任何新的 infrastructure issue 除非影响正确性，否则跳过
+- session 开始前先运行 `bash tools/uncovered-lines.sh`，确认是否有真实未覆盖行，否则直接跳测试、做知识内容

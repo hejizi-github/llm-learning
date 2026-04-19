@@ -27,12 +27,17 @@
 - `bash tools/update-metrics.sh --external 20260419-080544 PASS 9.0` → 验证通过
 - `jq -en --argjson a "8" --argjson b "8.0" '$a == $b'` → true（P2 核心场景）
 
+### 失败/回退分析
+
+代码层面无失败：P1/P2/P3 三个修复均验证通过（jq 数值比较 `8==8.0` 返回 true，两个 update-metrics 场景手工跑通）。**test_delta=0** 是预期结果——本次是纯基础设施修复，不涉及 pytest 测试路径。但连续多个 session 都在做 infrastructure 修复而没有推进节点知识内容，说明"基础设施完成再写内容"的判断一再延后，是一个方向漂移风险。我检查了 commit 范围：仅修改 `tools/update-metrics.sh`，无测试文件变更，test_delta=0 属实，非测量误差。
+
 ### 下次不同做
 
 1. **节点 06（LSTM/GRU）正式开写**：基础设施问题已全部清理，下次 session 直接做实质知识内容
 2. **cite-verify 三篇引用后再写内容**：LSTM 1997 DOI:10.1162/neco.1997.9.8.1735，GRU 2014 arxiv:1412.3555，Bengio 1994 梯度消失
+3. **不再接受 infrastructure session**：如果下次还在修基础设施而非产出节点内容，必须在 session 开始就拒绝并重定向
 
-<!-- meta: verdict:PASS score:7.5 test_delta:0 -->
+<!-- meta: verdict:PASS score:7.5 test_delta:+0 -->
 
 ---
 
