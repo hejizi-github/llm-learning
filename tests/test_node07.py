@@ -4,6 +4,8 @@
 """
 import os
 import math
+import subprocess
+import sys
 import numpy as np
 import pytest
 
@@ -178,3 +180,23 @@ def test_attention_single_position():
     assert abs(alphas[0] - 1.0) < 1e-9, \
         f"T=1 时唯一权重应为 1.0，实际为 {alphas[0]}"
     np.testing.assert_array_almost_equal(context, enc[0])
+
+
+# ── Notebook 执行验证 ────────────────────────────────────────────
+
+def test_node07_notebook_executes():
+    """notebook 必须能用 tools/notebook-run 零错误跑通（守住 broken_notebook_ratio 护栏）。"""
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    notebook_runner = os.path.join(repo_root, "tools", "notebook-run")
+    notebook_path = os.path.join(repo_root, "nodes", "07-attention-2015", "attention.ipynb")
+    result = subprocess.run(
+        [sys.executable, notebook_runner, notebook_path],
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    assert result.returncode == 0, (
+        f"notebook 执行失败（returncode={result.returncode}）\n"
+        f"stdout: {result.stdout[-1000:]}\n"
+        f"stderr: {result.stderr[-1000:]}"
+    )

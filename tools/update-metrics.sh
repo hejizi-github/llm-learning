@@ -113,6 +113,9 @@ auto_commit_count=$(git -C "$(dirname "$METRICS_FILE")/../.." log --oneline 2>/d
   | grep "evolve(${SESSION_ID})" | grep -v "reflection" | wc -l | tr -d '[:space:]')
 set -e
 auto_commit_count=$(echo "${auto_commit_count:-0}" | tr -d '[:space:]')
+if [[ "$auto_commit_count" -eq 0 ]]; then
+  echo "warning: commit_count=0，session ${SESSION_ID} 可能尚未提交——请确认 git log 中有 evolve(${SESSION_ID}) 记录" >&2
+fi
 
 # ── 检查 session 是否已存在 ──
 existing=$(jq -rc --arg sid "$SESSION_ID" 'select(.session == $sid)' "$METRICS_FILE" \

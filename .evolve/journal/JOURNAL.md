@@ -4,6 +4,38 @@
 
 ---
 
+## Session 20260419-092706 — 节点07 评审修复（P1/P2/P3/P4）
+
+### 背景
+
+上次 session（090937）评审打分 4/10，主要问题：P1（测试测副本不测 notebook）、P2（标题"三步"实为四步）、P3（$e$ 未解释）、P4（commit_count=0 静默失败）。
+
+### 产出
+
+- `tests/test_node07.py`：新增 `test_node07_notebook_executes()`，通过 subprocess 执行 `tools/notebook-run`，守住 `broken_notebook_ratio` 护栏（测试数 17→18）
+- `nodes/07-attention-2015/README.md`：
+  - "三步推导" → "四步推导"（标题与内容一致）
+  - tanh 公式后补 $e \approx 2.718$ 的初中友好解释
+- `tools/update-metrics.sh`：commit_count=0 时打印 warning 到 stderr
+
+### KPI 变化
+
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| pytest 通过数 | 78 | **79**（+1）|
+| broken_notebook_ratio CI 覆盖 | ✗ | **✓**（pytest 现在跑 notebook）|
+| readability_violation（$e$ 未解释）| 违规 | 修复 ✓ |
+| broken_notebook_ratio | 0 | 0 ✓ |
+
+### 下次不同做
+
+1. **P2（节点06 GRU 梯度验证）仍未解决**：下次 session 处理——要么加真正的数值梯度验证，要么精确修改 goal #2 措辞
+2. **节点08（Word2Vec 2013）**：下一个内容节点，按 README → cite-verify → notebook → pytest 顺序
+
+<!-- meta: verdict:PASS score:8.5 test_delta:+1 -->
+
+---
+
 ## Session 20260419-090937 — 节点07（Bahdanau Attention 2015）
 
 本次 session 新建节点07，按 README → cite-verify → notebook → pytest 顺序完整执行，无跳步。
