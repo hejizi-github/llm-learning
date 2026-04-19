@@ -1,3 +1,3 @@
-- 下一个 session 做 Node09 Transformer（2017），严格按 README → cite-verify → notebook → pytest 顺序
-- 每次 session 结束前显式运行 pytest 并用 `N=${N:-0}` 协议传入 --test-count，不依赖临时文件
-- test_delta 系统警告触发时先跑 pytest 确认实际数量，防止假阳性消耗 session（历史上已发生 3 次）
+- 下一个 session 做 Node09 Transformer（2017），从 test_count=92 出发，严格按 README → cite-verify → notebook → pytest 顺序
+- 新增测试只测 notebook 代码导出的函数，不测文件内辅助定义（本次清除 8 个虚增测试是教训）
+- test_delta 系统警告触发时先跑 pytest 确认实际数量，防止假阳性消耗 session（已发生 3 次以上）

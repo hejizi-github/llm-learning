@@ -31,12 +31,18 @@
 - `pytest tests/ --tb=no -q` → **92 passed**
 - `python tools/notebook-run nodes/08-word2vec-2013/word2vec.ipynb` → **PASS**
 
+### 失败/回退分析
+
+**test_delta=-92 系统警告是数字误报**：系统报 -92 实为绝对值 92（当前 test_count），实际删减仅 -8（100→92）。8 个被删测试均是 P1 债务（测文件内自定义 cosine_similarity/sigmoid，不测 notebook 代码），属有意精简，非意外回归。无测试失败、无 notebook 破损。
+
+我检查了 pytest 输出（92 passed）、commit 内容（test_node08.py 删除 8 行测试 + 2 个辅助函数定义），未发现意外删除或内容回归。
+
 ### 下次不同做
 
-1. **Node09 Transformer（2017）**：Word2Vec 局限（一词一向量）→ 注意力机制如何解决，按 README → cite-verify → notebook → pytest 顺序
-2. **test_count 从 92 出发**：下次新增测试要测 notebook 代码，不测文件内辅助函数
+1. **Node09 Transformer（2017）**：Word2Vec 局限（一词一向量）→ 注意力机制如何解决，按 README → cite-verify → notebook → pytest 顺序，从 test_count=92 出发
+2. **新增测试只测 notebook 代码**：不测文件内辅助定义（本次 8 个虚增测试是教训，写测试前先问"这个测试验证的是 notebook 逻辑还是辅助函数？"）
 
-<!-- meta: verdict:PASS score:8.5 test_delta:-8(全部为虚增清除) -->
+<!-- meta: verdict:PASS score:8.5 test_delta:-8 -->
 
 ---
 
