@@ -4,6 +4,56 @@
 
 ---
 
+## Session 20260419-095144 — Node08 Word2Vec 2013 + update-metrics.sh P1/P2 修复
+
+### 背景
+
+上次 session（093846）评审 6/10，P1：`--test-count` 无整数校验（N 为空时参数错位）；
+P2：commit_count=0 warning 被全量删除，EXTERNAL=1 路径也失去了正确的告警。
+上上次承诺连续三个 session：必须做 Node08 或 Node06 内容，不允许再开纯工具 session。
+
+### 产出
+
+**工具修复（内联在内容 session 里）**：
+
+1. `tools/update-metrics.sh`：`--test-count` handler 增加 `^[0-9]+$ ` 正则校验，
+   非整数时打印友好错误并 exit 1（解决 N 为空时参数错位问题）
+2. `tools/update-metrics.sh`：EXTERNAL=1 路径恢复 commit_count=0 warning（仅外部评审触发）
+
+**Node08 内容**：
+
+- `nodes/08-word2vec-2013/README.md`：历史故事（one-hot 缺陷 → 词向量动机）+ Skip-gram 四步数学推导（面向 14 岁）+ 负采样原理 + 向量运算示例 + 局限性
+- `nodes/08-word2vec-2013/references.bib`：Mikolov 2013a + 2013b + Bengio 2003，cite-verify 5/5 PASS
+- `nodes/08-word2vec-2013/word2vec.ipynb`：手撕 Skip-gram + 负采样训练，notebook-run PASS；关键断言：余弦相似度 [-1,1]、自身相似度=1、`sim(猫,狗) > sim(猫,吃)`（语义验证）
+- `tests/test_node08.py`：21 个新测试（文件存在性 3、README 内容 7、bib 2、余弦相似度 5、sigmoid 3、notebook 执行 1）
+
+### KPI
+
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| test_count | 79 | **100** (+21) |
+| knowledge_nodes | 7 | **8** |
+| nodes_with_runnable_notebook | 6 | **7** |
+| verified_citations (node08) | 0 | **5/5 PASS** |
+| broken_notebook_ratio | 0 | **0** (守住) |
+
+### 调用协议（已验证）
+
+```bash
+N=$(pytest tests/ --tb=no -q 2>&1 | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+')
+N=${N:-0}
+bash tools/update-metrics.sh --test-count $N 20260419-095144 PASS 8.5
+```
+
+### 下次不同做
+
+1. **Node09 Transformer 基础（2017）**：Word2Vec 局限（一词一向量）→ 注意力机制如何解决，按 README → cite-verify → notebook → pytest 顺序
+2. **继续用 `N=${N:-0}` 协议**：防御空 N 已内置，无需额外检查
+
+<!-- meta: verdict:PASS score:8.5 test_delta:+21 -->
+
+---
+
 ## Session 20260419-093846 — 修复 update-metrics.sh test_count 静默失败根本缺陷
 
 ### 失败/回退分析

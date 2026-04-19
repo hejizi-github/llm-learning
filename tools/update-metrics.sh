@@ -30,6 +30,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --test-count)
       EXPLICIT_TEST_COUNT="${2:-}"
+      if [[ -n "$EXPLICIT_TEST_COUNT" && ! "$EXPLICIT_TEST_COUNT" =~ ^[0-9]+$ ]]; then
+        echo "错误: --test-count 必须是非负整数，收到: '$EXPLICIT_TEST_COUNT'" >&2
+        exit 1
+      fi
       shift 2
       ;;
     *)
@@ -138,6 +142,11 @@ auto_commit_count=$(git -C "$(dirname "$METRICS_FILE")/../.." log --oneline 2>/d
   | grep "evolve(${SESSION_ID})" | grep -v "reflection" | wc -l | tr -d '[:space:]')
 set -e
 auto_commit_count=$(echo "${auto_commit_count:-0}" | tr -d '[:space:]')
+
+# 外部评审时：commit_count=0 可能意味着传入了错误的 session_id
+if [[ "$EXTERNAL" -eq 1 && "$auto_commit_count" -eq 0 ]]; then
+  echo "警告: --external 模式下 session '$SESSION_ID' 的 commit_count=0，请确认 session_id 正确。" >&2
+fi
 
 # ── 检查 session 是否已存在 ──
 existing=$(jq -rc --arg sid "$SESSION_ID" 'select(.session == $sid)' "$METRICS_FILE" \
