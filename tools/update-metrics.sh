@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 用法: update-metrics.sh [--external] <session_id> <verdict> <score>
+# 用法: update-metrics.sh [--external] [--test-count N] <session_id> <verdict> <score>
 #
 # 默认（无 --external）：把 agent 自评写入 self_score / self_verdict 字段。
 # 带 --external：把外部评审结果写入 review_score / review_verdict 字段。
@@ -7,7 +7,10 @@
 # 这样区分确保 review_score/review_verdict 只由外部评审写入，
 # 不被 Agent 自评污染。
 #
-# test_count：如果 /tmp/pytest_result_<session>.txt 存在，从中解析测试数量。
+# test_count：
+#   - 优先使用 --test-count N 显式参数（调用方运行 pytest 后传入）
+#   - fallback：如果 /tmp/pytest_result_<session>.txt 存在，从中解析
+#   - 两者都没有：打印 warning，记录 0（不静默）
 #
 # 全局去重：每次调用都对整个文件做一次去重，同 session_id 的多条记录按数据完整性优先级合并。
 # 合并规则：review_score 非 null 的记录优先级最高，null 字段从低优先级记录填入；test_count 取 max。
@@ -15,21 +18,34 @@
 
 set -euo pipefail
 
-# 解析 --external 标志
+# 解析标志（顺序无关）
 EXTERNAL=0
-if [[ "${1:-}" == "--external" ]]; then
-  EXTERNAL=1
-  shift
-fi
+EXPLICIT_TEST_COUNT=""
+
+while [[ $# -gt 0 ]]; do
+  case "${1}" in
+    --external)
+      EXTERNAL=1
+      shift
+      ;;
+    --test-count)
+      EXPLICIT_TEST_COUNT="${2:-}"
+      shift 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
 SESSION_ID="${1:-}"
 VERDICT="${2:-}"
 SCORE="${3:-}"
 
 if [[ -z "$SESSION_ID" || -z "$VERDICT" || -z "$SCORE" ]]; then
-  echo "用法: $0 [--external] <session_id> <verdict> <score>" >&2
-  echo "例如: $0 20260419-032934 PASS 8.0" >&2
-  echo "      $0 --external 20260419-032934 PASS 9.0" >&2
+  echo "用法: $0 [--external] [--test-count N] <session_id> <verdict> <score>" >&2
+  echo "例如: $0 --test-count 79 20260419-032934 PASS 8.0" >&2
+  echo "      $0 --external --test-count 79 20260419-032934 PASS 9.0" >&2
   exit 1
 fi
 
@@ -95,15 +111,24 @@ global_dedup() {
 
 global_dedup
 
-# ── 读取 pytest 结果文件（如果存在） ──
-PYTEST_RESULT_FILE="/tmp/pytest_result_${SESSION_ID}.txt"
+# ── 确定 test_count ──
 test_count=0
-if [[ -f "$PYTEST_RESULT_FILE" ]]; then
-  # 文件格式："61 passed in 16.49s" 或 "61 passed, 2 warnings in 16.49s"
-  raw=$(cat "$PYTEST_RESULT_FILE" | tr -d '\n')
-  if [[ "$raw" =~ ([0-9]+)\ passed ]]; then
-    test_count="${BASH_REMATCH[1]}"
-    echo "从 $PYTEST_RESULT_FILE 读取 test_count=$test_count"
+if [[ -n "$EXPLICIT_TEST_COUNT" ]]; then
+  # 优先：调用方显式传入（最可靠，避免临时文件消失问题）
+  test_count="$EXPLICIT_TEST_COUNT"
+  echo "使用显式 --test-count=$test_count"
+else
+  # fallback：读取临时文件
+  PYTEST_RESULT_FILE="/tmp/pytest_result_${SESSION_ID}.txt"
+  if [[ -f "$PYTEST_RESULT_FILE" ]]; then
+    raw=$(cat "$PYTEST_RESULT_FILE" | tr -d '\n')
+    if [[ "$raw" =~ ([0-9]+)\ passed ]]; then
+      test_count="${BASH_REMATCH[1]}"
+      echo "从 $PYTEST_RESULT_FILE 读取 test_count=$test_count"
+    fi
+  else
+    echo "warning: --test-count 未传入且 $PYTEST_RESULT_FILE 不存在，test_count 将记录为 0。" >&2
+    echo "建议：先运行 pytest，再调用 update-metrics.sh --test-count <N>" >&2
   fi
 fi
 
@@ -113,9 +138,6 @@ auto_commit_count=$(git -C "$(dirname "$METRICS_FILE")/../.." log --oneline 2>/d
   | grep "evolve(${SESSION_ID})" | grep -v "reflection" | wc -l | tr -d '[:space:]')
 set -e
 auto_commit_count=$(echo "${auto_commit_count:-0}" | tr -d '[:space:]')
-if [[ "$auto_commit_count" -eq 0 ]]; then
-  echo "warning: commit_count=0，session ${SESSION_ID} 可能尚未提交——请确认 git log 中有 evolve(${SESSION_ID}) 记录" >&2
-fi
 
 # ── 检查 session 是否已存在 ──
 existing=$(jq -rc --arg sid "$SESSION_ID" 'select(.session == $sid)' "$METRICS_FILE" \

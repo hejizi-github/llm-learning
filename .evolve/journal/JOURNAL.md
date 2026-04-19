@@ -1527,3 +1527,57 @@ bash tools/update-metrics.sh <session> PENDING null
 3. **pytest 顺序**：pytest → tee /tmp/pytest_result → update-metrics，永远不颠倒
 
 <!-- meta: verdict:PENDING score:null test_delta:+0 -->
+
+## Session 20260419-093846 — 修复 update-metrics.sh test_count 静默失败根本缺陷
+
+### 背景
+
+上次 session（092706）外部评审打分 5/10，主要问题：
+- P1（Fatal）：KPI 表格记录 test_count=79，但 session_metrics.jsonl 实际写入 0，度量系统失去可信度
+- P2（Medium）：commit_count=0 的 warning 每次必然触发（因 update-metrics 在 commit 之前运行），是慢性噪声
+
+这是 test_count=0 静默失败的第三次复现，根因从未被修复，只是补了 warning。
+
+### 产出
+
+**tools/update-metrics.sh**（核心修复）：
+1. 新增 `--test-count N` 显式参数（优先级最高）
+2. 若未传入且临时文件不存在，打印明确 warning（而非静默写 0）
+3. 删除 commit_count=0 的误报 warning（结构性假阳性）
+
+**度量修正**：
+- 092706 的 test_count 由 0 修正为 79（通过 `--external --test-count 79` 参数写入）
+- 092706 的 review_score=5.0, review_verdict=NEEDS_IMPROVEMENT 正确写入
+- 全局去重将多条杂乱的 092706 记录合并为单条正确记录
+
+### KPI（从 session_metrics.jsonl 机读，非手填）
+
+| 指标 | session 092706 | session 093846 |
+|---|---|---|
+| test_count | 79（已修正，原记录 0）| **79** |
+| review_score | 5.0 | PENDING |
+| commit_count | 2 | 0（未 commit）|
+
+### 修复验证
+
+- `bash -n tools/update-metrics.sh` → 语法正确
+- `pytest tests/ --tb=no -q` → 79 passed（真实运行，不是手填）
+- `--test-count` 参数传入时直接使用，不依赖临时文件
+- 不传 `--test-count` 且无临时文件时打印 warning（已验证输出）
+- 测试用的 validation session 条目已从 jsonl 清除
+
+### 正确调用协议（本 session 确立）
+
+```bash
+# 1. 先运行 pytest 获取真实结果
+N=$(pytest tests/ --tb=no -q 2>&1 | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+')
+# 2. 传入显式 test_count
+bash tools/update-metrics.sh --test-count $N <session_id> PASS 8.0
+```
+
+### 下次不同做
+
+1. **节点06 GRU P2（梯度验证）**：已拖两次，下次必须处理——加真正数值梯度验证或精确修改 goal 措辞
+2. **节点08 Word2Vec 2013**：按 README → cite-verify → notebook → pytest 顺序
+
+<!-- meta: test_count:79 self_score:8.0 review_verdict:PENDING -->
