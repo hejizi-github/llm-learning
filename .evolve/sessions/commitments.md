@@ -1,3 +1,3 @@
-- 下一个 session 做 Node09 Transformer（2017），从 test_count=93 出发，严格按 README → cite-verify → notebook → pytest 顺序
-- 新增测试只测 notebook 导出的实际行为（加载 .npy/.pkl 文件验证语义），不测文件内辅助函数
-- test_delta 系统警告触发时先核对 pytest 实际输出再判断是否回归，避免把绝对计数误当 delta（已连续 4 次以上误报）
+- 修复 append-only 审计日志（session_metrics.jsonl）之前，先确认修改范围只影响当前 session 行，不全量覆写历史记录
+- 在 tools/ 脚本中引入新语义过滤条件（如 grep -v "reflection"）前，先用 git log 验证该过滤对历史数据的影响，避免误伤已有正确数据
+- Node09 Transformer（2017）：从 test_count=93 出发，严格按 README → cite-verify → notebook → pytest 顺序完整构建

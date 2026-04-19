@@ -41,12 +41,19 @@ notebook 中覆盖情况：
 - cell-20：print most_similar('猫','鱼','吃') — 未包含 '鸟'
 - 新断言：'鸟'的 top-1 最近邻 in {'猫','狗'} — 完全不在上述任何 cell 中
 
+### 失败/回退分析
+
+外部评审实际打分 **NEEDS_IMPROVEMENT 7/10**（自评 PASS 8.5 偏高）。核心问题：`refresh_commit_counts()` 把两件事偷渡进同一次修改——修复"先调用后 commit"导致的 0 值，同时静默引入 `grep -v "reflection"` 过滤，将历史上原本正确的非零值也降低（如 session 032934 从 5→4，040257 从 3→2）。更深的设计问题：该函数每次运行全量覆写 `session_metrics.jsonl`，把 append-only 审计日志变成随 git 树状态变化的可变状态，一旦 rebase 所有历史 commit_count 静默失真。
+
+关于 test_delta=-93 警告：实际测试数始终为 93（pytest 验证），此为系统误报（已连续多次）。自评 test_delta:0 正确。
+
 ### 下次不同做
 
-1. **Node09 Transformer（2017）**：从 test_count=93 出发，按 README → cite-verify → notebook → pytest 顺序完整构建
-2. 新测试保持独立性原则：不断言任何 notebook 已打印过的属性
+1. 修复 session_metrics.jsonl 时只 patch 当前 session 行，不全量覆写——保留 append-only 特性
+2. 引入新过滤条件（grep -v X）前先在 git log 上验证对历史数据的影响，避免误伤正确数据
+3. **Node09 Transformer（2017）**：从 test_count=93 出发，按 README → cite-verify → notebook → pytest 顺序完整构建
 
-<!-- meta: verdict:PASS score:8.5 test_delta:0 -->
+<!-- meta: verdict:NEEDS_IMPROVEMENT score:7.0 test_delta:0 -->
 
 ---
 
