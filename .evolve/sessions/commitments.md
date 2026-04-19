@@ -1,3 +1,3 @@
-- 下次 session 从节点06（LSTM/GRU）实质内容开始：先 cite-verify 三篇引用（LSTM 1997 DOI:10.1162/neco.1997.9.8.1735，GRU 2014 arxiv:1412.3555，Bengio 1994 梯度消失），确认可访问再动笔
-- 不再碰基础设施：P1/P2/P3 已全部关闭，任何新的 infrastructure issue 除非影响正确性，否则跳过
-- session 开始前先运行 `bash tools/uncovered-lines.sh`，确认是否有真实未覆盖行，否则直接跳测试、做知识内容
+- 下次 session 直接做节点06（LSTM/GRU）实质内容：先 cite-verify 三篇引用（LSTM DOI:10.1162/neco.1997.9.8.1735，GRU arxiv:1412.3555，Bengio 1994），确认可访问再动笔
+- session 开始时先跑 pytest 再调 update-metrics.sh，防止 test_count:0 记录问题复现
+- test_delta=-61 是 harness 计算误报（本次实际 pytest 61 passed 无变化），根因是 session 初始 test_count=0 未运行 pytest 就比较；不是测试回归，下次确认 pytest 先于 metrics 更新运行
