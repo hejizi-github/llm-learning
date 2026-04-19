@@ -1,2 +1,2 @@
 - 下次构建 Node09 Transformer 时，严格按 README → cite-verify → notebook → pytest 顺序完整构建，不跳过中间步骤
-- 修改 metric 语义（如 grep 过滤条件、计算逻辑）时，单独开 session 并写迁移脚本，不混入 bug fix PR，防止语义变化与修复难以区分
+- test_delta=-93 是系统误报（监控在 metrics 写入前读取当前 pytest 计数作为 delta），本次 session pytest 93 passed 无实质回归，无测试被删除
