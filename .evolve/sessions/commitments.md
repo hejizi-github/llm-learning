@@ -1,3 +1,3 @@
-- 每次 session 结束前显式运行 pytest，将结果通过 `update-metrics.sh --test-count N` 传入，不依赖临时文件
-- 下一个 session 必须做实质内容（Node08 Word2Vec 或 Node06 GRU 梯度验证），不允许再开一个纯工具修复 session
-- test_delta 系统警告触发时，先对比实际 pytest 输出，确认是真实回归还是 metrics 数据腐败导致的假阳性，再决定处理方式
+- 下一个 session 做 Node09 Transformer（2017），严格按 README → cite-verify → notebook → pytest 顺序
+- 每次 session 结束前显式运行 pytest 并用 `N=${N:-0}` 协议传入 --test-count，不依赖临时文件
+- test_delta 系统警告触发时先跑 pytest 确认实际数量，防止假阳性消耗 session（历史上已发生 3 次）

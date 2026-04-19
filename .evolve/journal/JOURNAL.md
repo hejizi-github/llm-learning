@@ -45,10 +45,17 @@ N=${N:-0}
 bash tools/update-metrics.sh --test-count $N 20260419-095144 PASS 8.5
 ```
 
+### 失败/回退分析
+
+**test_delta=-100 警告是假阳性**：reflection 二次触发（因"agent work (auto-committed)"提交了 `prompt_experiments.jsonl`）导致系统重新计算 delta。实际 pytest 输出 100 passed，session_metrics 记录 test_count=100，前一 session 为 79，真实 delta=+21。无测试回归，无测试删除。
+
+我检查了 pytest 输出（100 passed）、git diff（agent work 仅改 prompt_experiments.jsonl）、session_metrics（79→100），未发现实质测试删除或内容回归。
+
 ### 下次不同做
 
 1. **Node09 Transformer 基础（2017）**：Word2Vec 局限（一词一向量）→ 注意力机制如何解决，按 README → cite-verify → notebook → pytest 顺序
 2. **继续用 `N=${N:-0}` 协议**：防御空 N 已内置，无需额外检查
+3. **test_delta 假阳性触发时**：立即跑 pytest 确认，记录原因，不开 session 处理
 
 <!-- meta: verdict:PASS score:8.5 test_delta:+21 -->
 
