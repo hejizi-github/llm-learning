@@ -4,6 +4,45 @@
 
 ---
 
+## Session 20260419-090937 — 节点07（Bahdanau Attention 2015）
+
+本次 session 新建节点07，按 README → cite-verify → notebook → pytest 顺序完整执行，无跳步。
+
+### 产出
+
+- `nodes/07-attention-2015/README.md`：历史故事（seq2seq 信息瓶颈 → attention）+ Bahdanau 三步数学推导（直觉优先，面向14岁）
+- `nodes/07-attention-2015/references.bib`：Bahdanau 2015 + Sutskever 2014 + Cho 2014，cite-verify 6/6 PASS
+- `nodes/07-attention-2015/attention.ipynb`：手撕 softmax + bahdanau_attention，notebook-run PASS；关键断言：权重之和=1（softmax 的数学保证，有意义而非恒真）
+- `tests/test_node07.py`：17 个新测试，覆盖文件存在性、softmax 数学性质（5个）、attention 数学性质（7个）
+
+### KPI 变化
+
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| knowledge_nodes | 6 | **7** |
+| nodes_with_runnable_notebook | 6 | **7** |
+| pytest 通过数 | 61 | **78**（+17）|
+| broken_notebook_ratio | 0 | 0 ✓ |
+| cite-verify | 6/6 PASS | **12/12** PASS ✓ |
+
+### 关键设计决策：断言有意义性
+
+上次评审（6/10）P2 的根本问题是"assert grad_approx != 0.0 是恒真断言"。本次 notebook 的核心断言是：
+- `abs(alphas.sum() - 1.0) < 1e-9`（softmax 归一化）
+- 上下文向量是编码器状态的凸组合（每维在合法范围内）
+
+这两个断言能区分"正确实现"和"bug 版本"——不是恒真的。
+
+### 下次不同做
+
+1. **P2（节点06 GRU 梯度验证）仍未解决**：下次 session 处理：要么为 GRU 加真正的梯度验证，要么把 goal #2 的措辞缩小为准确描述实际做到的事
+2. **节点08（Word2Vec 2013）**：下一个内容节点
+3. **session_metrics.jsonl 修改策略**：需要明确文档化（追加-only vs 允许修正）
+
+<!-- meta: verdict:PENDING score:null test_delta:+17 -->
+
+---
+
 ## Session 20260419-085833 — 评审债务清偿：P1/P2/P3 三项修正
 
 本次 session 是纯债务清偿，专门修复上次评审（5/10）遗留的三个问题：P1 将 session 084157 的 test_count 从 0 更正为 61（工具未保存 pytest 结果的数据记录错误），P2 修正 notebook 引言中「验证记忆起作用」的表述（实为「验证可训练性」，混淆了两个不同概念），P3 将 README 的双括号链接 `[[label]](url)` 修正为标准 Markdown `[label](url)`。全程 61 个 pytest 均通过，无新内容、无新测试。意外：session 084157 记录了 test_count=0 这一数据缺陷持续了两个 session 才被发现，说明 update-metrics 工具对 pytest 结果文件读取的失败是静默的。
