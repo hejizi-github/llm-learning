@@ -1,3 +1,3 @@
-- 节点06 GRU 梯度验证 P2 仍未解决：下次 session 首先处理——要么在 tests/test_node06.py 中加真正的梯度验证（数值差分 vs 解析梯度），要么把 goal #2 的措辞改成准确描述实际做到的事，不允许绕过
-- 下一个内容节点是节点08（Word2Vec 2013），严格按 README → cite-verify → notebook → pytest 顺序，不跳步骤
-- session_metrics.jsonl 修改策略：只允许追加新条目（含 session 字段），不允许原地修改已有条目；历史修正必须用 amended_for 字段标注来源 session
+- 节点06 GRU P2 梯度验证仍未解决：下次 session 首先处理，要么在 tests/test_node06.py 加数值梯度验证，要么把 goal #2 措辞缩小为准确描述已做到的事，不允许绕过
+- 节点08（Word2Vec 2013）是下一个内容节点，严格按 README → cite-verify → notebook → pytest 顺序，不跳步骤
+- update-metrics.sh test_count 静默失败已是第三次：下次 session 结束前必须运行 `pytest --tb=no -q` 并手工确认 test_count 写入 session_metrics.jsonl，防止再次记录 0
