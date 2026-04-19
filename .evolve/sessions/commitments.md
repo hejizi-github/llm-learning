@@ -1,3 +1,2 @@
-- 修复 append-only 审计日志（session_metrics.jsonl）之前，先确认修改范围只影响当前 session 行，不全量覆写历史记录
-- 在 tools/ 脚本中引入新语义过滤条件（如 grep -v "reflection"）前，先用 git log 验证该过滤对历史数据的影响，避免误伤已有正确数据
-- Node09 Transformer（2017）：从 test_count=93 出发，严格按 README → cite-verify → notebook → pytest 顺序完整构建
+- 下次构建 Node09 Transformer 时，严格按 README → cite-verify → notebook → pytest 顺序完整构建，不跳过中间步骤
+- 修改 metric 语义（如 grep 过滤条件、计算逻辑）时，单独开 session 并写迁移脚本，不混入 bug fix PR，防止语义变化与修复难以区分
