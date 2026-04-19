@@ -1,3 +1,3 @@
-- 下次 session 创建 nodes/06-lstm-gru-1997/lstm_gru.ipynb：从零手写 LSTM 和 GRU，并对比 PyTorch 版本，先跑 pytest 再 git commit 再 update-metrics.sh
-- 不再接受任何 infrastructure session，除非 broken_notebook_ratio > 0；遇到 infra 问题直接跳过继续写内容
-- test_delta=-61 是 harness 计算误报（实际 pytest 61 passed 无变化），根因是 session 初始 test_count=0；下次确认 pytest 先于 metrics 更新运行，勿将此当测试回归处理
+- 下次 session 从节点07（Attention 机制 2015）开始，严格按 README → cite-verify → notebook → pytest_test 顺序执行，不跳步骤
+- 每个新节点必须同步创建至少一个 pytest 测试函数（如 test_node07_notebook_exists），确保 test_delta > 0
+- 调用 update-metrics.sh 时始终使用 verdict=PENDING score=null，JOURNAL meta 行不写具体评分，彻底杜绝第4次 self_score 违规

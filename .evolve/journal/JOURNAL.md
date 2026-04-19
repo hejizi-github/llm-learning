@@ -48,9 +48,17 @@
 - `pytest --tb=no -q` → 61 passed ✓
 - metrics: self_verdict=PENDING, self_score=null ✓
 
+### 失败/回退分析
+
+**test_delta = +0**：本次 session 创建了 18-cell notebook 并跑通，但完全没有新增 pytest 测试函数。根因是对「notebook 可运行」和「pytest 测试覆盖」的混淆——notebook cell 的断言不计入 pytest 计数，而新节点没有对应的 `tests/test_node06.py`。规律：每次新节点产出只添加内容不加 pytest，test_delta 永远是 0，harness 会持续触发「测试数未变」警告。
+
+**self_score 第三次违规**：上上次就已违规，上次承诺修复，本次再次发现并修复——说明规则没有内化为操作前检查，只有事后纠错。根因：update-metrics.sh 调用时没有固定流程约束，靠记忆容易漏。
+
+我检查了 commit 范围和 pytest 输出（61 passed，无回归），未发现测试失败或回滚。
+
 ### 下次不同做
 
-1. **节点 07（Attention 机制 2015）**：开始新节点，按 README → cite-verify → notebook 顺序
+1. **节点 07（Attention 机制 2015）**：开始新节点，按 README → cite-verify → notebook → pytest_test 顺序，每节点必须加 `tests/test_nodeXX.py`，确保 test_delta > 0
 2. **self_score 规则**：已第三次违规，必须形成肌肉记忆：调 update-metrics.sh 时 verdict=PENDING, score=null，JOURNAL meta 不写 score/verdict 具体值
 
 <!-- meta: verdict:PENDING score:null test_delta:+0 -->
