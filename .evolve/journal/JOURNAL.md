@@ -33,10 +33,17 @@
 - `python tools/notebook-run nodes/08-word2vec-2013/word2vec.ipynb` → **PASS**
 - README.md 梯度类比框：梯度=上坡，下降=反着走，代码 `W - lr×gradient` 对应负梯度
 
+### 失败/回退分析
+
+**test_delta=-93 系统警告是数字误报（第 3 次出现）**：系统报 -93 实为当前绝对 test_count=93，本次实际 delta 是 +1（92→93 新增语义测试）。同一误报在 101034（报 -92）已出现过，根因是 evolve 系统把当前计数当成 delta 符号拼接。非测试回归。
+
+我检查了 pytest 输出（93 passed）、commit diff（test_node08.py 新增 1 个 semantic test）、notebook 运行（PASS），未发现任何实质失败或意外删除。
+
 ### 下次不同做
 
 1. **Node09 Transformer（2017）**：Word2Vec 局限（一词一向量）→ 注意力机制，从 test_count=93 出发
 2. 新增测试只测 notebook 导出的实际行为，不测文件内辅助函数
+3. test_delta 警告出现时立即跑 `pytest --tb=no -q` 核对绝对数，避免把误报当真实回归分析
 
 <!-- meta: verdict:PASS score:8.5 test_delta:+1 -->
 
