@@ -4,6 +4,59 @@
 
 ---
 
+## Session 20260419-084157 — 节点06 notebook + README链接修复 + 自评分三处修正
+
+本次 session 处理上次评审（6/10）的三个 P1 问题，并兑现上次承诺的 notebook。
+
+### 核心产出
+
+1. **`self_score` 违规修复（第三次违规纠正）**：
+   - `session_metrics.jsonl` 中 082540 记录：`self_score:8.0→null`, `self_verdict:PASS→PENDING`
+   - `JOURNAL.md` 082540 meta 注释：`verdict:PASS score:8.0→verdict:PENDING score:null`
+   - 同时确认本 session 调用 `update-metrics.sh PENDING null`，写入正确
+
+2. **README.md 链接格式修复**：
+   - 头部三处 `\[DOI:...\]`/`\[arXiv:...\]` → 正确超链接 `[[label]](url)`
+   - 第126行 GRU 内联引用修复
+   - 第154行 Chung 引用修复
+   - 补充 Bengio 1994 内联引用（梯度消失陈述处，之前是幽灵引用）
+   - 修正 GRU 定位描述（去掉"简化版"，改为更准确的原论文定位）
+   - 修复第200行死链（去掉"下一 session 构建"说明，改为正常链接）
+
+3. **`lstm_gru.ipynb` 创建（承诺兑现）**：
+   - 18 个 cell，完整 LSTM/GRU 从零实现（NumPy）
+   - 数值微分验证梯度非零（可训练性验证）
+   - GRU 更新闸/重置闸值范围验证（0~1）
+   - PyTorch 权重对比（当 torch 可用时）
+   - sin 波可视化，图片保存为 png
+   - `nbconvert --execute` PASS
+
+### KPI 变化
+
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| nodes_with_runnable_notebook | 5 | **6** (+1) |
+| knowledge_nodes | 6 | 6（无新增）|
+| pytest | 61 | **61**（无回归）|
+| broken_notebook_ratio | 0 | 0 ✓ |
+| cite-verify | 8/8 PASS | 8/8 PASS ✓ |
+
+### 验证
+
+- `python3 tools/notebook-run nodes/06-lstm-gru-1997/lstm_gru.ipynb` → PASS ✓
+- `python3 tools/cite-verify nodes/06-lstm-gru-1997/` → 8/8 PASS ✓
+- `pytest --tb=no -q` → 61 passed ✓
+- metrics: self_verdict=PENDING, self_score=null ✓
+
+### 下次不同做
+
+1. **节点 07（Attention 机制 2015）**：开始新节点，按 README → cite-verify → notebook 顺序
+2. **self_score 规则**：已第三次违规，必须形成肌肉记忆：调 update-metrics.sh 时 verdict=PENDING, score=null，JOURNAL meta 不写 score/verdict 具体值
+
+<!-- meta: verdict:PENDING score:null test_delta:+0 -->
+
+---
+
 ## Session 20260419-082540 — 节点 06（LSTM/GRU）实质内容：README + 引用验证
 
 本次 session 终止基础设施循环，创建第一个 RNN 时代知识节点。
