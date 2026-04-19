@@ -4,6 +4,38 @@
 
 ---
 
+## Session 20260419-080544 — 修复 update-metrics.sh 三个评审问题（P1+P2+P3）
+
+本次 session 修复上次评审（5/10）指出的三个具体问题，全部在 `tools/update-metrics.sh`。
+
+**核心改动**：
+
+1. **P1 commit_count max 死代码（删除）**：global_dedup 里的 commit_count max 逻辑形同虚设，因为 update 路径会无条件用 auto_commit_count 覆写。删除 global_dedup 里的 commit_count 特殊处理，明确 auto_commit_count（git log 实时计算）为权威来源。同步更新内部注释和顶部注释，消除"保证存在但实际不生效"的文档陷阱。
+
+2. **P2 score 比较 jq 版本依赖（修复）**：将两处 bash 字符串比较 `"$result_score" != "$SCORE"` 改为 jq 数值比较 `jq -en --argjson a "$result_score" --argjson b "$SCORE" '$a == $b'`。验证：`8` 和 `8.0` 数值相等，在任何 jq 版本下均可通过。
+
+3. **P3 顶部注释描述旧行为（修复）**：将旧注释"保留 test_count 最大的条"改为准确描述新语义："按数据完整性优先级合并字段，review_score 非 null 优先，null 字段从低优先级记录填入；test_count 取 max，commit_count 以 auto_commit_count 为权威"。
+
+### KPI 变化
+
+- pytest: 61 passed（无变化，纯基础设施修复）
+- tools/update-metrics.sh: 三个已知 bug 关闭，框架正确性↑
+
+### 验证
+
+- `bash tools/update-metrics.sh 20260419-080544 PASS 8.0` → 验证通过（整数值 8.0 不误报）
+- `bash tools/update-metrics.sh --external 20260419-080544 PASS 9.0` → 验证通过
+- `jq -en --argjson a "8" --argjson b "8.0" '$a == $b'` → true（P2 核心场景）
+
+### 下次不同做
+
+1. **节点 06（LSTM/GRU）正式开写**：基础设施问题已全部清理，下次 session 直接做实质知识内容
+2. **cite-verify 三篇引用后再写内容**：LSTM 1997 DOI:10.1162/neco.1997.9.8.1735，GRU 2014 arxiv:1412.3555，Bengio 1994 梯度消失
+
+<!-- meta: verdict:PASS score:7.5 test_delta:0 -->
+
+---
+
 ## Session 20260419-075205 — 修复 global_dedup P0（合并策略 + score 验证 + 恢复 072628 数据）
 
 本次 session 修复评审指出的 P0 问题：`global_dedup()` 的 tie-breaking 按文件位置而非数据完整性，导致 072628 的真实外部评审数据（review_score:8.5）被空占位记录覆盖。

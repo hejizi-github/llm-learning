@@ -9,7 +9,9 @@
 #
 # test_count：如果 /tmp/pytest_result_<session>.txt 存在，从中解析测试数量。
 #
-# 全局去重：每次调用都对整个文件做一次去重（同 session_id 保留 test_count 最大的条）。
+# 全局去重：每次调用都对整个文件做一次去重，同 session_id 的多条记录按数据完整性优先级合并。
+# 合并规则：review_score 非 null 的记录优先级最高，null 字段从低优先级记录填入；test_count 取 max。
+# commit_count 以 auto_commit_count（git log 实时计算）为权威来源，不做 max 保留。
 
 set -euo pipefail
 
@@ -47,7 +49,7 @@ fi
 # 合并规则（P0 修复）：
 #   1. 按"数据优先级"排序：review_score 非 null +10，self_score 非 null +5，test_count 加值
 #   2. 以最高优先级记录为基础，从低优先级记录中只填入 null 字段（非 null 不覆盖）
-#   3. test_count 和 commit_count 额外取 max
+#   3. test_count 额外取 max；commit_count 由 update 路径的 auto_commit_count 权威覆写
 # 这样确保真实外部评审数据（review_score）不会被空占位记录覆盖。
 global_dedup() {
   local tmpfile
@@ -71,8 +73,6 @@ global_dedup() {
           if $entry.key == "_priority" then .
           elif $entry.key == "test_count" and ($entry.value // 0) > ($acc.test_count // 0) then
             .test_count = $entry.value
-          elif $entry.key == "commit_count" and ($entry.value // 0) > ($acc.commit_count // 0) then
-            .commit_count = $entry.value
           elif $entry.value != null and $acc[$entry.key] == null then
             .[$entry.key] = $entry.value
           else . end
@@ -203,7 +203,7 @@ if [[ "$EXTERNAL" -eq 1 ]]; then
     echo "错误: 写入验证失败！期望 review_verdict=$VERDICT，实际读回 $result_verdict" >&2
     exit 1
   fi
-  if [[ "$result_score" != "$SCORE" ]]; then
+  if ! jq -en --argjson a "$result_score" --argjson b "$SCORE" '$a == $b' >/dev/null 2>&1; then
     echo "错误: 写入验证失败！期望 review_score=$SCORE，实际读回 $result_score" >&2
     exit 1
   fi
@@ -217,7 +217,7 @@ else
     echo "错误: 写入验证失败！期望 self_verdict=$VERDICT，实际读回 $result_verdict" >&2
     exit 1
   fi
-  if [[ "$result_score" != "$SCORE" ]]; then
+  if ! jq -en --argjson a "$result_score" --argjson b "$SCORE" '$a == $b' >/dev/null 2>&1; then
     echo "错误: 写入验证失败！期望 self_score=$SCORE，实际读回 $result_score" >&2
     exit 1
   fi
