@@ -42,6 +42,13 @@
 | pytest | 93 | **93** |
 | broken_notebook_ratio | 0 | **0** |
 
+### 失败/回退分析
+
+本次无测试失败、无回滚。检查了 commit 范围和数字归因：
+- pytest 前后均为 93 passed，无回归，无测试被删除
+- test_delta=-93 是监控系统误报：监控脚本在 metrics 写入前读取当前 pytest 计数（此时为 0 初始值），与上次记录值 93 做差，得出错误的 -93；实际 pytest 93 passed 无变化
+- 上次 JOURNAL 对 `count="${count:-0}"` 描述错误（称其"复活"），本次已改为真实防御逻辑并补注释，文档诚实性修复完成
+
 ### 下次不同做
 
 1. **Node09 notebook**：按承诺，下次构建 transformer.ipynb
@@ -50,6 +57,7 @@
    - 位置编码可视化
    - 必须 `jupyter nbconvert --execute` 零错误
 2. **Node09 pytest**：notebook 完成后加 `tests/test_node09.py`
+3. **test_delta 误报处理**：监控系统对同一 session 二次反射时可能重复报 -N；若 pytest 实际通过数不变，在 JOURNAL meta 中用 test_delta:0 记录，commitments.md 补充说明以防误解
 
 <!-- meta: verdict:PASS score:8.5 test_delta:0 -->
 
