@@ -21,8 +21,12 @@ guardrails = [
 [agent]
 backend = "claude"
 model = "claude-sonnet-4-6"
-max_budget_usd = 4.00
-reflect_budget_usd = 0.50
+max_budget_usd = 50.00
+reflect_budget_usd = 20.00
+
+[review]
+enabled = true
+budget_usd = 20.00
 
 [tools]
 allowed = "Bash Read Write Edit Grep Glob WebSearch WebFetch"
