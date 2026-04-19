@@ -115,18 +115,20 @@ global_dedup() {
 
 global_dedup
 
-# ── 刷新所有 session 的 commit_count（从 git log 实时计算，解决"先调用后 commit"导致的 0 问题）──
+# ── 刷新 commit_count == 0 的 session（从 git log 补零）──
+# 只补零，不降低已有非零历史值。统计包含 reflection 等所有 commit。
 refresh_commit_counts() {
   local repo_dir tmpfile
   repo_dir="$(cd "$(dirname "$METRICS_FILE")/../.." && pwd)"
   tmpfile=$(mktemp)
   while IFS= read -r line; do
-    local sid
+    local sid existing_count
     sid=$(printf '%s' "$line" | jq -r '.session // ""')
-    if [[ -n "$sid" && "$sid" != "null" ]]; then
+    existing_count=$(printf '%s' "$line" | jq -r '.commit_count // 0')
+    if [[ -n "$sid" && "$sid" != "null" && "$existing_count" == "0" ]]; then
       local count
       count=$(git -C "$repo_dir" log --oneline 2>/dev/null \
-        | grep "evolve(${sid})" | grep -v "reflection" | wc -l | tr -d '[:space:]')
+        | grep "evolve(${sid})" | wc -l | tr -d '[:space:]')
       count="${count:-0}"
       printf '%s' "$line" | jq -c --argjson cc "${count}" '.commit_count = $cc'
     else
@@ -166,7 +168,7 @@ fi
 # ── 计算 commit_count ──
 set +e
 auto_commit_count=$(git -C "$(dirname "$METRICS_FILE")/../.." log --oneline 2>/dev/null \
-  | grep "evolve(${SESSION_ID})" | grep -v "reflection" | wc -l | tr -d '[:space:]')
+  | grep "evolve(${SESSION_ID})" | wc -l | tr -d '[:space:]')
 set -e
 auto_commit_count=$(echo "${auto_commit_count:-0}" | tr -d '[:space:]')
 

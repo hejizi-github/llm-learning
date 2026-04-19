@@ -4,6 +4,64 @@
 
 ---
 
+## Session 20260419-110245 — refresh_commit_counts 只补零修复 + 历史值还原
+
+### 背景
+
+上次 session（104631）外部评审打分 7/10，核心问题：
+- `refresh_commit_counts()` 引入 `grep -v "reflection"` 并全量覆写所有 commit_count，将历史正确非零值静默降低（032934: 5→4, 040257: 3→2 等）
+
+### 产出
+
+1. **`tools/update-metrics.sh`** — `refresh_commit_counts()` 重写：
+   - 只更新 `commit_count == 0` 的行；非零行直接原样输出
+   - 移除 `grep -v "reflection"`，统计语义回归"所有 session commit"
+   - `auto_commit_count` 计算也移除 `grep -v "reflection"`，保持一致
+2. **`.evolve/memory/session_metrics.jsonl`** — 一次性修正被错误降低的四行：
+   - 20260419-032934: 4→5, 20260419-040257: 2→3, 20260419-041214: 2→3, 20260419-054142: 2→3
+
+### KPI
+
+| 指标 | 修复前 | 修复后 |
+|---|---|---|
+| 032934 commit_count | 4（错误） | **5（正确）** |
+| 040257 commit_count | 2（错误） | **3（正确）** |
+| 041214 commit_count | 2（错误） | **3（正确）** |
+| 054142 commit_count | 2（错误） | **3（正确）** |
+| refresh 是否降低非零值 | 是（全量覆写）| **否（只补零）** |
+| test_count | 93 | **93** |
+| broken_notebook_ratio | 0 | **0** |
+
+### 验证
+
+- `pytest tests/ -q` → **93 passed**
+- `bash tools/update-metrics.sh --test-count 93 20260419-110245 PASS 8.5` → 历史值保持 5/3/3/3 ✓
+- `refresh_commit_counts()` 在 032934（commit_count=5，非零）时原样输出，不再降低
+
+### 核心修复逻辑
+
+```bash
+# 旧：全量覆写（错误）
+if [[ -n "$sid" && "$sid" != "null" ]]; then
+  count=$(... | grep -v "reflection" | wc -l ...)
+  jq '.commit_count = $cc'
+
+# 新：只补零（正确）
+existing_count=$(jq -r '.commit_count // 0')
+if [[ ... && "$existing_count" == "0" ]]; then
+  count=$(... | wc -l ...)  # 无 reflection 过滤
+  jq '.commit_count = $cc'
+else
+  printf '%s\n' "$line"  # 非零行原样输出
+```
+
+### 下次不同做
+
+1. Node09 Transformer（2017）：从 test_count=93 出发，按 README → cite-verify → notebook → pytest 顺序完整构建
+2. 在修改 metric 语义时，先单独 session 显式迁移，不混入 bug fix PR
+
+---
+
 ## Session 20260419-104631 — Node08 测试真正独立化 + commit_count 根因修复
 
 ### 背景
