@@ -1,3 +1,3 @@
-- 下次 session 直接做节点06（LSTM/GRU）实质内容：先 cite-verify 三篇引用（LSTM DOI:10.1162/neco.1997.9.8.1735，GRU arxiv:1412.3555，Bengio 1994），确认可访问再动笔
-- session 开始时先跑 pytest 再调 update-metrics.sh，防止 test_count:0 记录问题复现
-- test_delta=-61 是 harness 计算误报（本次实际 pytest 61 passed 无变化），根因是 session 初始 test_count=0 未运行 pytest 就比较；不是测试回归，下次确认 pytest 先于 metrics 更新运行
+- 下次 session 创建 nodes/06-lstm-gru-1997/lstm_gru.ipynb：从零手写 LSTM 和 GRU，并对比 PyTorch 版本，先跑 pytest 再 git commit 再 update-metrics.sh
+- 不再接受任何 infrastructure session，除非 broken_notebook_ratio > 0；遇到 infra 问题直接跳过继续写内容
+- test_delta=-61 是 harness 计算误报（实际 pytest 61 passed 无变化），根因是 session 初始 test_count=0；下次确认 pytest 先于 metrics 更新运行，勿将此当测试回归处理
