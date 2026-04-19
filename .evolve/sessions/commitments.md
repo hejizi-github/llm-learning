@@ -1,3 +1,3 @@
-- 节点06 GRU P2 梯度验证仍未解决：下次 session 首先处理，要么在 tests/test_node06.py 加数值梯度验证，要么把 goal #2 措辞缩小为准确描述已做到的事，不允许绕过
-- 节点08（Word2Vec 2013）是下一个内容节点，严格按 README → cite-verify → notebook → pytest 顺序，不跳步骤
-- update-metrics.sh test_count 静默失败已是第三次：下次 session 结束前必须运行 `pytest --tb=no -q` 并手工确认 test_count 写入 session_metrics.jsonl，防止再次记录 0
+- 每次 session 结束前显式运行 pytest，将结果通过 `update-metrics.sh --test-count N` 传入，不依赖临时文件
+- 下一个 session 必须做实质内容（Node08 Word2Vec 或 Node06 GRU 梯度验证），不允许再开一个纯工具修复 session
+- test_delta 系统警告触发时，先对比实际 pytest 输出，确认是真实回归还是 metrics 数据腐败导致的假阳性，再决定处理方式

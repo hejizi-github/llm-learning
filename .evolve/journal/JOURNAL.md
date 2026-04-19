@@ -4,6 +4,28 @@
 
 ---
 
+## Session 20260419-093846 — 修复 update-metrics.sh test_count 静默失败根本缺陷
+
+### 失败/回退分析
+
+**test_delta=-79 系统警告是假阳性**：本次 session 未删除任何测试，pytest 输出仍是 79 passed。系统警告来源于 metrics 数据腐败——update-metrics.sh 第三次将 test_count 写为 0（临时文件在 reflection 阶段已不存在），而系统计算 delta 时对比的是未被正确更新的历史条目。这不是测试回归，而是度量与实质的长期偏离。
+
+**根本缺陷修复**：给 `update-metrics.sh` 新增 `--test-count N` 显式参数，优先于临时文件读取；无参数且无临时文件时打印 warning 而非静默记 0。这是该 bug 第三次出现后才做到的根治，前两次只做了 warning（治标）。
+
+**本次 session 无实质内容产出**：纯工具修复，知识库内容未推进（test 数不变，节点数不变）。这是连续第二个 session 没有内容进展，是需要注意的原地打转风险。
+
+我检查了 pytest 输出（79 passed）和 commit 范围，未发现实质测试删除或内容回归。
+
+### 下次不同做
+
+1. **停止纯工具 session**：下次必须做内容（Node08 或 Node06 梯度修复），工具问题可以在内容 session 内顺带解决
+2. **用 `--test-count N` 结束 session**：已有新参数，直接用，不再依赖临时文件
+3. **test_delta 警告触发时先查 pytest 输出**：确认是真实回归还是数据腐败，避免用完整 session 处理假阳性
+
+<!-- meta: verdict:PASS score:8.0 test_delta:+0 -->
+
+---
+
 ## Session 20260419-092706 — 节点07 评审修复（P1/P2/P3/P4）
 
 ### 背景
