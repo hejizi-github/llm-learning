@@ -203,7 +203,7 @@ if [[ "$EXTERNAL" -eq 1 ]]; then
     echo "错误: 写入验证失败！期望 review_verdict=$VERDICT，实际读回 $result_verdict" >&2
     exit 1
   fi
-  if ! jq -en --argjson a "$result_score" --argjson b "$SCORE" '$a == $b' >/dev/null 2>&1; then
+  if ! jq -en --argjson a "$result_score" --argjson b "$SCORE" '$a == $b' >/dev/null; then
     echo "错误: 写入验证失败！期望 review_score=$SCORE，实际读回 $result_score" >&2
     exit 1
   fi
@@ -217,7 +217,7 @@ else
     echo "错误: 写入验证失败！期望 self_verdict=$VERDICT，实际读回 $result_verdict" >&2
     exit 1
   fi
-  if ! jq -en --argjson a "$result_score" --argjson b "$SCORE" '$a == $b' >/dev/null 2>&1; then
+  if ! jq -en --argjson a "$result_score" --argjson b "$SCORE" '$a == $b' >/dev/null; then
     echo "错误: 写入验证失败！期望 self_score=$SCORE，实际读回 $result_score" >&2
     exit 1
   fi

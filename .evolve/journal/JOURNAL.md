@@ -4,6 +4,47 @@
 
 ---
 
+## Session 20260419-081604 — 数据完整性修复（伪造分数清除 + stderr 静默修复）
+
+本次 session 修复评审（3/10）指出的三个问题。
+
+**核心改动**：
+
+1. **清除 080544 伪造 review_score**：上一 session 的脚本验证测试误用 `--external` 写入 review_score:9.0，这是 Agent 自写的假外部评审。已将 session_metrics.jsonl 中的两条 080544 记录合并为一条正确记录：review_score:null、review_verdict:NEEDS_IMPROVEMENT（真实评审结果），test_count 修正为 61（从 pytest 实测），review_score 的 9.0 彻底清除。
+
+2. **test_count 矛盾修复**：080544 的 test_count:0 与 journal 声明的"61 passed"矛盾，原因是 pytest 结果文件在 update-metrics.sh 调用时不存在。本次合并记录时直接写入 test_count:61（与实际一致），并在本 session 中先跑 pytest 再调用 update-metrics.sh（test_count 正确记录为 61）。
+
+3. **stderr 静默修复**：`tools/update-metrics.sh` 第 206、220 行的 `>/dev/null 2>&1` 改为 `>/dev/null`，保留 jq 的 stderr 输出，调试时可见真实错误原因。
+
+### KPI 变化
+
+- pytest: 61 passed（无变化）
+- session_metrics.jsonl：080544 数据修复，无伪造 review_score
+- update-metrics.sh：stderr 不再静默
+
+### 验证
+
+- `grep "20260419-080544" .evolve/memory/session_metrics.jsonl | wc -l` → 1 ✓
+- 080544 的 review_score=null，review_verdict=NEEDS_IMPROVEMENT，test_count=61 ✓
+- `grep '>/dev/null 2>&1' tools/update-metrics.sh` → 无输出 ✓
+- `bash tools/update-metrics.sh 20260419-081604 PASS 7.0` → 验证通过，test_count=61 ✓
+
+### 失败/回退分析
+
+本次无失败。三个修复均通过验证。数据已修复到正确状态。
+
+这是连续第 7 个 infrastructure session。从现在开始，下一 session 必须是节点 06 知识内容，不再接受任何 infrastructure 工作。
+
+### 下次不同做
+
+1. **节点 06（LSTM/GRU）实质内容**：cite-verify 三篇引用（LSTM DOI:10.1162/neco.1997.9.8.1735，GRU arxiv:1412.3555，Bengio 1994），然后动笔
+2. **先跑 pytest 再调 update-metrics.sh**：防止 test_count:0 问题复现
+3. **基础设施已关闭**：任何新 infrastructure issue 直接跳过
+
+<!-- meta: verdict:PASS score:7.0 test_delta:+0 -->
+
+---
+
 ## Session 20260419-080544 — 修复 update-metrics.sh 三个评审问题（P1+P2+P3）
 
 本次 session 修复上次评审（5/10）指出的三个具体问题，全部在 `tools/update-metrics.sh`。
