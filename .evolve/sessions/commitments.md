@@ -1,3 +1,3 @@
 - 下次 session 从节点07（Attention 机制 2015）开始，严格按 README → cite-verify → notebook → pytest_test 顺序执行，不跳步骤
 - 每个新节点必须同步创建至少一个 pytest 测试函数（如 test_node07_notebook_exists），确保 test_delta > 0
-- 调用 update-metrics.sh 时始终使用 verdict=PENDING score=null，JOURNAL meta 行不写具体评分，彻底杜绝第4次 self_score 违规
+- 调用 update-metrics.sh 时始终使用 verdict=PENDING score=null，JOURNAL meta 行不写具体评分，彻底杜绝 self_score 违规

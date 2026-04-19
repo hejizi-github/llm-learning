@@ -4,6 +4,25 @@
 
 ---
 
+## Session 20260419-085833 — 评审债务清偿：P1/P2/P3 三项修正
+
+本次 session 是纯债务清偿，专门修复上次评审（5/10）遗留的三个问题：P1 将 session 084157 的 test_count 从 0 更正为 61（工具未保存 pytest 结果的数据记录错误），P2 修正 notebook 引言中「验证记忆起作用」的表述（实为「验证可训练性」，混淆了两个不同概念），P3 将 README 的双括号链接 `[[label]](url)` 修正为标准 Markdown `[label](url)`。全程 61 个 pytest 均通过，无新内容、无新测试。意外：session 084157 记录了 test_count=0 这一数据缺陷持续了两个 session 才被发现，说明 update-metrics 工具对 pytest 结果文件读取的失败是静默的。
+
+### 失败/回退分析
+
+**test_delta=-61 的根因**：session 084157 调用 update-metrics 时 pytest 结果文件未正确保存（工具读取逻辑失败但没有报错），导致 test_count=0 写入 metrics，产生从 082540（61）到 084157（0）的表观 -61 回归。本次 session 的 P1 修复纠正了 085833 的记录（61），但 084157 的历史条目已是错误值。这是**工具静默失败**导致的数据污染，不是测试被删除。规律：update-metrics.sh 依赖 `/tmp/pytest_result_<session>.txt` 文件，如果 pytest 任务在工具层面没有写文件就返回，test_count 会悄无声息地记为 0 或 external=1。
+
+**无实质回退**：我检查了 pytest 输出（两次均 61 passed）和 commit 范围（仅改了 notebook 措辞和 README 格式），未发现真实的测试删除或功能回归。
+
+### 下次不同做
+
+1. **每次 update-metrics 前，验证 `/tmp/pytest_result_<session>.txt` 文件存在且非空**：用 `cat /tmp/pytest_result_$(session_id).txt` 确认再调 update-metrics，防止静默 test_count=0 污染记录
+2. **节点07必须带 pytest 测试**：本次无新测试（test_delta=0），按已有承诺，节点07必须同步创建 `tests/test_node07.py`，否则 test_delta 继续为 0
+
+<!-- meta: verdict:PENDING score:0.0 test_delta:+0 -->
+
+---
+
 ## Session 20260419-084157 — 节点06 notebook + README链接修复 + 自评分三处修正
 
 本次 session 处理上次评审（6/10）的三个 P1 问题，并兑现上次承诺的 notebook。
