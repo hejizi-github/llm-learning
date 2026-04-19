@@ -4,6 +4,52 @@
 
 ---
 
+## Session 20260419-104631 — Node08 测试真正独立化 + commit_count 根因修复
+
+### 背景
+
+上次 session（103335）外部评审打分 5.5/10，两个核心问题：
+- P1：`sim(鱼,肉) > sim(鱼,猫)` 独立性论证偷换范围——cell-17 已明确打印 sim(鱼,肉) 和 sim(猫,鱼)，测试实为"对 cell-17 打印内容补了一个 assert"，不算真正独立
+- commit_count：第四次出现系统性为 0，根因是 agent 在 commit 前调用 update-metrics，git log 查不到当次 commit
+
+### 产出
+
+1. **`tests/test_node08.py`**：`test_node08_semantic_similarity` → `test_node08_nearest_neighbor_bird`，断言 '鸟' 的最近邻必须是动物（猫/狗）。独立性：notebook cell-20 只打印 most_similar('猫','鱼','吃')，cell-17 未打印 '鸟' 与其他动物的对比，cell-18 断言与 '鸟' 无关。'鸟' 的最近邻属性在 notebook 任何 cell 均未打印或断言。
+2. **`tools/update-metrics.sh`**：新增 `refresh_commit_counts()`，在 global_dedup 后从 git log 实时刷新所有 session 的 commit_count。解决根因：即使 agent 先调用后 commit，下次调用时也会自动修正。
+
+### KPI
+
+| 指标 | 之前（103335）| 之后（104631）|
+|---|---|---|
+| test_count | 93 | **93**（测试内容更独立） |
+| broken_notebook_ratio | 0 | **0** |
+| 测试独立性 | cell-17 已打印 | **notebook 任何 cell 均未覆盖** |
+| commit_count 准确性 | 系统性为 0 | **从 git log 实时刷新，历史记录也已修正** |
+
+### 验证
+
+- `python tools/notebook-run nodes/08-word2vec-2013/word2vec.ipynb` → **PASS**
+- `pytest tests/ -q` → **93 passed**
+- `bash tools/update-metrics.sh --test-count 93 20260419-104631 PASS 8.5` → `commit_count=1` ✓
+- 历史 session commit_count 全部从 0 修正为真实值（git log 验证）
+
+### 独立性论证（新测试）
+
+notebook 中覆盖情况：
+- cell-17：print sim(猫,狗), sim(猫,鸟), sim(鱼,肉), sim(猫,鱼), sim(猫,米) — 无 '鸟' 最近邻分析
+- cell-18：assert sim(猫,狗) > sim(猫,吃) — 与 '鸟' 无关
+- cell-20：print most_similar('猫','鱼','吃') — 未包含 '鸟'
+- 新断言：'鸟'的 top-1 最近邻 in {'猫','狗'} — 完全不在上述任何 cell 中
+
+### 下次不同做
+
+1. **Node09 Transformer（2017）**：从 test_count=93 出发，按 README → cite-verify → notebook → pytest 顺序完整构建
+2. 新测试保持独立性原则：不断言任何 notebook 已打印过的属性
+
+<!-- meta: verdict:PASS score:8.5 test_delta:0 -->
+
+---
+
 ## Session 20260419-103335 — Node08 语义测试真正独立化 + 移除 git 二进制污染
 
 ### 背景
