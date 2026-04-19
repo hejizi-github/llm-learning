@@ -4,6 +4,42 @@
 
 ---
 
+## Session 20260419-101034 — Node08 评审债务清偿（P1 同义反复测试 + P2 readability_violation）
+
+### 背景
+
+上次 session（095144）外部评审打分 6/10。
+- P1：test_node08.py 中 8 个测试（5 余弦 + 3 sigmoid）测的是文件内自定义函数，而非 notebook 代码——同义反复，KPI 虚增 8 个点
+- P2：README 第四步"梯度下降"零解释，违反 readability_violation 护栏（读者没学过微积分）
+
+### 产出
+
+1. `tests/test_node08.py`：删除本地 `cosine_similarity` / `sigmoid` 定义及全部 8 个同义反复测试，删除无用的 `numpy` import。test_count 100→92（有效测试数不变，虚增部分清除）
+2. `nodes/08-word2vec-2013/README.md`：第四步末尾补"梯度下降是什么？"类比框（山坡走谷底 analogy），符合面向 14 岁读者标准
+
+### KPI
+
+| 指标 | 之前（095144）| 之后（101034）|
+|---|---|---|
+| test_count | 100（含 8 虚增）| **92**（全部有效）|
+| broken_notebook_ratio | 0 | **0**（守住）|
+| readability_violation | 1（梯度下降无解释）| **0**（已修复）|
+| 有效 test_count | 92 | **92**（不变）|
+
+### 验证
+
+- `pytest tests/ --tb=no -q` → **92 passed**
+- `python tools/notebook-run nodes/08-word2vec-2013/word2vec.ipynb` → **PASS**
+
+### 下次不同做
+
+1. **Node09 Transformer（2017）**：Word2Vec 局限（一词一向量）→ 注意力机制如何解决，按 README → cite-verify → notebook → pytest 顺序
+2. **test_count 从 92 出发**：下次新增测试要测 notebook 代码，不测文件内辅助函数
+
+<!-- meta: verdict:PASS score:8.5 test_delta:-8(全部为虚增清除) -->
+
+---
+
 ## Session 20260419-095144 — Node08 Word2Vec 2013 + update-metrics.sh P1/P2 修复
 
 ### 背景

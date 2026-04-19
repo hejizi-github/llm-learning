@@ -2,7 +2,6 @@
 import subprocess
 import sys
 import os
-import numpy as np
 import pytest
 
 NODE_DIR = os.path.join(os.path.dirname(__file__), "..", "nodes", "08-word2vec-2013")
@@ -74,74 +73,6 @@ def test_bib_has_two_mikolov_entries():
 def test_bib_has_bengio_background():
     bib = get_bib()
     assert "bengio" in bib.lower()
-
-
-# ── 数学性质：余弦相似度 ──
-
-def cosine_similarity(a, b):
-    norm_a = np.linalg.norm(a)
-    norm_b = np.linalg.norm(b)
-    if norm_a < 1e-9 or norm_b < 1e-9:
-        return 0.0
-    return float(np.dot(a, b) / (norm_a * norm_b))
-
-
-def test_cosine_self_similarity_is_one():
-    rng = np.random.RandomState(0)
-    for _ in range(10):
-        v = rng.randn(8)
-        assert abs(cosine_similarity(v, v) - 1.0) < 1e-6
-
-
-def test_cosine_range_minus_one_to_one():
-    rng = np.random.RandomState(1)
-    for _ in range(50):
-        a = rng.randn(8)
-        b = rng.randn(8)
-        cs = cosine_similarity(a, b)
-        assert -1.0 - 1e-6 <= cs <= 1.0 + 1e-6
-
-
-def test_cosine_symmetric():
-    rng = np.random.RandomState(2)
-    a = rng.randn(8)
-    b = rng.randn(8)
-    assert abs(cosine_similarity(a, b) - cosine_similarity(b, a)) < 1e-12
-
-
-def test_cosine_opposite_vectors_is_minus_one():
-    v = np.array([1.0, 2.0, 3.0])
-    assert abs(cosine_similarity(v, -v) - (-1.0)) < 1e-6
-
-
-def test_cosine_orthogonal_vectors_is_zero():
-    a = np.array([1.0, 0.0])
-    b = np.array([0.0, 1.0])
-    assert abs(cosine_similarity(a, b)) < 1e-9
-
-
-# ── 数学性质：Sigmoid ──
-
-def sigmoid(x):
-    return np.where(x >= 0,
-                    1 / (1 + np.exp(-x)),
-                    np.exp(x) / (1 + np.exp(x)))
-
-
-def test_sigmoid_at_zero():
-    assert abs(sigmoid(0) - 0.5) < 1e-9
-
-
-def test_sigmoid_output_in_zero_one():
-    xs = np.linspace(-10, 10, 200)
-    outs = sigmoid(xs)
-    assert np.all(outs > 0) and np.all(outs < 1)
-
-
-def test_sigmoid_monotone():
-    xs = np.linspace(-5, 5, 100)
-    outs = sigmoid(xs)
-    assert np.all(np.diff(outs) > 0)
 
 
 # ── Notebook 可执行 ──
