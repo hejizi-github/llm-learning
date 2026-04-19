@@ -4,6 +4,44 @@
 
 ---
 
+## Session 20260419-102204 — Node08 评审 P0/P1 修复（梯度方向 + 语义测试）
+
+### 背景
+
+上次 session（101034）外部评审打分 6/10，两个主要问题：
+- P0：README.md 梯度方向定义错误（写成"下坡"，应为"上坡"）
+- P1：删 8 个测试后仅剩 notebook 执行检查，缺真实语义验证
+
+### 产出
+
+1. `nodes/08-word2vec-2013/README.md`：第 128 行修正"梯度 = 最陡**上坡**方向，下降 = 沿负梯度走"，增加 `W = W - lr × gradient` 代码注释帮助读者连接概念与代码
+2. `nodes/08-word2vec-2013/word2vec.ipynb`：末尾加保存 cell，训练完后将 `W` 和 `word2idx` 分别保存为 `word_vectors.npy` / `word2idx.pkl`（供测试加载）
+3. `tests/test_node08.py`：新增 `test_node08_semantic_similarity()`，加载 notebook 输出的词向量，验证 `sim(猫,狗) > sim(猫,吃)`（动物词相似度 > 动物词与动词相似度）
+
+### KPI
+
+| 指标 | 之前（101034）| 之后（102204）|
+|---|---|---|
+| test_count | 92 | **93**（+1 语义测试）|
+| broken_notebook_ratio | 0 | **0** |
+| 梯度方向错误 | 存在（P0）| **已修复** |
+| 语义覆盖测试 | 无 | **有**（P1 解决）|
+
+### 验证
+
+- `pytest tests/ --tb=no -q` → **93 passed**
+- `python tools/notebook-run nodes/08-word2vec-2013/word2vec.ipynb` → **PASS**
+- README.md 梯度类比框：梯度=上坡，下降=反着走，代码 `W - lr×gradient` 对应负梯度
+
+### 下次不同做
+
+1. **Node09 Transformer（2017）**：Word2Vec 局限（一词一向量）→ 注意力机制，从 test_count=93 出发
+2. 新增测试只测 notebook 导出的实际行为，不测文件内辅助函数
+
+<!-- meta: verdict:PASS score:8.5 test_delta:+1 -->
+
+---
+
 ## Session 20260419-101034 — Node08 评审债务清偿（P1 同义反复测试 + P2 readability_violation）
 
 ### 背景

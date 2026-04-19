@@ -2,6 +2,8 @@
 import subprocess
 import sys
 import os
+import pickle
+import numpy as np
 import pytest
 
 NODE_DIR = os.path.join(os.path.dirname(__file__), "..", "nodes", "08-word2vec-2013")
@@ -84,3 +86,37 @@ def test_node08_notebook_executes():
         cwd=os.path.join(os.path.dirname(__file__), ".."),
     )
     assert result.returncode == 0, f"Notebook failed:\n{result.stdout}\n{result.stderr}"
+
+
+# ── 语义相似性集成测试（从 notebook 导出的词向量） ──
+
+def _load_vectors():
+    """加载 notebook 训练后保存的词向量文件。"""
+    W_path = os.path.join(NODE_DIR, "word_vectors.npy")
+    idx_path = os.path.join(NODE_DIR, "word2idx.pkl")
+    assert os.path.isfile(W_path), "缺少 word_vectors.npy，请先运行 notebook"
+    assert os.path.isfile(idx_path), "缺少 word2idx.pkl，请先运行 notebook"
+    W = np.load(W_path)
+    with open(idx_path, "rb") as f:
+        word2idx = pickle.load(f)
+    return W, word2idx
+
+
+def _cosine_sim(a, b):
+    na, nb = np.linalg.norm(a), np.linalg.norm(b)
+    if na < 1e-9 or nb < 1e-9:
+        return 0.0
+    return float(np.dot(a, b) / (na * nb))
+
+
+def test_node08_semantic_similarity():
+    """
+    核心声明：训练后语义相近的词（猫/狗=同为动物）
+    余弦距离 < 无关词对（猫/吃=动物vs动词）。
+    """
+    W, word2idx = _load_vectors()
+    sim_animal = _cosine_sim(W[word2idx["猫"]], W[word2idx["狗"]])
+    sim_unrelated = _cosine_sim(W[word2idx["猫"]], W[word2idx["吃"]])
+    assert sim_animal > sim_unrelated, (
+        f"语义验证失败: sim(猫,狗)={sim_animal:.4f} 应 > sim(猫,吃)={sim_unrelated:.4f}"
+    )
