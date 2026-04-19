@@ -127,10 +127,13 @@ refresh_commit_counts() {
     existing_count=$(printf '%s' "$line" | jq -r '.commit_count // 0')
     if [[ -n "$sid" && "$sid" != "null" ]]; then
       local count max_count
+      # grep 无匹配时 exit code=1，需要 set +e 防止 pipefail 崩溃脚本
+      set +e
       count=$(git -C "$repo_dir" log --oneline 2>/dev/null \
         | grep "evolve(${sid})" | wc -l | tr -d '[:space:]')
+      set -e
       count="${count:-0}"
-      # 取 max(git_count, existing_count)，既不降低历史值，也修正偏低的错误值
+      # max(git_count, existing_count)：不降低历史值，但也无法修正偏高的错误值
       if [[ "$count" -gt "$existing_count" ]]; then
         max_count="$count"
       else

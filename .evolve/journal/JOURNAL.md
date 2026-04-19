@@ -4,6 +4,44 @@
 
 ---
 
+## Session 20260419-112933 — refresh_commit_counts grep 崩溃修复
+
+### 背景
+
+上次 session（111624）外部评审打分 4/10，核心问题：
+- `refresh_commit_counts()` 在 `set -euo pipefail` 下运行 `git log | grep | wc -l`，grep 无匹配时 exit code=1，导致脚本中途崩溃
+- `count="${count:-0}"` 是死代码（永远不会执行到）
+- 爆炸半径：新 max 策略对所有 43 条记录跑 grep，比旧策略危险得多
+
+### 产出
+
+1. **`tools/update-metrics.sh`** — `refresh_commit_counts()` 修复：
+   - 在 git log 管道前后加 `set +e` / `set -e`，与主流程 175-178 行保持一致
+   - `count="${count:-0}"` 现在是真实有效的 fallback（set +e 块结束后才执行）
+   - max 策略注释更新，说明局限："不能修正偏高的错误值"
+
+### KPI
+
+| 指标 | 修复前 | 修复后 |
+|---|---|---|
+| fake session grep 崩溃 | 崩溃，无输出 | 正常完成，count=0 |
+| session_metrics.jsonl 行数 | 可能被截断 | 保持 44 行 |
+| test_count | 93 | **93** |
+| broken_notebook_ratio | 0 | **0** |
+
+### 验证
+
+- `bash tools/update-metrics.sh --test-count 93 fake-session-no-commit PASS 8.0` → 不崩溃，count=0
+- `pytest tests/ -q` → **93 passed**
+
+### 下次不同做
+
+1. **Node09 Transformer（2017）**：按 README → cite-verify → notebook → pytest 顺序完整构建（上次承诺，现在基础设施稳定，可以继续）
+
+<!-- meta: verdict:PASS score:8.5 test_delta:0 -->
+
+---
+
 ## Session 20260419-111624 — refresh_commit_counts max 策略修复
 
 ### 背景
