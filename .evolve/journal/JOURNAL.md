@@ -1375,3 +1375,54 @@ git log | grep "evolve($SESSION_ID)" | grep -v "reflection" | wc -l
 3. **agent 结束时标准化**：每次 session 结束前固定运行一行 `pytest --tb=no -q 2>&1 | tail -1 > /tmp/pytest_result_<session>.txt`
 
 <!-- meta: verdict:PASS score:8.0 test_delta:0 -->
+
+---
+
+## Session 20260419-085833 — 修复评审P1/P2/P3（5/10还债）
+
+本次 session 清还评审（5/10）指出的三个具体问题。
+
+### 问题修复
+
+**P1（test_count:0 矛盾）**：
+- 根因：上次 session 在 pytest 之前调用 update-metrics.sh，/tmp/pytest_result 文件不存在，test_count 默认=0
+- 修复：手动将 session_metrics.jsonl 中 084157 的两条 test_count:0 记录修正为 61
+- 防止复发：本次 session 先运行 pytest → 保存到 /tmp/pytest_result_085833.txt → 再调用 update-metrics.sh，成功捕获 test_count=61
+
+**P2（notebook 承诺"验证记忆起作用"但代码只展示未训练预测很差）**：
+- 修复：将引言目标 #2 改为"用数值梯度验证结构正确——证明 LSTM/GRU 数学上可训练"
+- 第六步可视化的说明"预测结果与真实值相差很大，这很正常：记忆能力需要训练"本身是准确的，保留不动
+- notebook nbconvert 执行验证：PASS
+
+**P3（README 双括号链接 [[label]](url) → 单括号 [label](url)）**：
+- 修复三处：Hochreiter 1997、Cho 2014、Chung 2014
+- cite-verify: 8/8 PASS
+
+### KPI 变化
+
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| knowledge_nodes | 6 | 6 |
+| nodes_with_runnable_notebook | 6 | 6 |
+| pytest | 61 | **61** ✓ |
+| broken_notebook_ratio | 0 | 0 ✓ |
+| cite-verify | 8/8 PASS | 8/8 PASS ✓ |
+| 084157 test_count | 0（错误） | **61**（修正） |
+
+### 根因分析：为什么 test_count 会是 0
+
+`update-metrics.sh` 的 test_count 依赖 `/tmp/pytest_result_<session>.txt`，
+没有这个文件就默认 0。解法：每次 session 结束时，必须在 pytest 之后立即保存结果：
+```bash
+pytest --tb=no -q 2>&1 | tee /tmp/pytest_result_<session>.txt
+bash tools/update-metrics.sh <session> PENDING null
+```
+这个顺序必须固定，不能颠倒。
+
+### 下次不同做
+
+1. **节点07（Attention 机制 2015）**：开始新节点，按 README → cite-verify → notebook → pytest_test 顺序
+2. **每节点必须加 `tests/test_nodeXX.py`**，确保 test_delta > 0
+3. **pytest 顺序**：pytest → tee /tmp/pytest_result → update-metrics，永远不颠倒
+
+<!-- meta: verdict:PENDING score:null test_delta:+0 -->
