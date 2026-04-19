@@ -35,9 +35,16 @@
 - `session_metrics.jsonl` 中 110245 只有一条记录，commit_count=4
 - 历史高值（032934=5, 040257=3 等）均未被降低
 
+### 失败/回退分析
+
+**test_delta=-93 是系统误报（已连续多次出现）**：pytest 前后均为 93 passed，实际 delta 为 0。根因：evolve 监控在当次 session 写入 metrics 前读取记录（值为 0），导致计算 0-93=-93。本次 session 目标是修复 refresh_commit_counts 的"只补零"逻辑，无测试增删意图。
+
+本次无实质失败，但有**原地打转信号**：commit_count bug 已连续三个 session 修复（104631 根因 → 110245 只补零 → 111624 max 策略），每次修复引入新边界问题。根因：缺乏单元测试覆盖 refresh_commit_counts 的所有分支（非零保留、零填充、reflection 统计）。
+
 ### 下次不同做
 
 1. **Node09 Transformer（2017）**：按 README → cite-verify → notebook → pytest 顺序完整构建
+2. 修改 metric 语义时，先单独 session 显式迁移，不混入 bug fix PR
 
 <!-- meta: verdict:PASS score:8.5 test_delta:0 -->
 
