@@ -4,6 +4,45 @@
 
 ---
 
+## Session 20260419-111624 — refresh_commit_counts max 策略修复
+
+### 背景
+
+上次 session（110245）外部评审打分 6/10，核心问题：
+- `refresh_commit_counts()` 的"只补零"逻辑冻结了"非零但错误"的值（110245 的 commit_count 被冻结为 1，实际应为 4）
+- 函数名叫"refresh"但行为是"fill zeros"，语义谎言
+
+### 产出
+
+1. **`tools/update-metrics.sh`** — `refresh_commit_counts()` 重写：
+   - 新策略：总是用 git log 重算，取 `max(git_count, existing_count)`
+   - 不降低历史已知正确的高值；允许修正"非零但偏低"的错误值（如 110245: 1→4）
+   - 同时更新顶部注释说明新策略
+
+### KPI
+
+| 指标 | 修复前 | 修复后 |
+|---|---|---|
+| 110245 commit_count | 1（错误，冻结） | **4（正确）** |
+| 032934 commit_count | 5 | **5（未降低）** |
+| 重复记录（110245） | 2 条 | **1 条（global_dedup 合并）** |
+| test_count | 93 | **93** |
+| broken_notebook_ratio | 0 | **0** |
+
+### 验证
+
+- `pytest tests/ -q` → **93 passed**
+- `session_metrics.jsonl` 中 110245 只有一条记录，commit_count=4
+- 历史高值（032934=5, 040257=3 等）均未被降低
+
+### 下次不同做
+
+1. **Node09 Transformer（2017）**：按 README → cite-verify → notebook → pytest 顺序完整构建
+
+<!-- meta: verdict:PASS score:8.5 test_delta:0 -->
+
+---
+
 ## Session 20260419-110245 — refresh_commit_counts 只补零修复 + 历史值还原
 
 ### 背景

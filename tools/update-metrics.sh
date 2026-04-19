@@ -14,7 +14,7 @@
 #
 # 全局去重：每次调用都对整个文件做一次去重，同 session_id 的多条记录按数据完整性优先级合并。
 # 合并规则：review_score 非 null 的记录优先级最高，null 字段从低优先级记录填入；test_count 取 max。
-# commit_count 以 auto_commit_count（git log 实时计算）为权威来源，不做 max 保留。
+# commit_count：refresh_commit_counts() 总是用 git log 重算，取 max(git_count, existing_count)。
 
 set -euo pipefail
 
@@ -115,8 +115,8 @@ global_dedup() {
 
 global_dedup
 
-# ── 刷新 commit_count == 0 的 session（从 git log 补零）──
-# 只补零，不降低已有非零历史值。统计包含 reflection 等所有 commit。
+# ── 刷新 commit_count：总是用 git log 重算，取 max(git_count, existing_count) ──
+# max 策略：不降低历史已知正确的高值，也允许修正"非零但偏低"的错误值。
 refresh_commit_counts() {
   local repo_dir tmpfile
   repo_dir="$(cd "$(dirname "$METRICS_FILE")/../.." && pwd)"
@@ -125,12 +125,18 @@ refresh_commit_counts() {
     local sid existing_count
     sid=$(printf '%s' "$line" | jq -r '.session // ""')
     existing_count=$(printf '%s' "$line" | jq -r '.commit_count // 0')
-    if [[ -n "$sid" && "$sid" != "null" && "$existing_count" == "0" ]]; then
-      local count
+    if [[ -n "$sid" && "$sid" != "null" ]]; then
+      local count max_count
       count=$(git -C "$repo_dir" log --oneline 2>/dev/null \
         | grep "evolve(${sid})" | wc -l | tr -d '[:space:]')
       count="${count:-0}"
-      printf '%s' "$line" | jq -c --argjson cc "${count}" '.commit_count = $cc'
+      # 取 max(git_count, existing_count)，既不降低历史值，也修正偏低的错误值
+      if [[ "$count" -gt "$existing_count" ]]; then
+        max_count="$count"
+      else
+        max_count="$existing_count"
+      fi
+      printf '%s' "$line" | jq -c --argjson cc "${max_count}" '.commit_count = $cc'
     else
       printf '%s\n' "$line"
     fi
