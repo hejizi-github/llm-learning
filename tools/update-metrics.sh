@@ -115,6 +115,33 @@ global_dedup() {
 
 global_dedup
 
+# ── 刷新所有 session 的 commit_count（从 git log 实时计算，解决"先调用后 commit"导致的 0 问题）──
+refresh_commit_counts() {
+  local repo_dir tmpfile
+  repo_dir="$(cd "$(dirname "$METRICS_FILE")/../.." && pwd)"
+  tmpfile=$(mktemp)
+  while IFS= read -r line; do
+    local sid
+    sid=$(printf '%s' "$line" | jq -r '.session // ""')
+    if [[ -n "$sid" && "$sid" != "null" ]]; then
+      local count
+      count=$(git -C "$repo_dir" log --oneline 2>/dev/null \
+        | grep "evolve(${sid})" | grep -v "reflection" | wc -l | tr -d '[:space:]')
+      count="${count:-0}"
+      printf '%s' "$line" | jq -c --argjson cc "${count}" '.commit_count = $cc'
+    else
+      printf '%s\n' "$line"
+    fi
+  done < "$METRICS_FILE" > "$tmpfile"
+  if [[ -s "$tmpfile" ]]; then
+    mv "$tmpfile" "$METRICS_FILE"
+  else
+    rm -f "$tmpfile"
+  fi
+}
+
+refresh_commit_counts
+
 # ── 确定 test_count ──
 test_count=0
 if [[ -n "$EXPLICIT_TEST_COUNT" ]]; then

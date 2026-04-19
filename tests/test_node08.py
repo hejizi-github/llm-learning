@@ -109,15 +109,26 @@ def _cosine_sim(a, b):
     return float(np.dot(a, b) / (na * nb))
 
 
-def test_node08_semantic_similarity():
+def test_node08_nearest_neighbor_bird():
     """
-    食物词聚类验证：鱼/肉同为食物，共现频率高，训练后应比跨类词对鱼/猫更相似。
-    此属性与 notebook cell-18 的动物词断言（sim(猫,狗) > sim(猫,吃)）完全独立——
-    cell-18 未直接验证食物词聚类，因此本测试能独立捕捉食物语义方向的回归。
+    '鸟'的最近邻必须是同类动物（猫或狗），而非动词或食物。
+
+    独立性保证：notebook cell-20 只打印了 most_similar('猫', '鱼', '吃')，
+    未打印 '鸟' 的最近邻。cell-17 打印了特定词对但不含 '鸟' vs 其他动物的比较。
+    cell-18 断言 sim(猫,狗) > sim(猫,吃)，与 '鸟' 无关。
+    因此本测试断言的属性在 notebook 任何 cell 都没有被打印或断言过，
+    能真正独立捕捉动物词聚类方向的回归。
     """
     W, word2idx = _load_vectors()
-    sim_food = _cosine_sim(W[word2idx["鱼"]], W[word2idx["肉"]])
-    sim_cross = _cosine_sim(W[word2idx["鱼"]], W[word2idx["猫"]])
-    assert sim_food > sim_cross, (
-        f"食物词聚类失败: sim(鱼,肉)={sim_food:.4f} 应 > sim(鱼,猫)={sim_cross:.4f}"
+    bird_idx = word2idx["鸟"]
+    scores = {
+        word: _cosine_sim(W[bird_idx], W[idx])
+        for word, idx in word2idx.items()
+        if word != "鸟"
+    }
+    top_word = max(scores, key=scores.__getitem__)
+    assert top_word in {"猫", "狗"}, (
+        f"动物词聚类失败：'鸟'的最近邻应为同类动物(猫/狗)，"
+        f"实际为 '{top_word}'（相似度 {scores[top_word]:.4f}）。"
+        "可能梯度方向或词向量训练存在问题。"
     )
