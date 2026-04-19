@@ -132,7 +132,9 @@ refresh_commit_counts() {
       count=$(git -C "$repo_dir" log --oneline 2>/dev/null \
         | grep "evolve(${sid})" | wc -l | tr -d '[:space:]')
       set -e
-      count="${count:-0}"
+      # wc -l 输出数字（最小 "0"），count 永远非空，所以 :-0 不会触发
+      # 真正的防御：若命令替换返回非数字（极端情况），兜底为 0
+      [[ "$count" =~ ^[0-9]+$ ]] || count=0
       # max(git_count, existing_count)：不降低历史值，但也无法修正偏高的错误值
       if [[ "$count" -gt "$existing_count" ]]; then
         max_count="$count"
