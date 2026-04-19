@@ -4,6 +4,56 @@
 
 ---
 
+## Session 20260419-121238 — Node09 Transformer README 修复 + transformer.ipynb + 17 tests
+
+### 背景
+
+上次 session（113824）外部评审打分 6/10，指出：
+1. 架构图中 `────→` 箭头指向错层（Encoder → 遮掩自注意力，应指向交叉注意力）
+2. FFN 维度描述倒置：写了 `2048→512`，实际是先扩展 `512→2048` 再压缩
+3. 节点引用叙事混乱（"上一节节点07" 但读者刚读完节点08）
+4. 承诺继续构建 Node09 transformer.ipynb
+
+### 产出
+
+**1. README 修复**（3 处技术错误）：
+- 发现工作区已有部分修复（架构图已改正），只需补 FFN 维度修复
+- FFN：改为"先扩展 512→2048，加 ReLU，再压缩 2048→512"，明确"先扩再缩"
+- 节点引用：`上一节（节点07）里` → `节点07中`（去除误导性叙事）
+
+**2. transformer.ipynb（全新）**：
+- 缩放点积注意力：numpy 手撕，支持批量/多头维度，遮掩
+- 多头注意力：split_heads / concat 完整实现
+- 位置编码：sin/cos 叠加 + 两张可视化图（热力图 + 波形）
+- Layer Norm + FFN（先扩展×4）+ TransformerEncoderLayer（残差+LN）
+- 因果遮掩（解码器专用）
+- jupyter nbconvert --execute 零错误
+
+**3. tests/test_node09.py（全新）**：
+- 17 tests 覆盖：SDPA 形状/权重行和/非负性/无NaN/批量；因果遮掩；位置编码数学性质；notebook 可执行性
+- 全量 pytest: 110 passed（新增 17，无回归）
+
+### KPI
+
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| knowledge_nodes | 9 | 9（不变，本次完善质量） |
+| nodes_with_runnable_notebook | 6 | **7** |
+| pytest | 93 | **110** |
+| broken_notebook_ratio | 0 | **0** |
+| cite-verify | PASS | **PASS** |
+| README FFN 描述 | 错误（倒置） | **正确** |
+| 架构图 | 箭头指错层 | **正确** |
+
+### 下次不同做
+
+1. **Node10 BERT 启动**：架构完整了，下一个节点应该是 BERT（2018）
+2. **Python 字符串中的中文引号问题**：中文排版用`""`（左右引号）在 Python 字符串中是 ASCII `"` 会破坏解析——以后 Python 字符串中的中文引号必须用 `\"` 转义，或在 Write 工具前检查
+
+<!-- meta: verdict:PASS score:8.5 test_delta:+17 -->
+
+---
+
 ## Session 20260419-113824 — Node09 Transformer (2017) README + dead code 修复
 
 ### 背景
