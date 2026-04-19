@@ -3,15 +3,15 @@
 > **突破时间**：1997 年（LSTM）/ 2014 年（GRU）
 > **关键人物**：Sepp Hochreiter、Jürgen Schmidhuber（LSTM）；Kyunghyun Cho、Yoshua Bengio 等（GRU）
 > **核心论文**：
-> - Hochreiter & Schmidhuber 1997 \[DOI:10.1162/neco.1997.9.8.1735\]
-> - Cho et al. 2014 \[arXiv:1406.1078\]
-> - Chung et al. 2014 \[arXiv:1412.3555\]
+> - Hochreiter & Schmidhuber 1997 [[DOI:10.1162/neco.1997.9.8.1735]](https://doi.org/10.1162/neco.1997.9.8.1735)
+> - Cho et al. 2014 [[arXiv:1406.1078]](https://arxiv.org/abs/1406.1078)
+> - Chung et al. 2014 [[arXiv:1412.3555]](https://arxiv.org/abs/1412.3555)
 
 ---
 
 ## 故事：一道记忆难题
 
-[节点 05](../05-gradient-vanishing-1991/) 告诉我们：普通 RNN 在序列变长后，梯度会**指数级缩小**——网络忘记了很久之前的信息。
+[节点 05](../05-gradient-vanishing-1991/) 告诉我们：普通 RNN 在序列变长后，梯度会**指数级缩小**——网络忘记了很久之前的信息（Bengio et al., [1994](https://doi.org/10.1109/72.279181)）。
 
 这是一道真实的难题。
 
@@ -121,9 +121,9 @@ $$\frac{\partial c_t}{\partial c_{t-1}} = f_t$$
 
 ## GRU：两道闸门，更简洁的设计
 
-2014 年，Cho 等人在研究机器翻译时，提出了**GRU（Gated Recurrent Unit，门控循环单元）**作为 LSTM 的简化版本。
+2014 年，Cho 等人在研究机器翻译时，提出了**GRU（Gated Recurrent Unit，门控循环单元）**——一种用于 RNN Encoder-Decoder 的新型门控单元，后来被研究者们视为比 LSTM 更简洁的设计。
 
-他们的论文提出了 RNN Encoder-Decoder 架构，其中引入了 GRU 单元 \[arXiv:1406.1078\]。
+他们的论文提出了 RNN Encoder-Decoder 架构，其中引入了 GRU 单元（[arXiv:1406.1078](https://arxiv.org/abs/1406.1078)）。
 
 GRU 把 LSTM 的三道闸门简化为**两道**：
 
@@ -151,7 +151,7 @@ $$h_t = (1 - z_t) \times h_{t-1} + z_t \times \tilde{h}_t$$
 
 Chung 等人（2014）系统比较了 LSTM 和 GRU 在音乐建模和语音信号建模上的表现：
 
-> "我们发现 GRU 与 LSTM 相当（GRU to be comparable to LSTM）" \[arXiv:1412.3555\]
+> "我们发现 GRU 与 LSTM 相当（GRU to be comparable to LSTM）"（[arXiv:1412.3555](https://arxiv.org/abs/1412.3555)）
 
 **实践经验**：
 | | LSTM | GRU |
@@ -197,7 +197,7 @@ def lstm_step(x_t, h_prev, c_prev, W_f, W_i, W_c, W_o, b_f, b_i, b_c, b_o):
 # 梯度通过这条路径反向传播时，不再指数级消失
 ```
 
-完整的交互式演示见 → [`lstm_gru.ipynb`](./lstm_gru.ipynb)（下一 session 构建）
+完整的交互式演示见 → [`lstm_gru.ipynb`](./lstm_gru.ipynb)
 
 ---
 

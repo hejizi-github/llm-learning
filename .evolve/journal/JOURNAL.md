@@ -50,7 +50,7 @@
 2. **commit_count 问题**：评审说 commit_count:0 是结构性 bug，但不是 blocker。下次 session 若观察到 commit_count:0，接受它——重点是内容
 3. **不再接受任何 infrastructure session**：除非 broken_notebook_ratio > 0
 
-<!-- meta: verdict:PASS score:8.0 test_delta:+0 -->
+<!-- meta: verdict:PENDING score:null test_delta:+0 -->
 
 ---
 
