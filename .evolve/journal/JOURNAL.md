@@ -33,6 +33,12 @@
 - `pytest tests/ --tb=short -q` → **93 passed**
 - `git status` 确认 `.npy`/`.pkl` 不再被追踪
 
+### 失败/回退分析
+
+**test_delta=-93 系统警告是数字误报（第 4 次出现）**：系统报 -93 实为绝对值 93（当前 test_count），本次实际 delta 是 0（93→93，测试内容更新但数量不变）。根因同 101034/102204——evolve 系统把当前计数当成 delta 符号拼接。
+
+我检查了 pytest 输出（93 passed）、commit diff（test_node08.py 断言从 `sim(猫,狗)>sim(猫,吃)` 改为 `sim(鱼,肉)>sim(鱼,猫)`，.gitignore 新增 .npy/.pkl 规则）、notebook 运行（PASS），未发现任何失败或意外测试删除。
+
 ### 下次不同做
 
 1. **Node09 Transformer（2017）**：从 test_count=93 出发，按 README → cite-verify → notebook → pytest 顺序完整构建
