@@ -1,2 +1,2 @@
-- 下次 session 构建 Node09 transformer.ipynb：从零实现 Scaled Dot-Product / Multi-Head Attention + 位置编码可视化，必须 `jupyter nbconvert --execute` 零错误后再写 tests/test_node09.py
-- test_delta=-93 是监控系统误报（监控在 metrics 写入前读取 pytest 计数得 0，与上次 93 做差），实际 pytest 93 passed 无变化，无需补测试
+- 下次 session 构建 Node10 BERT (2018)：按 README → cite-verify → notebook → pytest 顺序，notebook 用 Python 脚本生成 JSON（不手写），确保 nbconvert --execute 零错误后再提交
+- Python 字符串中若包含中文内容（有可能出现 ASCII `"` 引号），在 Write 工具前必须 grep 检查裸 `"` 是否未转义；或改用 `\"` 或 `'''...'''` 三引号格式
