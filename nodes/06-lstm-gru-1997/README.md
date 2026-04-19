@@ -3,9 +3,9 @@
 > **突破时间**：1997 年（LSTM）/ 2014 年（GRU）
 > **关键人物**：Sepp Hochreiter、Jürgen Schmidhuber（LSTM）；Kyunghyun Cho、Yoshua Bengio 等（GRU）
 > **核心论文**：
-> - Hochreiter & Schmidhuber 1997 [[DOI:10.1162/neco.1997.9.8.1735]](https://doi.org/10.1162/neco.1997.9.8.1735)
-> - Cho et al. 2014 [[arXiv:1406.1078]](https://arxiv.org/abs/1406.1078)
-> - Chung et al. 2014 [[arXiv:1412.3555]](https://arxiv.org/abs/1412.3555)
+> - Hochreiter & Schmidhuber 1997 [DOI:10.1162/neco.1997.9.8.1735](https://doi.org/10.1162/neco.1997.9.8.1735)
+> - Cho et al. 2014 [arXiv:1406.1078](https://arxiv.org/abs/1406.1078)
+> - Chung et al. 2014 [arXiv:1412.3555](https://arxiv.org/abs/1412.3555)
 
 ---
 
