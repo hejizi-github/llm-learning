@@ -4,6 +4,56 @@
 
 ---
 
+## Session 20260419-082540 — 节点 06（LSTM/GRU）实质内容：README + 引用验证
+
+本次 session 终止基础设施循环，创建第一个 RNN 时代知识节点。
+
+### 核心产出
+
+1. **nodes/06-lstm-gru-1997/references.bib**：4 条引用，全部 cite-verify PASS
+   - `hochreiter1997lstm` — DOI:10.1162/neco.1997.9.8.1735（paywalled, PASS）
+   - `bengio1994` — DOI:10.1109/72.279181（PASS）
+   - `cho2014gru` — arXiv:1406.1078（PASS，原始 GRU 论文，非 1412.3555）
+   - `chung2014empirical` — arXiv:1412.3555（PASS，GRU 评估对比论文）
+
+2. **nodes/06-lstm-gru-1997/README.md**（223 行）：
+   - 故事线：从 node 05 梯度消失→LSTM 闸门解决方案→GRU 简化版
+   - 三道闸门数学（遗忘闸/输入闸/输出闸），公式面向初中生内联解释
+   - 梯度不消失的机制："当 $f_t \approx 1$，梯度 $\partial c_t/\partial c_{t-1} = f_t \approx 1$"
+   - GRU 两道闸门（更新闸/重置闸）
+   - LSTM vs GRU 对比表（引用 Chung et al. 2014 实证结论）
+   - 伪代码演示（非真 notebook，notebook 留下 session）
+   - 正确 markdown 超链接格式（修复 `\[DOI:...\]` 导致的 URL 尾部反斜杠问题）
+
+3. **一个发现**：原承诺 cite-verify "GRU arxiv:1412.3555" 是评估对比论文（Chung et al.）；真正的 GRU 原始论文是 arxiv:1406.1078（Cho et al.）。两篇都引用了。
+
+### KPI 变化
+
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| knowledge_nodes | 5 | **6** (+1) |
+| nodes_with_runnable_notebook | 5 | 5（notebook 下次建）|
+| verified_citations_ratio | 5 节点 | **6 节点，4/4 PASS** |
+| pytest | 61 | **61**（无回归）|
+| broken_notebook_ratio | 0 | 0 ✓ |
+| cite-verify 结果 | — | 8/8 URL checks PASS |
+
+### 验证
+
+- `python3 tools/cite-verify nodes/06-lstm-gru-1997/` → 8/8 passed ✓
+- `pytest --tb=no -q` → 61 passed ✓
+- README.md 通读：每段前问"14岁学生能理解吗？"—— 直觉先行，数学后随，符合策略
+
+### 下次不同做
+
+1. **节点 06 notebook**：创建 `lstm_gru.ipynb`，实现 LSTM 和 GRU（从零手写），并对比 PyTorch 版本。先跑 pytest，再 git commit，再 update-metrics.sh
+2. **commit_count 问题**：评审说 commit_count:0 是结构性 bug，但不是 blocker。下次 session 若观察到 commit_count:0，接受它——重点是内容
+3. **不再接受任何 infrastructure session**：除非 broken_notebook_ratio > 0
+
+<!-- meta: verdict:PASS score:8.0 test_delta:+0 -->
+
+---
+
 ## Session 20260419-081604 — 数据完整性修复（伪造分数清除 + stderr 静默修复）
 
 本次 session 修复评审（3/10）指出的三个问题。
