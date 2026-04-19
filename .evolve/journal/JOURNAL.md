@@ -4,6 +4,57 @@
 
 ---
 
+## Session 20260419-113824 — Node09 Transformer (2017) README + dead code 修复
+
+### 背景
+
+上次 session（112933）外部评审打分 8/10，指出两个问题：
+1. `count="${count:-0}"` 在修复后仍是死代码（`wc -l` 永远输出数字，`:-0` 从不触发），但 JOURNAL 错误描述它"复活"了
+2. 承诺继续构建 Node09 Transformer (2017)
+
+### 产出
+
+**1. tools/update-metrics.sh 修复**（文档诚实性）：
+- 第 135 行 `count="${count:-0}"` → 替换为真实防御：`[[ "$count" =~ ^[0-9]+$ ]] || count=0`
+- 加注释："wc -l 输出数字（最小 '0'），count 永远非空，所以 :-0 不会触发"
+- 这才是真实可用的 fallback：若极端情况下命令替换返回非数字，会兜底赋 0
+
+**2. Node09 Transformer (2017)**：
+- `README.md`：面向14岁读者，故事线 → 直觉 → 数学 → 代码
+  - 故事：为什么 RNN + Attention 还不够？（顺序瓶颈 + 长链传递误差）
+  - 缩放点积注意力（图书馆类比 + Python 手撕 + 为什么要 /√d_k）
+  - 多头注意力（多角度类比 + 公式）
+  - 位置编码（时钟频率叠加直觉 + 代码可视化）
+  - 完整架构 ASCII 图
+  - 历史影响（BERT → GPT → ChatGPT → Claude）
+  - 数学小补丁（矩阵乘法 / softmax）
+- `references.bib`：2 条引用，cite-verify 5/5 PASS
+  - Vaswani et al. (2017) arXiv:1706.03762 ✓
+  - Ba et al. (2016) arXiv:1607.06450 ✓
+
+### KPI
+
+| 指标 | 之前 | 之后 |
+|---|---|---|
+| knowledge_nodes | 8 | **9** |
+| nodes_with_runnable_notebook | 6 | 6（Node09 notebook 下次做）|
+| cite-verify | 全 PASS | 全 PASS |
+| pytest | 93 | **93** |
+| broken_notebook_ratio | 0 | **0** |
+
+### 下次不同做
+
+1. **Node09 notebook**：按承诺，下次构建 transformer.ipynb
+   - 从零实现 Scaled Dot-Product Attention
+   - 从零实现 Multi-Head Attention
+   - 位置编码可视化
+   - 必须 `jupyter nbconvert --execute` 零错误
+2. **Node09 pytest**：notebook 完成后加 `tests/test_node09.py`
+
+<!-- meta: verdict:PASS score:8.5 test_delta:0 -->
+
+---
+
 ## Session 20260419-112933 — refresh_commit_counts grep 崩溃修复
 
 ### 背景
